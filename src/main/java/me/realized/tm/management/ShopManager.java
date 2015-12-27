@@ -97,7 +97,7 @@ public class ShopManager {
             }
 
             for (String k : config.getConfigurationSection(path + "items").getKeys(false)) {
-                path = path + "items." + k + ".";
+                path = "shops." + key + "." + "items." + k + ".";
 
                 int slot;
 
@@ -114,7 +114,7 @@ public class ShopManager {
                 }
 
                 ItemStack item;
-
+                
                 if (!config.isString(path + "displayed")) {
                     instance.warn("Failed to load slot '" + k + "' for shop '" + key + "': No displayed item found.");
                     continue;
