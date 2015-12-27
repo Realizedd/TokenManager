@@ -1,0 +1,23 @@
+name: TokenManager
+main: me.realized.tm.Core
+version: 1.7
+author: Realized
+description: A simple sub-economy plugin for your server.
+
+commands:
+   token:
+     description: Token management command.
+     aliases: [tokens]
+   tm:
+     description: TokenManager's administrative commands.
+     aliases: [tokenmanager]
+
+permissions:
+  tokenmanager.*:
+    description: Grants access to all TokenManager permissions.
+    children:
+      tokenmanager.use: true
+      tokenmanager.use.send: true
+      tokenmanager.use.top: true
+      tokenmanager.use.shop: true
+      tokenmanager.admin: true
