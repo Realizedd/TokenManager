@@ -114,7 +114,7 @@ public class ShopManager {
                 }
 
                 ItemStack item;
-                
+
                 if (!config.isString(path + "displayed")) {
                     instance.warn("Failed to load slot '" + k + "' for shop '" + key + "': No displayed item found.");
                     continue;

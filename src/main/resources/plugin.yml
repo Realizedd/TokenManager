@@ -1,6 +1,6 @@
 name: TokenManager
 main: me.realized.tm.Core
-version: 1.7
+version: 1.7.1
 author: Realized
 description: A simple sub-economy plugin for your server.
 
