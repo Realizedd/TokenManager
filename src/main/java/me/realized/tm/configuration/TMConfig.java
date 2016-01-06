@@ -26,8 +26,8 @@ public class TMConfig {
 
         FileConfiguration config = instance.getConfig();
 
-        if (config.isLong("default-balance")) {
-            defaultBalance = config.getLong("default-balance");
+        if (config.isInt("default-balance")) {
+            defaultBalance = config.getInt("default-balance");
         }
 
         if (config.isConfigurationSection("Messages")) {
