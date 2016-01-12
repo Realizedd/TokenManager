@@ -15,6 +15,6 @@ public class Reload extends SubCommand {
         shopManager.load();
         dataManager.load();
         config.load();
-        pm(sender, "&a&lReloaded!");
+        pm(sender, "&a&l[TM] Reloaded!");
     }
 }

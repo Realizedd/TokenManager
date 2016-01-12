@@ -2,6 +2,7 @@ package me.realized.tm.configuration;
 
 import me.realized.tm.Core;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
 import java.util.HashMap;
@@ -23,11 +24,15 @@ public class TMConfig {
     }
 
     public void load() {
-        if (!new File(instance.getDataFolder(), "config.yml").exists()) {
+        strings.clear();
+        stringLists.clear();
+
+        File file = new File(instance.getDataFolder(), "config.yml");
+        if (!file.exists()) {
             instance.saveResource("config.yml", true);
         }
 
-        FileConfiguration config = instance.getConfig();
+        FileConfiguration config = YamlConfiguration.loadConfiguration(file);
 
         if (config.isInt("default-balance")) {
             defaultBalance = config.getInt("default-balance");

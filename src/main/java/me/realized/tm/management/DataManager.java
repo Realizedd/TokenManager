@@ -128,7 +128,7 @@ public class DataManager {
                         String name = "";
                         String balance = "";
 
-                        if (data.length != 0) {
+                        if (data.length > 1) {
                             name = ProfileUtil.getName(UUID.fromString(data[0]));
                             balance = data[1];
                         }
