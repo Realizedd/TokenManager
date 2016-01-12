@@ -279,6 +279,11 @@ public class DataManager {
             } catch (InterruptedException | ExecutionException e) {
                 return false;
             }
+        } else {
+            if (!config.isInt("Players." + uuid)) {
+                config.set("Players." + uuid, instance.getTMConfig().getDefaultBalance());
+                saveLocalData();
+            }
         }
 
         return true;
@@ -354,7 +359,7 @@ public class DataManager {
     }
 
     public boolean set(UUID uuid, int amount) {
-        if (amount <= 0) {
+        if (amount < 0) {
             return false;
         }
 
