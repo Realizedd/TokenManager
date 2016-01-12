@@ -133,7 +133,9 @@ public class StringUtil {
     }
 
     public static String format(long seconds) {
-        if (seconds <= 0) return "updating...";
+        if (seconds <= 0) {
+            return "Updating...";
+        }
 
         long years = seconds / 31556952;
         seconds -= years * 31556952;

@@ -18,22 +18,21 @@ package me.realized.tm.utilities;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.ByteBuffer;
-import java.util.*;
-import java.util.concurrent.Callable;
-import java.util.concurrent.TimeUnit;
-import java.util.logging.Logger;
-import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 
 /**
  * All credit to evilmidget38! A small bit of cleanup for Java 8. This class can
@@ -191,26 +190,6 @@ public class UUIDFetcher implements Callable<Map<String, UUID>> {
         connection.setRequestProperty("Content-Type", "application/json");
         connection.setUseCaches(false);
         connection.setDoInput(true);
-        connection.setDoOutput(true);
-        return connection;
-    }
-
-    /**
-     * Creates a connection object for requesting a single profile name
-     *
-     * @since 0.1.0
-     * @version 0.1.0
-     *
-     * @param name The name to request
-     * @return The {@link HttpURLConnection} to Mojang's server
-     * @throws IOException If there is a problem opening the stream, a malformed
-     *                     URL, or if there is a ProtocolException
-     */
-    private static HttpURLConnection createSingleProfileConnection(String name) throws IOException {
-        URL url = new URL(String.format("https://api.mojang.com/users/profiles/minecraft/%s?at=0", name));
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setRequestMethod("GET");
-        connection.setUseCaches(false);
         connection.setDoOutput(true);
         return connection;
     }

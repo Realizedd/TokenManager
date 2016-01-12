@@ -1,5 +1,6 @@
 package me.realized.tm.utilities;
 
+import me.realized.tm.Core;
 import org.bukkit.Bukkit;
 
 import java.util.UUID;
@@ -8,7 +9,7 @@ public class ProfileUtil {
 
     @SuppressWarnings("deprecation")
     public static UUID getUniqueId(String username) {
-        if (Bukkit.getOnlineMode()) {
+        if (Bukkit.getOnlineMode() || Bukkit.spigot().getConfig().getBoolean("settings.bungeecord")) {
             if (Bukkit.getPlayerExact(username) != null) {
                 return Bukkit.getPlayerExact(username).getUniqueId();
             }
@@ -18,9 +19,18 @@ public class ProfileUtil {
             }
         }
 
+        UUIDMap.PlayerProfile profile = UUIDMap.get(username);
+
+        if (profile != null) {
+            return profile.getUUID();
+        }
+
         try {
-            return UUIDFetcher.getUUIDOf(username);
+            UUID uuid = UUIDFetcher.getUUIDOf(username);
+            UUIDMap.place(username, uuid);
+            return uuid;
         } catch (Exception e) {
+            System.out.println(e.getMessage());
             return null;
         }
     }
@@ -39,7 +49,8 @@ public class ProfileUtil {
         try {
             return NameFetcher.getNameOf(uuid);
         } catch (Exception e) {
-            return "failed to connect to mojang server";
+            Core.getInstance().warn("Failed to fetch username for " + uuid.toString() + ": " + e.getMessage());
+            return null;
         }
     }
 }

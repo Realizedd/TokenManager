@@ -1,15 +1,15 @@
 package me.realized.tm.commands.subcommands;
 
 import me.realized.tm.Core;
+import me.realized.tm.configuration.TMConfig;
 import me.realized.tm.management.DataManager;
 import me.realized.tm.management.ShopManager;
-import me.realized.tm.configuration.TMConfig;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
 public abstract class SubCommand {
 
-    private final String name;
+    private final String[] names;
     private final String usage;
     private final String permission;
     private final int minLength;
@@ -19,15 +19,15 @@ public abstract class SubCommand {
     protected transient final ShopManager shopManager = instance.getShopManager();
     protected transient final TMConfig config = instance.getTMConfig();
 
-    public SubCommand(String name, String usage, String permission, int minLength) {
-        this.name = name;
+    public SubCommand(String[] names, String usage, String permission, int minLength) {
+        this.names = names;
         this.usage = usage;
         this.permission = permission;
         this.minLength = minLength;
     }
 
-    public String getName() {
-        return name;
+    public String[] getNames() {
+        return names;
     }
 
     public String getUsage() {

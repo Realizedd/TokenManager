@@ -17,26 +17,25 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class ShopManager {
 
     private final Core instance;
     private final DataManager dataManager;
     private final TMConfig config;
-    private File file;
-    private List<TMShop> shops;
+    private final List<TMShop> shops = new ArrayList<>();
+    private final Map<UUID, Long> clicks = new WeakHashMap<>();
 
     public ShopManager(Core instance) {
         this.instance = instance;
         this.dataManager = instance.getDataManager();
         this.config = instance.getTMConfig();
-        file = new File(instance.getDataFolder(), "shops.yml");
-        shops = new ArrayList<>();
     }
 
     public void load() {
+        File file = new File(instance.getDataFolder(), "shops.yml");
+
         if (!file.exists()) {
             instance.saveResource("shops.yml", true);
             instance.info("Successfully generated file 'shops.yml'.");
@@ -230,10 +229,29 @@ public class ShopManager {
             return;
         }
 
+        int delay = config.getClickDelay();
+        long now = System.currentTimeMillis();
+
+        if (delay != 0 && clicks.get(player.getUniqueId()) != null) {
+            long lastClick = clicks.get(player.getUniqueId());
+            long remaining = lastClick + delay * 1000 - now;
+
+            if (remaining > 0) {
+                pm(player, config.getString("click-spamming").replace("%remaining%", StringUtil.format(remaining / 1000 + (remaining % 1000 > 0 ? 1 : 0))));
+                return;
+            } else {
+                clicks.remove(player.getUniqueId());
+            }
+
+            if (clicks.get(player.getUniqueId()) == null) {
+                clicks.put(player.getUniqueId(), now);
+            }
+        }
+
         int slot = event.getSlot();
         TMShop shop = getShop(top.getTitle());
         int price = shop.getPrice(slot);
-        long balance = dataManager.balance(player.getUniqueId());
+        int balance = dataManager.balance(player.getUniqueId());
 
         if (balance - price < 0) {
             pm(player, config.getString("not-enough-tokens").replace("%needed%", String.valueOf(price - balance)));
@@ -272,6 +290,10 @@ public class ShopManager {
             }
 
             player.openInventory(subShop.get());
+        }
+
+        if (clicks.get(player.getUniqueId()) == null) {
+            clicks.put(player.getUniqueId(), now);
         }
     }
 

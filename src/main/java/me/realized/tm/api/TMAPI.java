@@ -15,7 +15,7 @@ import java.util.UUID;
 
 public class TMAPI {
 
-    private static Core instance = Core.getInstance();
+    private static final Core instance = Core.getInstance();
 
     /**
      * @param player - Player to add tokens.

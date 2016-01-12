@@ -11,7 +11,10 @@ import java.util.Map;
 public class TMConfig {
 
     private final Core instance;
-    private long defaultBalance = 25;
+    private int defaultBalance = 25;
+    private int clickDelay = 0;
+    private boolean useDefault = false;
+    private String defaultShop = null;
     private Map<String, String> strings = new HashMap<>();
     private Map<String, List<String>> stringLists = new HashMap<>();
 
@@ -30,6 +33,18 @@ public class TMConfig {
             defaultBalance = config.getInt("default-balance");
         }
 
+        if (config.isBoolean("use-default.enabled")) {
+            useDefault = config.getBoolean("use-default.enabled");
+        }
+
+        if (config.isInt("click-delay")) {
+            clickDelay = config.getInt("click-delay");
+        }
+
+        if (config.isString("use-default.shop")) {
+            defaultShop = config.getString("use-default.shop");
+        }
+
         if (config.isConfigurationSection("Messages")) {
             for (String key : config.getConfigurationSection("Messages").getKeys(false)) {
                 String path = "Messages." + key;
@@ -42,8 +57,20 @@ public class TMConfig {
         }
     }
 
-    public long getDefaultBalance() {
+    public int getDefaultBalance() {
         return defaultBalance;
+    }
+
+    public String getDefaultShop() {
+        return defaultShop;
+    }
+
+    public boolean isDefaultEnabled() {
+        return useDefault;
+    }
+
+    public int getClickDelay() {
+        return clickDelay;
     }
 
     public String getString(String key) {

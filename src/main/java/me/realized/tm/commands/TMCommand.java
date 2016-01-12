@@ -3,6 +3,7 @@ package me.realized.tm.commands;
 import me.realized.tm.Core;
 import me.realized.tm.commands.subcommands.*;
 import me.realized.tm.configuration.TMConfig;
+import me.realized.tm.management.DataManager;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -15,12 +16,14 @@ import java.util.List;
 public class TMCommand implements CommandExecutor {
 
     private TMConfig config;
+    private DataManager dataManager;
     private List<SubCommand> subCommands;
 
     public TMCommand(Core instance) {
         config = instance.getTMConfig();
+        dataManager = instance.getDataManager();
         subCommands = new ArrayList<>();
-        subCommands.addAll(Arrays.asList(new Add(), new Open(), new Remove(), new Set()));
+        subCommands.addAll(Arrays.asList(new Add(), new Open(), new Remove(), new Set(), new Reload()));
     }
 
     private void pm(CommandSender sender, String txt) {
@@ -34,10 +37,16 @@ public class TMCommand implements CommandExecutor {
             return true;
         }
 
+        if (dataManager.hasSQLEnabled() && !dataManager.isConnected()) {
+            pm(sender, "&c&lCould not connect to the database. Please contact an administrator.");
+            return true;
+        }
+
         if (args.length == 0) {
             for (String st : config.getList("tm-help-page")) {
                 pm(sender, st);
             }
+
             return true;
         }
 
@@ -45,8 +54,10 @@ public class TMCommand implements CommandExecutor {
         for (SubCommand sub : subCommands) {
             boolean valid = false;
 
-            if (args[0].equalsIgnoreCase(sub.getName())) {
-                valid = true;
+            for (String alias : sub.getNames()) {
+                if (args[0].equalsIgnoreCase(alias)) {
+                    valid = true;
+                }
             }
 
             if (valid) {

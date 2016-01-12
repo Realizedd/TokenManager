@@ -6,154 +6,98 @@ import me.realized.tm.utilities.StringUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.Player;
 
 import java.io.File;
 import java.io.IOException;
 import java.sql.*;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.*;
 
 public class DataManager {
 
     private final Core instance;
     private final boolean sql;
-    private final ConcurrentHashMap<UUID, Long> data;
 
-    private File dataFile;
+    private File file;
     private FileConfiguration config;
     private Connection connection = null;
+    private boolean connected = false;
 
-    private List<String> topSaved;
-    private long lastUpdate;
+    private final List<String> topBalances = new ArrayList<>();
+    private long lastUpdate = -1L;
 
     public DataManager(Core instance, boolean sql) {
         this.instance = instance;
         this.sql = sql;
-        data = new ConcurrentHashMap<>();
-        topSaved = new ArrayList<>();
-        lastUpdate = -1L;
     }
 
     public boolean load() {
         long start = System.currentTimeMillis();
-        instance.info("Loading datas...");
+
+        instance.info("Data Storage: " + (sql ? "MySQL" : "Flatfile"));
 
         if (sql) {
             FileConfiguration config = instance.getConfig();
             String path = "mysql.";
-            String hostname = config.getString(path + "hostname");
+            String host = config.getString(path + "hostname");
             String port = config.getString(path + "port");
             String database = config.getString(path + "database");
-            String username = config.getString(path + "username");
+            String user = config.getString(path + "username");
             String password = config.getString(path + "password");
+            instance.info("Loaded credentials for SQL connection.");
 
             try {
-                connection = DriverManager.getConnection("jdbc:mysql://" + hostname + ":" + port + "/" + database, username, password);
-                Statement statement = connection.createStatement();
-                statement.execute("CREATE TABLE IF NOT EXISTS tokenmanager (uuid varchar(36) NOT NULL, tokens bigint(255) NOT NULL, PRIMARY KEY (uuid)) ENGINE=InnoDB DEFAULT CHARSET=latin1");
+                connection = DriverManager.getConnection("jdbc:mysql://" + host + ":" + port + "/" + database, user, password);
+                validateConnection(true);
 
-                ResultSet results = statement.executeQuery("SELECT * FROM tokenmanager");
-
-                while (results.next()) {
-                    String uuid = results.getString("uuid");
-
-                    if (uuid.split("-").length != 5) {
-                        continue;
-                    }
-
-                    long balance = results.getLong("tokens");
-                    data.put(UUID.fromString(uuid), balance);
+                try (Statement statement = connection.createStatement()) {
+                    statement.execute(Queries.TABLE.query());
+                    instance.info("Table check done.");
                 }
 
                 long end = System.currentTimeMillis();
-
-                instance.info("Loaded " + data.size() + " balances from the database, took " + (end - start) + "ms.");
+                instance.info("Connection to the database was successful! (Took " + (end - start) + "ms)");
                 return true;
             } catch (SQLException e) {
-                instance.warn("A SQL error caught while trying to connect to the database. Error:" + e.getMessage());
-                instance.warn("Connection to the database has failed, disabling...");
+                validateConnection(false);
+                instance.warn("SQL error caught while executing query! (" + e.getMessage() + ")");
                 return false;
             }
         } else {
-            dataFile = new File(instance.getDataFolder(), "data.yml");
+            file = new File(instance.getDataFolder(), "data.yml");
 
             try {
-                dataFile.createNewFile();
+                file.createNewFile();
+                instance.info("Generated local data file!");
             } catch (IOException e) {
-                instance.warn("An IO exception caught while trying to load from flatfile. (data.yml) Error: " + e.getMessage());
-                instance.warn("Flatfile data load was failed, disabling...");
+                instance.warn("An IO exception caught while generating file! (" + e.getMessage() + ")");
                 return false;
             }
 
-            config = YamlConfiguration.loadConfiguration(dataFile);
-
-            if (config.isConfigurationSection("Players")) {
-                for (String key : config.getConfigurationSection("Players").getKeys(false)) {
-                    UUID uuid = UUID.fromString(key);
-                    long balance = config.getLong("Players." + key);
-                    data.put(uuid, balance);
-                }
-            }
-
+            config = YamlConfiguration.loadConfiguration(file);
             long end = System.currentTimeMillis();
 
-            instance.info("Loaded " + data.size() + " balances from the flatfile storage, took " + (end - start) + "ms.");
+            instance.info("Loaded flatfile storage! (Took " + (end - start) + "ms)");
             return true;
         }
     }
 
-    public void save(boolean silent) {
-        long start = System.currentTimeMillis();
-
-        if (!silent) {
-            instance.info("Saving datas...");
-        }
-
-        if (!sql) {
-            try {
-                config.set("Players", null);
-
-                if (!data.isEmpty()) {
-                    for (UUID key : data.keySet()) {
-                        config.set("Players." + key.toString(), data.get(key));
-                    }
-                }
-
-                config.save(dataFile);
-            } catch (IOException e) {
-                instance.warn("An IO exception caught while trying to save to flatfile. (data.yml) Error: " + e.getMessage());
-                return;
+    public void close() {
+        try {
+            if (connection != null && connection.isValid(5)) {
+                connection.close();
             }
-        } else {
-            if (!Bukkit.getOnlinePlayers().isEmpty()) {
-                for (Player all : Bukkit.getOnlinePlayers()) {
-                    if (hasLoadedData(all.getUniqueId())) {
-                        saveData(all.getUniqueId(), false);
-                    }
-                }
-            }
-        }
-
-        long end = System.currentTimeMillis();
-
-        if (!silent) {
-            instance.info("Saved " + data.size() + " balances to the database, took " + (end - start) + "ms.");
+        } catch (SQLException e) {
+            validateConnection(false);
+            instance.warn("SQL error caught while executing SQL query! (" + e.getMessage() + ")");
         }
     }
 
-    public void initializeAutoSave() {
-        if (!sql) {
-            Bukkit.getScheduler().runTaskTimerAsynchronously(instance, new Runnable() {
-                @Override
-                public void run() {
-                    save(true);
-                }
-            }, 0L, 20L * 60L * 5);
+    public void loadTopBalances() {
+        if (hasSQLEnabled() && !isConnected()) {
+            return;
         }
-    }
 
-    public void loadTopAutomatically() {
         Bukkit.getScheduler().runTaskTimerAsynchronously(instance, new Runnable() {
             @Override
             public void run() {
@@ -164,11 +108,7 @@ public class DataManager {
                 }
 
                 if (now - lastUpdate < 900000) {
-                    List<String> datas = new ArrayList<>();
-
-                    for (Map.Entry<UUID, Long> entry : data.entrySet()) {
-                        datas.add(entry.getKey() + ":" + entry.getValue());
-                    }
+                    List<String> datas = sql ? getSQLData() : getLocalData();
 
                     Collections.sort(datas, new Comparator<String>() {
                         @Override
@@ -177,7 +117,7 @@ public class DataManager {
                         }
                     });
 
-                    topSaved.clear();
+                    topBalances.clear();
 
                     for (int i = 0; i < 10; i++) {
                         if (i < 0 || i >= datas.size()) {
@@ -185,13 +125,15 @@ public class DataManager {
                         }
 
                         String[] data = datas.get(i).split(":");
+                        String name = "";
+                        String balance = "";
 
-                        if (data.length == 0) {
-                            continue;
+                        if (data.length != 0) {
+                            name = ProfileUtil.getName(UUID.fromString(data[0]));
+                            balance = data[1];
                         }
 
-                        String name = ProfileUtil.getName(UUID.fromString(data[0]));
-                        topSaved.add(String.valueOf(i + 1) + ":" + name + ":" + data[1]);
+                        topBalances.add(String.valueOf(i + 1) + ":" + name + ":" + balance);
                     }
 
                     lastUpdate = System.currentTimeMillis();
@@ -200,144 +142,279 @@ public class DataManager {
         }, 0L, 20L * 60L * 15);
     }
 
-    public void loadData(final UUID uuid) {
-        if (sql) {
-            if (!isConnected()) {
-                instance.warn("SQL was enabled in config, but connection failed to the database! Failed to load " + uuid + "'s data.");
-                instance.warn("Disabling due to no connection to the database. Please disable SQL in the config or establish the connection.");
-                instance.getPluginLoader().disablePlugin(instance);
-                return;
+    private List<String> getLocalData() {
+        List<String> result = new ArrayList<>();
+
+        if (config.isConfigurationSection("Players")) {
+            for (String key : config.getConfigurationSection("Players").getKeys(false)) {
+                result.add(key + ":" + config.getInt("Players." + key));
             }
+        }
 
-            Bukkit.getScheduler().runTaskAsynchronously(instance, new Runnable() {
+        if (result.isEmpty()) {
+            result.add("&cNo data found.");
+        }
+
+        return result;
+    }
+
+    private List<String> getSQLData() {
+        ExecutorService executor = Executors.newFixedThreadPool(1);
+        final Future<List<String>> future = executor.submit(new Callable<List<String>>() {
+            @Override
+            public List<String> call() throws Exception {
+                List<String> result = new ArrayList<>();
+
+                try (Statement statement = connection.createStatement(); ResultSet results = statement.executeQuery(Queries.GET_ALL.query())) {
+                    while (results.next()) {
+                        result.add(results.getString("uuid") + ":" + results.getLong("tokens"));
+                    }
+
+                    return result;
+                } catch (SQLException e) {
+                    result.add("&cFailed to load data!");
+                    validateConnection(false);
+                    instance.warn("SQL error caught while executing SQL query! (" + e.getMessage() + ")");
+                    return result;
+                }
+            }
+        });
+
+        executor.shutdown();
+
+        try {
+            return future.get();
+        } catch (InterruptedException | ExecutionException e) {
+            return Collections.singletonList("&cFailed to load data!");
+        }
+    }
+
+    private boolean saveLocalData() {
+        if (!sql) {
+            try {
+                config.save(file);
+                return true;
+            } catch (IOException e) {
+                instance.warn("An IO exception caught while generating file! (" + e.getMessage() + ")");
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public boolean hasSQLEnabled() {
+        return sql;
+    }
+
+    public boolean isConnected() {
+        return connected;
+    }
+
+    private void validateConnection(boolean val) {
+        this.connected = val;
+    }
+
+    public int balance(final UUID uuid) {
+        if (sql) {
+            ExecutorService executor = Executors.newFixedThreadPool(1);
+
+            final Future<Integer> future = executor.submit(new Callable<Integer>() {
                 @Override
-                public void run() {
-                    try {
-                        Statement statement = connection.createStatement();
-                        ResultSet result = statement.executeQuery("SELECT * FROM tokenmanager WHERE uuid=\"" + uuid.toString() + "\"");
-
+                public Integer call() throws Exception {
+                    try (Statement statement = connection.createStatement(); ResultSet result = statement.executeQuery(Queries.GET.query(uuid.toString()))) {
                         if (!result.isBeforeFirst()) {
-                            statement.execute("INSERT INTO tokenmanager (uuid, tokens) VALUES (\"" + uuid.toString() + "\", " + instance.getTMConfig().getDefaultBalance() + ")");
-                            data.put(uuid, instance.getTMConfig().getDefaultBalance());
-                            return;
+                            return 0;
                         }
+
+                        int balance = 0;
 
                         while (result.next()) {
-                            long balance = result.getLong("tokens");
-                            data.put(uuid, balance);
+                            balance = (int) result.getLong("tokens");
                         }
+
+                        return balance;
                     } catch (SQLException e) {
-                        instance.warn("SQL was enabled in config, but connection failed to the database! Failed to load " + uuid + "'s data.");
-                        instance.warn("A SQL error caught while executing SQL query. Error:" + e.getMessage());
+                        validateConnection(false);
+                        instance.warn("SQL error caught while executing SQL query! (" + e.getMessage() + ")");
+                        return 0;
                     }
                 }
             });
-        } else {
-            if (data.get(uuid) == null) {
-                data.put(uuid, instance.getTMConfig().getDefaultBalance());
+
+            executor.shutdown();
+
+            try {
+                return future.get();
+            } catch (InterruptedException | ExecutionException e) {
+                return 0;
             }
+
+        } else {
+            return config.isInt("Players." + uuid) ? config.getInt("Players." + uuid) : 0;
         }
     }
 
-    public void saveData(final UUID uuid, boolean async) {
-        final long balance = balance(uuid);
-
+    public boolean generate(final UUID uuid) {
         if (sql) {
-            if (!isConnected()) {
-                instance.warn("SQL was enabled in config, but connection failed to the database! Failed to save " + uuid + "'s data.");
-                instance.warn("Disabling due to no connection to the database. Please disable SQL in the config or establish the connection.");
-                instance.getPluginLoader().disablePlugin(instance);
-                return;
-            }
+            ExecutorService executor = Executors.newFixedThreadPool(1);
 
-            if (async) {
-                Bukkit.getScheduler().runTaskAsynchronously(instance, new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            Statement statement = connection.createStatement();
-                            statement.execute("UPDATE tokenmanager SET tokens=" + balance + " WHERE uuid=\"" + uuid.toString() + "\"");
-                        } catch (SQLException e) {
-                            instance.warn("SQL was enabled in config, but connection failed to the database! Failed to save " + uuid + "'s data.");
-                            instance.warn("A SQL error caught while executing SQL query. Error:" + e.getMessage());
-                        }
+            final Future<Boolean> future = executor.submit(new Callable<Boolean>() {
+                @Override
+                public Boolean call() throws Exception {
+                    try (Statement statement = connection.createStatement(); ResultSet result = statement.executeQuery(Queries.GET.query(uuid.toString()))) {
+                        return !result.isBeforeFirst() && statement.execute(Queries.GENERATE.query(uuid.toString(), String.valueOf(instance.getTMConfig().getDefaultBalance())));
+                    } catch (SQLException e) {
+                        validateConnection(false);
+                        instance.warn("SQL error caught while executing SQL query! (" + e.getMessage() + ")");
+                        return false;
                     }
-                });
-
-                data.remove(uuid);
-            } else {
-                try {
-                    Statement statement = connection.createStatement();
-                    statement.execute("UPDATE tokenmanager SET tokens=" + balance + " WHERE uuid=\"" + uuid.toString() + "\"");
-                } catch (SQLException e) {
-                    instance.warn("SQL was enabled in config, but connection failed to the database! Failed to save " + uuid + "'s data.");
-                    instance.warn("A SQL error caught while executing SQL query. Error:" + e.getMessage());
                 }
+            });
+
+            executor.shutdown();
+
+            try {
+                return future.get();
+            } catch (InterruptedException | ExecutionException e) {
+                return false;
             }
-        } else {
-            save(true);
         }
+
+        return true;
     }
 
-    public boolean hasLoadedData(UUID uuid) {
-        return data.get(uuid) != null;
-    }
-
-    // Might have a better option.
-    private boolean isConnected() {
-        try {
-            return connection.isValid(5);
-        } catch (SQLException e) {
+    public boolean add(UUID uuid, int amount) {
+        if (amount <= 0) {
             return false;
         }
-    }
 
-    public long balance(UUID uuid) {
-        return data.get(uuid) != null ? data.get(uuid) : 0;
-    }
+        if (sql) {
+            try (Statement statement = connection.createStatement(); ResultSet result = statement.executeQuery(Queries.GET.query(uuid.toString()))) {
 
-    public void add(UUID uuid, long amount) {
-        if (amount < 0) {
-            return;
-        }
+                if (!result.isBeforeFirst()) {
+                    return false;
+                }
 
-        if (data.get(uuid) != null) {
-            long current = data.get(uuid);
-            data.put(uuid, current + amount);
-        }
-    }
+                int balance = 0;
 
-    public void remove(UUID uuid, long amount) {
-        if (amount < 0) {
-            return;
-        }
+                while (result.next()) {
+                    balance = (int) result.getLong("tokens");
+                }
 
-        if (data.get(uuid) != null) {
-            long current = data.get(uuid);
-
-            if (current - amount >= 0) {
-                data.put(uuid, current - amount);
+                statement.execute(Queries.SET.query(String.valueOf(balance + amount), uuid.toString()));
+                return true;
+            } catch (SQLException e) {
+                validateConnection(false);
+                instance.warn("SQL error caught while executing SQL query! (" + e.getMessage() + ")");
+                return false;
             }
+        } else {
+            int balance = config.isInt("Players." + uuid) ? config.getInt("Players." + uuid) : 0;
+            config.set("Players." + uuid, balance + amount);
+            saveLocalData();
+            return true;
         }
     }
 
-    public void set(UUID uuid, long amount) {
-        if (amount < 0) {
-            return;
+    public boolean remove(UUID uuid, int amount) {
+        if (amount <= 0) {
+            return false;
         }
 
-        data.put(uuid, amount);
+        if (sql) {
+            try (Statement statement = connection.createStatement(); ResultSet result = statement.executeQuery(Queries.GET.query(uuid.toString()))) {
+                if (!result.isBeforeFirst()) {
+                    return false;
+                }
+
+                int balance = 0;
+
+                while (result.next()) {
+                    balance = (int) result.getLong("tokens");
+                }
+
+                if (balance - amount <= 0) {
+                    return false;
+                }
+
+                statement.execute(Queries.SET.query(String.valueOf(balance - amount), uuid.toString()));
+                return true;
+            } catch (SQLException e) {
+                validateConnection(false);
+                instance.warn("SQL error caught while executing SQL query! (" + e.getMessage() + ")");
+                return false;
+            }
+        } else {
+            int balance = config.isInt("Players." + uuid) ? config.getInt("Players." + uuid) : 0;
+            config.set("Players." + uuid, balance - amount);
+            saveLocalData();
+            return true;
+        }
+    }
+
+    public boolean set(UUID uuid, int amount) {
+        if (amount <= 0) {
+            return false;
+        }
+
+        if (sql) {
+            try (Statement statement = connection.createStatement(); ResultSet result = statement.executeQuery(Queries.GET.query(uuid.toString()))) {
+
+                if (!result.isBeforeFirst()) {
+                    return false;
+                }
+
+                statement.execute(Queries.SET.query(String.valueOf(amount), uuid.toString()));
+                return true;
+            } catch (SQLException e) {
+                validateConnection(false);
+                instance.warn("SQL error caught while executing SQL query! (" + e.getMessage() + ")");
+                return false;
+            }
+        } else {
+            config.set("Players." + uuid, amount);
+            saveLocalData();
+            return true;
+        }
     }
 
     public int size() {
-        return data.size();
+        return sql ? getSQLData().size() : getLocalData().size();
     }
 
     public List<String> getTopBalances() {
-        return topSaved;
+        return topBalances;
     }
 
     public String getNextUpdate() {
         return StringUtil.format((lastUpdate + 900000 - System.currentTimeMillis()) / 1000);
+    }
+
+    private enum Queries {
+
+        TABLE("CREATE TABLE IF NOT EXISTS tokenmanager (uuid varchar(36) NOT NULL, tokens bigint(255) NOT NULL, PRIMARY KEY (uuid)) ENGINE=InnoDB DEFAULT CHARSET=latin1"),
+        GENERATE("INSERT INTO tokenmanager (uuid, tokens) VALUES (\"{0}\", {1})"),
+        GET_ALL("SELECT * FROM tokenmanager"),
+        GET("SELECT * FROM tokenmanager WHERE uuid=\"{0}\""),
+        SET("UPDATE tokenmanager SET tokens={0} WHERE uuid=\"{1}\"");
+
+        private final String query;
+
+        Queries(String query) {
+            this.query = query;
+        }
+
+        public String query() {
+            return query;
+        }
+
+        public String query(String a) {
+            return query.replace("{0}", a);
+        }
+
+        public String query(String a, String a1) {
+            return query.replace("{0}", a).replace("{1}", a1);
+        }
     }
 }

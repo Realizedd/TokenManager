@@ -9,11 +9,11 @@ import java.util.UUID;
 public class Balance extends SubCommand {
 
     public Balance() {
-        super("balance", "balance", "use", 1);
+        super(new String[] {"balance", "bal", "money"}, "balance", "use", 1);
     }
 
     @Override
-    public void run(CommandSender sender, String[] args) {
+    public void run(final CommandSender sender, final String[] args) {
         if (args.length == getMinLength()) {
             if (!(sender instanceof Player)) {
                 pm(sender, "&cCONSOLE does not have any tokens! :(");
@@ -21,7 +21,6 @@ public class Balance extends SubCommand {
             }
 
             Player player = (Player) sender;
-
             String balance = String.valueOf(dataManager.balance(player.getUniqueId()));
             pm(player, config.getString("balance").replace("%tokens%", balance));
             return;
@@ -30,7 +29,7 @@ public class Balance extends SubCommand {
         if (args.length > getMinLength()) {
             UUID target = ProfileUtil.getUniqueId(args[1]);
 
-            if (target == null || !dataManager.hasLoadedData(target)) {
+            if (target == null) {
                 pm(sender, config.getString("invalid-player").replace("%input%", args[1]));
                 return;
             }

@@ -17,7 +17,7 @@ public class Core extends JavaPlugin {
     private static final Logger LOGGER = Bukkit.getLogger();
 
     private TMConfig config;
-    private ShopManager shopManager;
+    private ShopManager shopManager = null;
     private DataManager dataManager;
 
     @Override
@@ -30,12 +30,12 @@ public class Core extends JavaPlugin {
         dataManager = new DataManager(this, getConfig().getBoolean("mysql.enabled"));
 
         if (!dataManager.load()) {
+            instance.info("Data Manager has failed to load, disabling plugin.");
             getPluginLoader().disablePlugin(this);
             return;
         }
 
-        dataManager.initializeAutoSave();
-        dataManager.loadTopAutomatically();
+        dataManager.loadTopBalances();
 
         shopManager = new ShopManager(this);
         shopManager.load();
@@ -47,8 +47,10 @@ public class Core extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        dataManager.save(false);
-        shopManager.closeShops();
+        if (shopManager != null) {
+            dataManager.close();
+            shopManager.closeShops();
+        }
     }
 
     public void warn(String message) {

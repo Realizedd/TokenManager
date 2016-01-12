@@ -38,8 +38,8 @@ public class TokenCommand implements CommandExecutor {
             return true;
         }
 
-        if (sender instanceof Player && !dataManager.hasLoadedData(((Player) sender).getUniqueId())) {
-            pm(sender, "&c&lPlease wait for your data to load. If it doesn't load for a while, try re-logging.");
+        if (dataManager.hasSQLEnabled() && !dataManager.isConnected()) {
+            pm(sender, "&c&lCould not connect to the database. Please contact an administrator.");
             return true;
         }
 
@@ -54,8 +54,10 @@ public class TokenCommand implements CommandExecutor {
         for (SubCommand sub : subCommands) {
             boolean valid = false;
 
-            if (args[0].equalsIgnoreCase(sub.getName())) {
-                valid = true;
+            for (String alias : sub.getNames()) {
+                if (args[0].equalsIgnoreCase(alias)) {
+                    valid = true;
+                }
             }
 
             if (valid) {
@@ -64,7 +66,7 @@ public class TokenCommand implements CommandExecutor {
                     return true;
                 }
 
-                if (args.length < sub.getMinLength()) {
+                if (args.length < sub.getMinLength() && (!config.isDefaultEnabled() || args[0].equalsIgnoreCase("shop"))) {
                     pm(sender, config.getString("sub-command-usage").replace("%usage%", sub.getUsage()).replace("%command%", command.getName()));
                     return true;
                 }

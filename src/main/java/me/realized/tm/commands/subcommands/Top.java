@@ -7,7 +7,7 @@ import java.util.List;
 public class Top extends SubCommand {
 
     public Top() {
-        super("top", "top", "use.top", 1);
+        super(new String[]{"top"}, "top", "use.top", 1);
     }
 
     @Override
@@ -18,21 +18,16 @@ public class Top extends SubCommand {
         List<String> top = dataManager.getTopBalances();
 
         pm(sender, config.getString("top-header").replace("%id%", "1").replace("%total%", String.valueOf(top.size())));
+        for (String s : top) {
+            String[] data = s.split(":");
 
-        if (!top.isEmpty()) {
-            for (String s : top) {
-                String[] data = s.split(":");
-
-                if (data.length == 0) {
-                    continue;
-                }
-
-                String format = config.getString("top-format");
-                format = format.replace("%rank%", data[0]).replace("%name%", data[1]).replace("%tokens%", data[2]);
-                pm(sender, format);
+            if (data.length == 0) {
+                continue;
             }
-        } else {
-            pm(sender, config.getString("no-data"));
+
+            String format = config.getString("top-format");
+            format = format.replace("%rank%", data[0]).replace("%name%", data[1]).replace("%tokens%", data[2]);
+            pm(sender, format);
         }
 
         pm(sender, config.getString("top-footer"));

@@ -7,26 +7,20 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
 
 public class PlayerListener implements Listener {
 
     private ShopManager shopManager;
     private DataManager dataManager;
 
-    public PlayerListener(Core c) {
-        shopManager = c.getShopManager();
-        dataManager = c.getDataManager();
+    public PlayerListener(Core instance) {
+        shopManager = instance.getShopManager();
+        dataManager = instance.getDataManager();
     }
 
     @EventHandler
     public void onJoin(PlayerJoinEvent e) {
-        dataManager.loadData(e.getPlayer().getUniqueId());
-    }
-
-    @EventHandler
-    public void onQuit(PlayerQuitEvent e) {
-        dataManager.saveData(e.getPlayer().getUniqueId(), true);
+        dataManager.generate(e.getPlayer().getUniqueId());
     }
 
     @EventHandler(ignoreCancelled = true)

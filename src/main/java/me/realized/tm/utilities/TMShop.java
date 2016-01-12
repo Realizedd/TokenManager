@@ -51,20 +51,12 @@ public class TMShop {
         return price.containsKey(slot) ? price.get(slot) : 0;
     }
 
-    public boolean hasPrice(int slot) {
-        return price.containsKey(slot);
-    }
-
     public void setPrice(int slot, int amount) {
         price.put(slot, amount);
     }
 
     public String getSubShop(int slot) {
         return subShops.get(slot);
-    }
-
-    public boolean hasSubShop(int slot) {
-        return subShops.containsKey(slot);
     }
 
     public void setSubShop(int slot, String name) {

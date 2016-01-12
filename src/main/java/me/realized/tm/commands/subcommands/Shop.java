@@ -7,7 +7,7 @@ import org.bukkit.entity.Player;
 public class Shop extends SubCommand {
 
     public Shop() {
-        super("shop", "shop <name>", "use.shop", 2);
+        super(new String[] {"shop"}, "shop <name>", "use.shop", 2);
     }
 
     @Override
@@ -17,8 +17,23 @@ public class Shop extends SubCommand {
             return;
         }
 
+        Player player = (Player) sender;
+
+        if (config.isDefaultEnabled()) {
+            String name = config.getDefaultShop();
+
+            if (!shopManager.isShop(name)) {
+                pm(player, config.getString("invalid-shop").replace("%input%", name));
+                return;
+            }
+
+            TMShop shop = shopManager.getShop(name);
+
+            player.openInventory(shop.get());
+            return;
+        }
+
         if (args.length >= getMinLength()) {
-            Player player = (Player) sender;
             String name = args[1].toLowerCase();
 
             if (!shopManager.isShop(name)) {

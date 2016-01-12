@@ -11,6 +11,18 @@ mysql:
   password: password
   database: yourdatabase
 
+# If enabled, when the command /token shop is executed, it will open the configured shop to player
+# instead of displaying the usage.
+# Also disables opening a shop by name, means typing '/token shop awesomeshop'
+# will still open the default shop set below.
+use-default:
+  enabled: false
+  shop: test
+
+# Set a delay between clicking on shop items. Set to 0 for no delay.
+# Prevents players clicking fast, improving server's performance.
+click-delay: 0
+
 # Edit messages displayed in-game here.
 Messages:
   # Displayed when user is not authorized for certain action.
@@ -49,6 +61,11 @@ Messages:
   # No placeholders available
   no-data: '&cNot enough data found to display the top token balances.'
 
+  # Displayed when user is still on a click cooldown.
+  # Possible placeholder(s):
+  # %remaining% - Gets the cooldown remaining for the next purchase.
+  click-spamming: '&cYou''re clicking too fast! Try with a little delay. (%remaining%)'
+
   # Displayed when user performs the command: /token
   # Possible placeholder(s):
   # %tokens% - Gets the command sender's token balance.
@@ -71,6 +88,7 @@ Messages:
   - '&b/tm remove &9<&busername&9> <&bamount&9> &8» &7Remove tokens from player.'
   - '&b/tm set &9<&busername&9> <&bamount&9> &8» &7Set tokens of a player.'
   - '&b/tm open &9<&busername&9> &9<&bname&9> &8» &7Open a shop for player.'
+  - '&b/tm reload &8» &7Reloads the plugin.'
   - '&8&m*]---------------------------------[*&r'
 
   # Displayed when user performs a certain sub command but the length of the arguments is smaller than minimum length of the sub command.
