@@ -169,7 +169,7 @@ public class ShopManager {
         instance.info("Loaded " + shops.size() + " shops.");
     }
 
-    public void closeShops() {
+    public void close() {
         if (!Bukkit.getOnlinePlayers().isEmpty()) {
             for (Player all : Bukkit.getOnlinePlayers()) {
                 Inventory top = all.getOpenInventory().getTopInventory();
@@ -258,7 +258,12 @@ public class ShopManager {
             return;
         }
 
-        dataManager.remove(player.getUniqueId(), price);
+        boolean success = dataManager.remove(player.getUniqueId(), price);
+
+        if (!success) {
+            pm(player, "&cOperation (remove) went wrong! Please contact an administrator.");
+            return;
+        }
 
         if (!shop.getCommands(slot).isEmpty()) {
             for (String command : shop.getCommands(slot)) {

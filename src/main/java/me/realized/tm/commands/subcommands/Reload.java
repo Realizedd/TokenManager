@@ -10,11 +10,11 @@ public class Reload extends SubCommand {
 
     @Override
     public void run(CommandSender sender, String[] args) {
-        shopManager.closeShops();
+        config.load();
+        shopManager.close();
         dataManager.close();
         shopManager.load();
         dataManager.load();
-        config.load();
         pm(sender, "&a&l[TM] Reloaded!");
     }
 }

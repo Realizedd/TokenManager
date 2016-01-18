@@ -14,7 +14,7 @@ import java.util.logging.Logger;
 public class Core extends JavaPlugin {
 
     private static Core instance = null;
-    private static final Logger LOGGER = Bukkit.getLogger();
+    private static final Logger logger = Bukkit.getLogger();
 
     private TMConfig config;
     private ShopManager shopManager = null;
@@ -27,10 +27,10 @@ public class Core extends JavaPlugin {
         config = new TMConfig(this);
         config.load();
 
-        dataManager = new DataManager(this, getConfig().getBoolean("mysql.enabled"));
+        dataManager = new DataManager(this);
 
         if (!dataManager.load()) {
-            instance.info("Data Manager has failed to load, disabling plugin.");
+            instance.info("DataManager has failed to load, disabling.");
             getPluginLoader().disablePlugin(this);
             return;
         }
@@ -48,17 +48,17 @@ public class Core extends JavaPlugin {
     @Override
     public void onDisable() {
         if (shopManager != null) {
+            shopManager.close();
             dataManager.close();
-            shopManager.closeShops();
         }
     }
 
     public void warn(String message) {
-        LOGGER.warning("[TokenManager] " + message);
+        logger.warning("[TokenManager] " + message);
     }
 
     public void info(String message) {
-        LOGGER.info("[TokenManager] " + message);
+        logger.info("[TokenManager] " + message);
     }
 
     public TMConfig getTMConfig() {

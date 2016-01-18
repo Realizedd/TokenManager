@@ -6,7 +6,7 @@ import java.util.UUID;
 
 public class UUIDMap {
 
-    private static Map<String, PlayerProfile> uuids = new HashMap<>();
+    private static final Map<String, PlayerProfile> uuids = new HashMap<>();
 
     protected static void place(String name, UUID uuid) {
         uuids.put(name, new PlayerProfile(System.currentTimeMillis(), uuid));

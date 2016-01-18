@@ -16,8 +16,8 @@ public class TMConfig {
     private int clickDelay = 0;
     private boolean useDefault = false;
     private String defaultShop = null;
-    private Map<String, String> strings = new HashMap<>();
-    private Map<String, List<String>> stringLists = new HashMap<>();
+    private final Map<String, String> strings = new HashMap<>();
+    private final Map<String, List<String>> stringLists = new HashMap<>();
 
     public TMConfig(Core instance) {
         this.instance = instance;

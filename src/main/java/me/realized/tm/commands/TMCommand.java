@@ -15,9 +15,9 @@ import java.util.List;
 
 public class TMCommand implements CommandExecutor {
 
-    private TMConfig config;
-    private DataManager dataManager;
-    private List<SubCommand> subCommands;
+    private final TMConfig config;
+    private final DataManager dataManager;
+    private final List<SubCommand> subCommands;
 
     public TMCommand(Core instance) {
         config = instance.getTMConfig();

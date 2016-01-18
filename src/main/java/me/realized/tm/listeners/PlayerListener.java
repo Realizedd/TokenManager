@@ -10,8 +10,8 @@ import org.bukkit.event.player.PlayerJoinEvent;
 
 public class PlayerListener implements Listener {
 
-    private ShopManager shopManager;
-    private DataManager dataManager;
+    private final ShopManager shopManager;
+    private final DataManager dataManager;
 
     public PlayerListener(Core instance) {
         shopManager = instance.getShopManager();

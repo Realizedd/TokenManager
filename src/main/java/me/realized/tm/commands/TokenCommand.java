@@ -16,9 +16,9 @@ import java.util.List;
 
 public class TokenCommand implements CommandExecutor {
 
-    private TMConfig config;
-    private DataManager dataManager;
-    private List<SubCommand> subCommands;
+    private final TMConfig config;
+    private final DataManager dataManager;
+    private final List<SubCommand> subCommands;
 
     public TokenCommand(Core instance) {
         config = instance.getTMConfig();

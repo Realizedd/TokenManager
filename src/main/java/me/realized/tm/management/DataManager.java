@@ -16,34 +16,38 @@ import java.util.concurrent.*;
 public class DataManager {
 
     private final Core instance;
-    private final boolean sql;
+    private boolean sql = false;
 
     private File file;
     private FileConfiguration config;
     private Connection connection = null;
-    private boolean connected = false;
+    private boolean connected;
 
     private final List<String> topBalances = new ArrayList<>();
     private long lastUpdate = -1L;
 
-    public DataManager(Core instance, boolean sql) {
+    public DataManager(Core instance) {
         this.instance = instance;
-        this.sql = sql;
     }
 
     public boolean load() {
         long start = System.currentTimeMillis();
 
+        FileConfiguration localConfig = instance.getConfig();
+        String path = "mysql.";
+
+        if (localConfig.isBoolean(path + "enabled")) {
+            sql = localConfig.getBoolean(path + "enabled");
+        }
+
         instance.info("Data Storage: " + (sql ? "MySQL" : "Flatfile"));
 
         if (sql) {
-            FileConfiguration config = instance.getConfig();
-            String path = "mysql.";
-            String host = config.getString(path + "hostname");
-            String port = config.getString(path + "port");
-            String database = config.getString(path + "database");
-            String user = config.getString(path + "username");
-            String password = config.getString(path + "password");
+            String host = localConfig.getString(path + "hostname");
+            String port = localConfig.getString(path + "port");
+            String database = localConfig.getString(path + "database");
+            String user = localConfig.getString(path + "username");
+            String password = localConfig.getString(path + "password");
             instance.info("Loaded credentials for SQL connection.");
 
             try {
@@ -339,7 +343,7 @@ public class DataManager {
                     balance = (int) result.getLong("tokens");
                 }
 
-                if (balance - amount <= 0) {
+                if (balance - amount < 0) {
                     return false;
                 }
 

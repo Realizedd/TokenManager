@@ -11,10 +11,10 @@ import java.util.Map;
 
 public class TMShop {
 
-    private String name;
-    private Inventory shop;
-    private boolean autoClose;
-    private boolean permission;
+    private final String name;
+    private final Inventory shop;
+    private final boolean autoClose;
+    private final boolean permission;
     private Map<Integer, Integer> price = new HashMap<>();
     private Map<Integer, List<String>> commands = new HashMap<>();
     private Map<Integer, String> messages = new HashMap<>();
@@ -40,19 +40,11 @@ public class TMShop {
     }
 
     public List<String> getCommands(int slot) {
-        return commands.containsKey(slot) ? commands.get(slot) : new ArrayList<String>();
-    }
-
-    public void setCommands(int slot, List<String> cmds) {
-        commands.put(slot, cmds);
+        return commands.get(slot) != null ? commands.get(slot) : new ArrayList<String>();
     }
 
     public int getPrice(int slot) {
-        return price.containsKey(slot) ? price.get(slot) : 0;
-    }
-
-    public void setPrice(int slot, int amount) {
-        price.put(slot, amount);
+        return price.get(slot) != null ? price.get(slot) : 0;
     }
 
     public String getSubShop(int slot) {
@@ -63,12 +55,8 @@ public class TMShop {
         subShops.put(slot, name);
     }
 
-    public boolean hasMessage(int slot) {
-        return messages.containsKey(slot);
-    }
-
     public String getMessage(int slot) {
-        return hasMessage(slot) ? messages.get(slot) : null;
+        return messages.get(slot);
     }
 
     public void setMessage(int slot, String message) {
@@ -77,8 +65,8 @@ public class TMShop {
 
     public void setItem(int slot, ItemStack item, int price, List<String> cmds) {
         shop.setItem(slot, item);
-        setPrice(slot, price);
-        setCommands(slot, cmds);
+        this.price.put(slot, price);
+        this.commands.put(slot, cmds);
     }
 
     public boolean isAutoCloseEnabled() {
