@@ -293,29 +293,67 @@ public class DataManager {
         return true;
     }
 
-    public boolean add(UUID uuid, int amount) {
+    public boolean found(final UUID uuid) {
+        if (sql) {
+            ExecutorService executor = Executors.newFixedThreadPool(1);
+            final Future<Boolean> future = executor.submit(new Callable<Boolean>() {
+                @Override
+                public Boolean call() throws Exception {
+                    try (Statement statement = connection.createStatement(); ResultSet result = statement.executeQuery(Queries.GET.query(uuid.toString()))) {
+                        return result.isBeforeFirst();
+                    }
+                }
+            });
+
+            executor.shutdown();
+
+            try {
+                return future.get();
+            } catch (InterruptedException | ExecutionException e) {
+                return false;
+            }
+        } else {
+            return config.isInt("Players." + uuid);
+        }
+    }
+
+    public boolean add(final UUID uuid, final int amount) {
         if (amount <= 0) {
             return false;
         }
 
         if (sql) {
-            try (Statement statement = connection.createStatement(); ResultSet result = statement.executeQuery(Queries.GET.query(uuid.toString()))) {
+            ExecutorService executor = Executors.newFixedThreadPool(1);
 
-                if (!result.isBeforeFirst()) {
-                    return false;
+            final Future<Boolean> future = executor.submit(new Callable<Boolean>() {
+                @Override
+                public Boolean call() throws Exception {
+                    try (Statement statement = connection.createStatement(); ResultSet result = statement.executeQuery(Queries.GET.query(uuid.toString()))) {
+                        if (!result.isBeforeFirst()) {
+                            return false;
+                        }
+
+                        int balance = 0;
+
+                        while (result.next()) {
+                            balance = (int) result.getLong("tokens");
+                        }
+
+                        statement.execute(Queries.SET.query(String.valueOf(balance + amount), uuid.toString()));
+                        return true;
+                    } catch (SQLException e) {
+                        validateConnection(false);
+                        instance.warn("SQL error caught while executing SQL query! (" + e.getMessage() + ")");
+                        return false;
+                    }
                 }
+            });
 
-                int balance = 0;
+            executor.shutdown();
 
-                while (result.next()) {
-                    balance = (int) result.getLong("tokens");
-                }
-
-                statement.execute(Queries.SET.query(String.valueOf(balance + amount), uuid.toString()));
-                return true;
-            } catch (SQLException e) {
-                validateConnection(false);
-                instance.warn("SQL error caught while executing SQL query! (" + e.getMessage() + ")");
+            try {
+                return future.get();
+            } catch (InterruptedException | ExecutionException e) {
                 return false;
             }
         } else {
@@ -326,32 +364,47 @@ public class DataManager {
         }
     }
 
-    public boolean remove(UUID uuid, int amount) {
+    public boolean remove(final UUID uuid, final int amount) {
         if (amount <= 0) {
             return false;
         }
 
         if (sql) {
-            try (Statement statement = connection.createStatement(); ResultSet result = statement.executeQuery(Queries.GET.query(uuid.toString()))) {
-                if (!result.isBeforeFirst()) {
-                    return false;
+            ExecutorService executor = Executors.newFixedThreadPool(1);
+
+            final Future<Boolean> future = executor.submit(new Callable<Boolean>() {
+                @Override
+                public Boolean call() throws Exception {
+                    try (Statement statement = connection.createStatement(); ResultSet result = statement.executeQuery(Queries.GET.query(uuid.toString()))) {
+                        if (!result.isBeforeFirst()) {
+                            return false;
+                        }
+
+                        int balance = 0;
+
+                        while (result.next()) {
+                            balance = (int) result.getLong("tokens");
+                        }
+
+                        if (balance - amount < 0) {
+                            return false;
+                        }
+
+                        statement.execute(Queries.SET.query(String.valueOf(balance - amount), uuid.toString()));
+                        return true;
+                    } catch (SQLException e) {
+                        validateConnection(false);
+                        instance.warn("SQL error caught while executing SQL query! (" + e.getMessage() + ")");
+                        return false;
+                    }
                 }
+            });
 
-                int balance = 0;
+            executor.shutdown();
 
-                while (result.next()) {
-                    balance = (int) result.getLong("tokens");
-                }
-
-                if (balance - amount < 0) {
-                    return false;
-                }
-
-                statement.execute(Queries.SET.query(String.valueOf(balance - amount), uuid.toString()));
-                return true;
-            } catch (SQLException e) {
-                validateConnection(false);
-                instance.warn("SQL error caught while executing SQL query! (" + e.getMessage() + ")");
+            try {
+                return future.get();
+            } catch (InterruptedException | ExecutionException e) {
                 return false;
             }
         } else {
@@ -362,23 +415,38 @@ public class DataManager {
         }
     }
 
-    public boolean set(UUID uuid, int amount) {
+    public boolean set(final UUID uuid, final int amount) {
         if (amount < 0) {
             return false;
         }
 
         if (sql) {
-            try (Statement statement = connection.createStatement(); ResultSet result = statement.executeQuery(Queries.GET.query(uuid.toString()))) {
+            ExecutorService executor = Executors.newFixedThreadPool(1);
 
-                if (!result.isBeforeFirst()) {
-                    return false;
+            final Future<Boolean> future = executor.submit(new Callable<Boolean>() {
+                @Override
+                public Boolean call() throws Exception {
+                    try (Statement statement = connection.createStatement(); ResultSet result = statement.executeQuery(Queries.GET.query(uuid.toString()))) {
+
+                        if (!result.isBeforeFirst()) {
+                            return false;
+                        }
+
+                        statement.execute(Queries.SET.query(String.valueOf(amount), uuid.toString()));
+                        return true;
+                    } catch (SQLException e) {
+                        validateConnection(false);
+                        instance.warn("SQL error caught while executing SQL query! (" + e.getMessage() + ")");
+                        return false;
+                    }
                 }
+            });
 
-                statement.execute(Queries.SET.query(String.valueOf(amount), uuid.toString()));
-                return true;
-            } catch (SQLException e) {
-                validateConnection(false);
-                instance.warn("SQL error caught while executing SQL query! (" + e.getMessage() + ")");
+            executor.shutdown();
+
+            try {
+                return future.get();
+            } catch (InterruptedException | ExecutionException e) {
                 return false;
             }
         } else {

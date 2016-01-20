@@ -46,5 +46,9 @@ public abstract class SubCommand {
         sender.sendMessage(ChatColor.translateAlternateColorCodes('&', msg));
     }
 
+    protected void sendWarning(CommandSender sender, String operation) {
+        pm(sender, "&cOperation (" + operation + ") failed, please contact an administrator.");
+    }
+
     public abstract void run(CommandSender sender, String[] args);
 }

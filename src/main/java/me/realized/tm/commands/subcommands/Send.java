@@ -23,7 +23,7 @@ public class Send extends SubCommand {
         Player player = (Player) sender;
         UUID target = ProfileUtil.getUniqueId(args[1]);
 
-        if (target == null) {
+        if (target == null || !dataManager.found(target)) {
             pm(sender, config.getString("invalid-player").replace("%input%", args[1]));
             return;
         }
@@ -45,10 +45,16 @@ public class Send extends SubCommand {
         }
 
         boolean removeSuccess = dataManager.remove(player.getUniqueId(), amount);
+
+        if (!removeSuccess) {
+            sendWarning(sender, "remove");
+            return;
+        }
+
         boolean addSuccess = dataManager.add(target, amount);
 
-        if (!removeSuccess || !addSuccess) {
-            pm(sender, "&cEither one of the operations (add, remove) went wrong! Please contact an administrator.");
+        if (!addSuccess) {
+            sendWarning(sender, "add");
             return;
         }
 

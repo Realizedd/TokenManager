@@ -261,7 +261,7 @@ public class ShopManager {
         boolean success = dataManager.remove(player.getUniqueId(), price);
 
         if (!success) {
-            pm(player, "&cOperation (remove) went wrong! Please contact an administrator.");
+            pm(player, "&cOperation (remove) failed, please contact an administrator.");
             return;
         }
 
