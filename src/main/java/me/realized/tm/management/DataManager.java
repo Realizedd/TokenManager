@@ -114,6 +114,14 @@ public class DataManager {
                 if (now - lastUpdate < 900000) {
                     List<String> datas = sql ? getSQLData() : getLocalData();
 
+                    topBalances.clear();
+
+                    if (datas.isEmpty()) {
+                        topBalances.add("&cData load failed or was not found.");
+                        lastUpdate = System.currentTimeMillis();
+                        return;
+                    }
+
                     Collections.sort(datas, new Comparator<String>() {
                         @Override
                         public int compare(String s2, String s1) {
@@ -121,23 +129,14 @@ public class DataManager {
                         }
                     });
 
-                    topBalances.clear();
-
                     for (int i = 0; i < 10; i++) {
                         if (i < 0 || i >= datas.size()) {
                             break;
                         }
 
                         String[] data = datas.get(i).split(":");
-                        String name = "";
-                        String balance = "";
-
-                        if (data.length > 1) {
-                            name = ProfileUtil.getName(UUID.fromString(data[0]));
-                            balance = data[1];
-                        }
-
-                        topBalances.add(String.valueOf(i + 1) + ":" + name + ":" + balance);
+                        String name = ProfileUtil.getName(UUID.fromString(data[0]));
+                        topBalances.add(String.valueOf(i + 1) + ":" + name + ":" + data[1]);
                     }
 
                     lastUpdate = System.currentTimeMillis();
@@ -155,10 +154,6 @@ public class DataManager {
             }
         }
 
-        if (result.isEmpty()) {
-            result.add("&cNo data found.");
-        }
-
         return result;
     }
 
@@ -174,13 +169,12 @@ public class DataManager {
                         result.add(results.getString("uuid") + ":" + results.getLong("tokens"));
                     }
 
-                    return result;
                 } catch (SQLException e) {
-                    result.add("&cFailed to load data!");
                     validateConnection(false);
                     instance.warn("SQL error caught while executing SQL query! (" + e.getMessage() + ")");
-                    return result;
                 }
+
+                return result;
             }
         });
 
@@ -189,7 +183,7 @@ public class DataManager {
         try {
             return future.get();
         } catch (InterruptedException | ExecutionException e) {
-            return Collections.singletonList("&cFailed to load data!");
+            return new ArrayList<>();
         }
     }
 

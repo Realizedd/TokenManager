@@ -18,11 +18,13 @@ public class Top extends SubCommand {
         List<String> top = dataManager.getTopBalances();
 
         pm(sender, config.getString("top-header").replace("%id%", "1").replace("%total%", String.valueOf(top.size())));
+
         for (String s : top) {
             String[] data = s.split(":");
 
-            if (data.length == 0) {
-                continue;
+            if (data.length <= 1) {
+                pm(sender, s);
+                break;
             }
 
             String format = config.getString("top-format");
