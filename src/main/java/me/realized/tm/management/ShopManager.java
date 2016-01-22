@@ -251,9 +251,8 @@ public class ShopManager {
         int slot = event.getSlot();
         TMShop shop = getShop(top.getTitle());
         int price = shop.getPrice(slot);
-        System.out.println("Price: " + price);
         int balance = dataManager.balance(player.getUniqueId());
-        System.out.println("Balance: " + balance);
+
         if (balance - price < 0) {
             pm(player, config.getString("not-enough-tokens").replace("%needed%", String.valueOf(price - balance)));
             return;

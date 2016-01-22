@@ -20,7 +20,7 @@ public class DataManager {
 
     private File file;
     private FileConfiguration config;
-    private Map<UUID, Integer> data = new HashMap<>();
+    private Map<UUID, Integer> data = new ConcurrentHashMap<>();
     private Connection connection = null;
     private boolean connected;
 
