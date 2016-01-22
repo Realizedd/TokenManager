@@ -251,18 +251,21 @@ public class ShopManager {
         int slot = event.getSlot();
         TMShop shop = getShop(top.getTitle());
         int price = shop.getPrice(slot);
+        System.out.println("Price: " + price);
         int balance = dataManager.balance(player.getUniqueId());
-
+        System.out.println("Balance: " + balance);
         if (balance - price < 0) {
             pm(player, config.getString("not-enough-tokens").replace("%needed%", String.valueOf(price - balance)));
             return;
         }
 
-        boolean success = dataManager.remove(player.getUniqueId(), price);
+        if (price > 0) {
+            boolean success = dataManager.remove(player.getUniqueId(), price);
 
-        if (!success) {
-            pm(player, "&cOperation (remove) failed, please contact an administrator.");
-            return;
+            if (!success) {
+                pm(player, "&cOperation (remove) failed, please contact an administrator.");
+                return;
+            }
         }
 
         if (!shop.getCommands(slot).isEmpty()) {

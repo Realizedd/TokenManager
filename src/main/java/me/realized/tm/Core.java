@@ -36,6 +36,7 @@ public class Core extends JavaPlugin {
         }
 
         dataManager.loadTopBalances();
+        dataManager.initializeAutoSave();
 
         shopManager = new ShopManager(this);
         shopManager.load();
@@ -47,10 +48,12 @@ public class Core extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        if (shopManager != null) {
-            shopManager.close();
-            dataManager.close();
+        if (shopManager == null) {
+            return;
         }
+
+        shopManager.close();
+        dataManager.close();
     }
 
     public void warn(String message) {

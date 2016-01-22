@@ -20,6 +20,7 @@ public class DataManager {
 
     private File file;
     private FileConfiguration config;
+    private Map<UUID, Integer> data = new HashMap<>();
     private Connection connection = null;
     private boolean connected;
 
@@ -79,6 +80,15 @@ public class DataManager {
             }
 
             config = YamlConfiguration.loadConfiguration(file);
+
+            if (config.isConfigurationSection("Players")) {
+                for (String key : config.getConfigurationSection("Players").getKeys(false)) {
+                    UUID uuid = UUID.fromString(key);
+                    int amount = config.getInt("Players." + key);
+                    data.put(uuid, amount);
+                }
+            }
+
             long end = System.currentTimeMillis();
 
             instance.info("Loaded flatfile storage! (Took " + (end - start) + "ms)");
@@ -87,18 +97,22 @@ public class DataManager {
     }
 
     public void close() {
-        try {
-            if (connection != null && connection.isValid(5)) {
-                connection.close();
+        if (sql) {
+            try {
+                if (connection != null && connection.isValid(5)) {
+                    connection.close();
+                }
+            } catch (SQLException e) {
+                validateConnection(false);
+                instance.warn("SQL error caught while executing SQL query! (" + e.getMessage() + ")");
             }
-        } catch (SQLException e) {
-            validateConnection(false);
-            instance.warn("SQL error caught while executing SQL query! (" + e.getMessage() + ")");
+        } else {
+            saveLocalData();
         }
     }
 
     public void loadTopBalances() {
-        if (hasSQLEnabled() && !isConnected()) {
+        if (sql && !isConnected()) {
             return;
         }
 
@@ -145,6 +159,19 @@ public class DataManager {
         }, 0L, 20L * 60L * 15);
     }
 
+    public void initializeAutoSave() {
+        if (sql) {
+            return;
+        }
+
+        Bukkit.getScheduler().runTaskTimerAsynchronously(instance, new Runnable() {
+            @Override
+            public void run() {
+                saveLocalData();
+            }
+        }, 0L, 20L * 60L * 5);
+    }
+
     private List<String> getLocalData() {
         List<String> result = new ArrayList<>();
 
@@ -188,17 +215,19 @@ public class DataManager {
     }
 
     private boolean saveLocalData() {
-        if (!sql) {
-            try {
-                config.save(file);
-                return true;
-            } catch (IOException e) {
-                instance.warn("An IO exception caught while generating file! (" + e.getMessage() + ")");
-                return false;
+        if (data.isEmpty()) {
+            for (UUID key : data.keySet()) {
+                config.set("Players." + key, data.get(key));
             }
         }
 
-        return true;
+        try {
+            config.save(file);
+            return true;
+        } catch (IOException e) {
+            instance.warn("An IO exception caught while saving file! (" + e.getMessage() + ")");
+            return false;
+        }
     }
 
     public boolean hasSQLEnabled() {
@@ -249,7 +278,7 @@ public class DataManager {
             }
 
         } else {
-            return config.isInt("Players." + uuid) ? config.getInt("Players." + uuid) : 0;
+            return data.get(uuid) != null ? data.get(uuid) : 0;
         }
     }
 
@@ -278,9 +307,8 @@ public class DataManager {
                 return false;
             }
         } else {
-            if (!config.isInt("Players." + uuid)) {
-                config.set("Players." + uuid, instance.getTMConfig().getDefaultBalance());
-                saveLocalData();
+            if (data.get(uuid) == null) {
+               data.put(uuid, instance.getTMConfig().getDefaultBalance());
             }
         }
 
@@ -351,9 +379,8 @@ public class DataManager {
                 return false;
             }
         } else {
-            int balance = config.isInt("Players." + uuid) ? config.getInt("Players." + uuid) : 0;
-            config.set("Players." + uuid, balance + amount);
-            saveLocalData();
+            int balance = data.get(uuid) != null ? data.get(uuid) : 0;
+            data.put(uuid, balance + amount);
             return true;
         }
     }
@@ -402,9 +429,8 @@ public class DataManager {
                 return false;
             }
         } else {
-            int balance = config.isInt("Players." + uuid) ? config.getInt("Players." + uuid) : 0;
-            config.set("Players." + uuid, balance - amount);
-            saveLocalData();
+            int balance = data.get(uuid) != null ? data.get(uuid) : 0;
+            data.put(uuid, balance - amount);
             return true;
         }
     }
@@ -444,8 +470,7 @@ public class DataManager {
                 return false;
             }
         } else {
-            config.set("Players." + uuid, amount);
-            saveLocalData();
+            data.put(uuid, amount);
             return true;
         }
     }
