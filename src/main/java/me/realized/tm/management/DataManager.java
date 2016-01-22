@@ -107,7 +107,7 @@ public class DataManager {
                 instance.warn("SQL error caught while executing SQL query! (" + e.getMessage() + ")");
             }
         } else {
-            saveLocalData();
+            saveLocalData(true);
         }
     }
 
@@ -167,7 +167,7 @@ public class DataManager {
         Bukkit.getScheduler().runTaskTimerAsynchronously(instance, new Runnable() {
             @Override
             public void run() {
-                saveLocalData();
+                saveLocalData(false);
             }
         }, 0L, 20L * 60L * 5);
     }
@@ -214,8 +214,8 @@ public class DataManager {
         }
     }
 
-    private boolean saveLocalData() {
-        if (data.isEmpty()) {
+    private boolean saveLocalData(boolean log) {
+        if (!data.isEmpty()) {
             for (UUID key : data.keySet()) {
                 config.set("Players." + key, data.get(key));
             }
@@ -223,6 +223,10 @@ public class DataManager {
 
         try {
             config.save(file);
+
+            if (log) {
+                instance.info("Saving to local file was completed.");
+            }
             return true;
         } catch (IOException e) {
             instance.warn("An IO exception caught while saving file! (" + e.getMessage() + ")");
