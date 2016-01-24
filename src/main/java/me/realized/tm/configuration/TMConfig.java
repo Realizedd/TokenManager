@@ -12,6 +12,7 @@ import java.util.Map;
 public class TMConfig {
 
     private final Core instance;
+    private FileConfiguration config;
     private int defaultBalance = 25;
     private int clickDelay = 0;
     private boolean useDefault = false;
@@ -28,11 +29,12 @@ public class TMConfig {
         stringLists.clear();
 
         File file = new File(instance.getDataFolder(), "config.yml");
+
         if (!file.exists()) {
             instance.saveResource("config.yml", true);
         }
 
-        FileConfiguration config = YamlConfiguration.loadConfiguration(file);
+        config = YamlConfiguration.loadConfiguration(file);
 
         if (config.isInt("default-balance")) {
             defaultBalance = config.getInt("default-balance");
@@ -84,5 +86,9 @@ public class TMConfig {
 
     public List<String> getList(String key) {
         return stringLists.get(key);
+    }
+
+    public FileConfiguration getLocalConfig() {
+        return config;
     }
 }

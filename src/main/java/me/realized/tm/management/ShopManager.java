@@ -34,6 +34,9 @@ public class ShopManager {
     }
 
     public void load() {
+        shops.clear();
+        clicks.clear();
+
         File file = new File(instance.getDataFolder(), "shops.yml");
 
         if (!file.exists()) {

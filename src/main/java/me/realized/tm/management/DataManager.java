@@ -34,7 +34,7 @@ public class DataManager {
     public boolean load() {
         long start = System.currentTimeMillis();
 
-        FileConfiguration localConfig = instance.getConfig();
+        FileConfiguration localConfig = instance.getTMConfig().getLocalConfig();
         String path = "mysql.";
 
         if (localConfig.isBoolean(path + "enabled")) {
@@ -69,6 +69,7 @@ public class DataManager {
                 return false;
             }
         } else {
+            data.clear();
             file = new File(instance.getDataFolder(), "data.yml");
 
             try {
