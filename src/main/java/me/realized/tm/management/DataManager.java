@@ -24,6 +24,12 @@ public class DataManager {
     private Connection connection = null;
     private boolean connected;
 
+    private String host;
+    private String port;
+    private String database;
+    private String user;
+    private String password;
+
     private final List<String> topBalances = new ArrayList<>();
     private long lastUpdate = -1L;
 
@@ -44,11 +50,11 @@ public class DataManager {
         instance.info("Data Storage: " + (sql ? "MySQL" : "Flatfile"));
 
         if (sql) {
-            String host = localConfig.getString(path + "hostname");
-            String port = localConfig.getString(path + "port");
-            String database = localConfig.getString(path + "database");
-            String user = localConfig.getString(path + "username");
-            String password = localConfig.getString(path + "password");
+            host = localConfig.getString(path + "hostname");
+            port = localConfig.getString(path + "port");
+            database = localConfig.getString(path + "database");
+            user = localConfig.getString(path + "username");
+            password = localConfig.getString(path + "password");
             instance.info("Loaded credentials for SQL connection.");
 
             try {
@@ -65,7 +71,7 @@ public class DataManager {
                 return true;
             } catch (SQLException e) {
                 validateConnection(false);
-                instance.warn("SQL error caught while executing query! (" + e.getMessage() + ")");
+                instance.warn("SQL error caught while connecting to the database! (" + e.getMessage() + ")");
                 return false;
             }
         } else {
@@ -98,6 +104,8 @@ public class DataManager {
     }
 
     public void close() {
+        Bukkit.getScheduler().cancelTasks(instance);
+
         if (sql) {
             try {
                 if (connection != null && connection.isValid(5)) {
@@ -113,7 +121,7 @@ public class DataManager {
     }
 
     public void loadTopBalances() {
-        if (sql && !isConnected()) {
+        if (sql && !connected) {
             return;
         }
 
@@ -157,7 +165,7 @@ public class DataManager {
                     lastUpdate = System.currentTimeMillis();
                 }
             }
-        }, 0L, 20L * 60L * 15);
+        }, 0L, 20L * 60 * 15);
     }
 
     public void initializeAutoSave() {
@@ -170,7 +178,31 @@ public class DataManager {
             public void run() {
                 saveLocalData(false);
             }
-        }, 0L, 20L * 60L * 5);
+        }, 0L, 20L * 60 * 5);
+    }
+
+    public void checkConnection() {
+        if (!sql) {
+            return;
+        }
+
+        Bukkit.getScheduler().runTaskTimerAsynchronously(instance, new Runnable() {
+            @Override
+            public void run() {
+                if (connected) {
+                    return;
+                }
+
+                instance.info("Attempting to reconnect to the database...");
+
+                try {
+                    connection = DriverManager.getConnection("jdbc:mysql://" + host + ":" + port + "/" + database, user, password);
+                    validateConnection(true);
+                } catch (SQLException e) {
+                    instance.warn("SQL error caught while connecting to the database! (" + e.getMessage() + ")");
+                }
+            }
+        }, 0L, 20L * 60);
     }
 
     private List<String> getLocalData() {

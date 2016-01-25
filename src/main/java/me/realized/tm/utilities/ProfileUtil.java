@@ -19,7 +19,7 @@ public class ProfileUtil {
             }
         }
 
-        UUIDMap.PlayerProfile profile = UUIDMap.get(username);
+        PlayerProfile profile = UUIDMap.get(username);
 
         if (profile != null) {
             return profile.getUUID();
@@ -36,7 +36,7 @@ public class ProfileUtil {
     }
 
     public static String getName(UUID uuid) {
-        if (Bukkit.getOnlineMode()) {
+        if (Bukkit.getOnlineMode() || Bukkit.spigot().getConfig().getBoolean("settings.bungeecord")) {
             if (Bukkit.getPlayer(uuid) != null) {
                 return Bukkit.getPlayer(uuid).getName();
             }
@@ -46,8 +46,16 @@ public class ProfileUtil {
             }
         }
 
+        PlayerProfile profile = NameMap.get(uuid);
+
+        if (profile != null) {
+            return profile.getName();
+        }
+
         try {
-            return NameFetcher.getNameOf(uuid);
+            String name = NameFetcher.getNameOf(uuid);
+            NameMap.place(uuid, name);
+            return name;
         } catch (Exception e) {
             Core.getInstance().warn("Failed to fetch username for " + uuid.toString() + ": " + e.getMessage());
             return null;

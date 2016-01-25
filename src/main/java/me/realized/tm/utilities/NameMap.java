@@ -4,16 +4,16 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class UUIDMap {
+public class NameMap {
 
-    private static final Map<String, PlayerProfile> uuids = new ConcurrentHashMap<>();
+    private static final Map<UUID, PlayerProfile> names = new ConcurrentHashMap<>();
 
-    protected static void place(String name, UUID uuid) {
-        uuids.put(name.toLowerCase(), new PlayerProfile(uuid));
+    protected static void place(UUID uuid, String name) {
+        names.put(uuid, new PlayerProfile(name));
     }
 
-    protected static PlayerProfile get(String name) {
-        PlayerProfile profile = uuids.get(name.toLowerCase());
+    protected static PlayerProfile get(UUID uuid) {
+        PlayerProfile profile = names.get(uuid);
 
         if (profile == null) {
             return null;

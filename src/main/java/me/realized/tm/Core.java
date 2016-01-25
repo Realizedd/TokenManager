@@ -37,6 +37,7 @@ public class Core extends JavaPlugin {
 
         dataManager.loadTopBalances();
         dataManager.initializeAutoSave();
+        dataManager.checkConnection();
 
         shopManager = new ShopManager(this);
         shopManager.load();
