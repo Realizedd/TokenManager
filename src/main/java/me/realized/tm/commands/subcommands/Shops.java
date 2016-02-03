@@ -1,6 +1,7 @@
 package me.realized.tm.commands.subcommands;
 
 import me.realized.tm.utilities.StringUtil;
+import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 
 public class Shops extends SubCommand {
@@ -10,7 +11,7 @@ public class Shops extends SubCommand {
     }
 
     @Override
-    public void run(CommandSender sender, String[] args) {
+    public void run(CommandSender sender, Command command, String[] args) {
         String shops = StringUtil.join(", ", shopManager.getShops());
         pm(sender, config.getString("shops").replace("%shops%", shops));
     }

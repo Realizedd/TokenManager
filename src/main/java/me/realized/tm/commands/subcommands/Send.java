@@ -2,6 +2,7 @@ package me.realized.tm.commands.subcommands;
 
 import me.realized.tm.utilities.ProfileUtil;
 import org.bukkit.Bukkit;
+import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -14,7 +15,7 @@ public class Send extends SubCommand {
     }
 
     @Override
-    public void run(CommandSender sender, String[] args) {
+    public void run(CommandSender sender, Command command, String[] args) {
         if (!(sender instanceof Player)) {
             pm(sender, "&cConsole can not send tokens! :(");
             return;

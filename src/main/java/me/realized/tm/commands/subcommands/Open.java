@@ -2,6 +2,7 @@ package me.realized.tm.commands.subcommands;
 
 import me.realized.tm.utilities.TMShop;
 import org.bukkit.Bukkit;
+import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -12,7 +13,7 @@ public class Open extends SubCommand {
     }
 
     @Override
-    public void run(CommandSender sender, String[] args) {
+    public void run(CommandSender sender, Command command, String[] args) {
         Player target = Bukkit.getPlayerExact(args[1]);
 
         if (Bukkit.getPlayerExact(args[1]) == null) {

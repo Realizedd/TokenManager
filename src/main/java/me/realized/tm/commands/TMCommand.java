@@ -66,7 +66,7 @@ public class TMCommand implements CommandExecutor {
                     return true;
                 }
 
-                sub.run(sender, args);
+                sub.run(sender, command, args);
                 return true;
             }
         }

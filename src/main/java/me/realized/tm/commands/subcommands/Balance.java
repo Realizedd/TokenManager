@@ -1,6 +1,7 @@
 package me.realized.tm.commands.subcommands;
 
 import me.realized.tm.utilities.ProfileUtil;
+import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -13,7 +14,7 @@ public class Balance extends SubCommand {
     }
 
     @Override
-    public void run(final CommandSender sender, final String[] args) {
+    public void run(CommandSender sender, Command command, String[] args) {
         if (args.length == getMinLength()) {
             if (!(sender instanceof Player)) {
                 pm(sender, "&cCONSOLE does not have any tokens! :(");

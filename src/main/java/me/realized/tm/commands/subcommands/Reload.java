@@ -1,5 +1,6 @@
 package me.realized.tm.commands.subcommands;
 
+import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 
 public class Reload extends SubCommand {
@@ -9,7 +10,7 @@ public class Reload extends SubCommand {
     }
 
     @Override
-    public void run(CommandSender sender, String[] args) {
+    public void run(CommandSender sender, Command command, String[] args) {
         shopManager.close();
         dataManager.close();
         config.load();

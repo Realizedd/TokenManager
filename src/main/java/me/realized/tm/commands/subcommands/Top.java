@@ -1,5 +1,6 @@
 package me.realized.tm.commands.subcommands;
 
+import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 
 import java.util.List;
@@ -11,7 +12,7 @@ public class Top extends SubCommand {
     }
 
     @Override
-    public void run(CommandSender sender, String[] args) {
+    public void run(CommandSender sender, Command command, String[] args) {
         pm(sender, config.getString("top-total-users").replace("%users%", String.valueOf(dataManager.size())));
         pm(sender, config.getString("top-next-update").replace("%remaining%", dataManager.getNextUpdate()));
 

@@ -5,6 +5,7 @@ import me.realized.tm.configuration.TMConfig;
 import me.realized.tm.management.DataManager;
 import me.realized.tm.management.ShopManager;
 import org.bukkit.ChatColor;
+import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 
 public abstract class SubCommand {
@@ -50,5 +51,5 @@ public abstract class SubCommand {
         pm(sender, "&cOperation (" + operation + ") failed, please contact an administrator.");
     }
 
-    public abstract void run(CommandSender sender, String[] args);
+    public abstract void run(CommandSender sender, Command command, String[] args);
 }

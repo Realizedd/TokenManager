@@ -2,6 +2,7 @@ package me.realized.tm.commands.subcommands;
 
 import me.realized.tm.utilities.ProfileUtil;
 import org.bukkit.Bukkit;
+import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 
 import java.util.UUID;
@@ -13,7 +14,7 @@ public class Add extends SubCommand {
     }
 
     @Override
-    public void run(CommandSender sender, String[] args) {
+    public void run(CommandSender sender, Command command, String[] args) {
         UUID target = ProfileUtil.getUniqueId(args[1]);
 
         if (target == null) {

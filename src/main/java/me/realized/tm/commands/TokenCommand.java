@@ -66,12 +66,12 @@ public class TokenCommand implements CommandExecutor {
                     return true;
                 }
 
-                if (args.length < sub.getMinLength() && (!config.isDefaultEnabled() || args[0].equalsIgnoreCase("shop"))) {
+                if (args.length < sub.getMinLength() && !args[0].equalsIgnoreCase("shop")) {
                     pm(sender, config.getString("sub-command-usage").replace("%usage%", sub.getUsage()).replace("%command%", command.getName()));
                     return true;
                 }
 
-                sub.run(sender, args);
+                sub.run(sender, command, args);
                 return true;
             }
         }
