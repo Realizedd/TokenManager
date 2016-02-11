@@ -1,7 +1,8 @@
 name: TokenManager
 main: me.realized.tm.Core
-version: 1.8.8
+version: 1.8.9
 author: Realized
+softdepends: [MVdWPlaceholderAPI]
 description: A simple sub-economy plugin for your server.
 
 commands:
@@ -21,3 +22,11 @@ permissions:
       tokenmanager.use.top: true
       tokenmanager.use.shop: true
       tokenmanager.admin: true
+  tokenmanager.use.*:
+    description: Grants access to all sub commands of /token.
+    children:
+      tokenmanager.use: true
+      tokenmanager.use.send: true
+      tokenmanager.use.top: true
+      tokenmanager.use.shop: true
+

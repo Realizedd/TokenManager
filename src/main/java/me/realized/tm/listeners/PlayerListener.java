@@ -19,12 +19,12 @@ public class PlayerListener implements Listener {
     }
 
     @EventHandler
-    public void onJoin(PlayerJoinEvent e) {
-        dataManager.generate(e.getPlayer().getUniqueId());
+    public void onJoin(PlayerJoinEvent event) {
+        dataManager.generate(event.getPlayer().getUniqueId());
     }
 
     @EventHandler(ignoreCancelled = true)
-    public void onClick(InventoryClickEvent e) {
-        shopManager.handleClick(e);
+    public void onClick(InventoryClickEvent event) {
+        shopManager.handleClick(event);
     }
 }

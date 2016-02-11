@@ -20,11 +20,13 @@ public class ItemUtil {
 
     static {
         for (Enchantment enchantment : Enchantment.values()) {
-            ENCHANTMENTS.add(StringUtil.reverseTranslateEnchantment(enchantment.getName()));
+            if (isDefaultEnchantment(enchantment)) {
+                ENCHANTMENTS.add(StringUtil.reverseTranslateEnchantment(enchantment.getName()));
+            }
         }
 
         for (PotionEffectType type : PotionEffectType.values()) {
-            if (type != null) {
+            if (isDefaultPotionEffectType(type)) {
                 EFFECTS.add(StringUtil.reverseTranslatePotionEffect(type.getName()));
             }
         }
@@ -123,6 +125,122 @@ public class ItemUtil {
             }
         } catch (Exception e) {
             Core.getInstance().warn("An error occurred while trying to apply meta '" + meta + "' to item " + item.getType() + ": " + e.getMessage());
+        }
+    }
+
+    private static boolean isDefaultEnchantment(Enchantment enchantment) {
+        if (enchantment == null) {
+            return false;
+        }
+
+        switch (enchantment.getName()) {
+            case "ARROW_DAMAGE":
+                return true;
+            case "ARROW_FIRE":
+                return true;
+            case "ARROW_INFINITE":
+                return true;
+            case "ARROW_KNOCKBACK":
+                return true;
+            case "DAMAGE_ALL":
+                return true;
+            case "DAMAGE_ARTHROPODS":
+                return true;
+            case "DAMAGE_UNDEAD":
+                return true;
+            case "DIG_SPEED":
+                return true;
+            case "DURABILITY":
+                return true;
+            case "THORNS":
+                return true;
+            case "FIRE_ASPECT":
+                return true;
+            case "KNOCKBACK":
+                return true;
+            case "LOOT_BONUS_BLOCKS":
+                return true;
+            case "LOOT_BONUS_MOBS":
+                return true;
+            case "OXYGEN":
+                return true;
+            case "PROTECTION_EXPLOSIONS":
+                return true;
+            case "PROTECTION_FALL":
+                return true;
+            case "PROTECTION_FIRE":
+                return true;
+            case "PROTECTION_PROJECTILE":
+                return true;
+            case "PROTECTION_ENVIRONMENTAL":
+                return true;
+            case "SILK_TOUCH":
+                return true;
+            case "WATER_WORKER":
+                return true;
+            case "LUCK":
+                return true;
+            case "LURE":
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    private static boolean isDefaultPotionEffectType(PotionEffectType type) {
+        if (type == null) {
+            return false;
+        }
+
+        switch (type.getName()) {
+            case "SPEED":
+                return true;
+            case "SLOW":
+                return true;
+            case "FAST_DIGGING":
+                return true;
+            case "SLOW_DIGGING":
+                return true;
+            case "INCREASE_DAMAGE":
+                return true;
+            case "HEAL":
+                return true;
+            case "HARM":
+                return true;
+            case "JUMP":
+                return true;
+            case "NAUSEA":
+                return true;
+            case "REGENERATION":
+                return true;
+            case "DAMAGE_RESISTANCE":
+                return true;
+            case "FIRE_RESISTANCE":
+                return true;
+            case "WATER_BREATHING":
+                return true;
+            case "INVISIBILITY":
+                return true;
+            case "BLINDNESS":
+                return true;
+            case "NIGHT_VISION":
+                return true;
+            case "HUNGER":
+                return true;
+            case "WEAKNESS":
+                return true;
+            case "POISON":
+                return true;
+            case "WITHER":
+                return true;
+            case "HEALTH_BOOST":
+                return true;
+            case "ABSORPTION":
+                return true;
+            case "SATURATION":
+                return true;
+            default:
+                return false;
         }
     }
 }

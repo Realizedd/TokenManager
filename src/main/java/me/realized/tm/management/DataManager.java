@@ -208,9 +208,9 @@ public class DataManager {
     private List<String> getLocalData() {
         List<String> result = new ArrayList<>();
 
-        if (config.isConfigurationSection("Players")) {
-            for (String key : config.getConfigurationSection("Players").getKeys(false)) {
-                result.add(key + ":" + config.getInt("Players." + key));
+        if (!data.isEmpty()) {
+            for (Map.Entry<UUID, Integer> entry : data.entrySet()) {
+                result.add(entry.getKey() + ":" + entry.getValue());
             }
         }
 
