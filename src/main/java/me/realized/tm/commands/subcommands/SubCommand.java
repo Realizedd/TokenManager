@@ -1,11 +1,11 @@
 package me.realized.tm.commands.subcommands;
 
 import me.realized.tm.Core;
-import me.realized.tm.configuration.TMConfig;
-import me.realized.tm.management.DataManager;
-import me.realized.tm.management.ShopManager;
+import me.realized.tm.configuration.Config;
+import me.realized.tm.configuration.Lang;
+import me.realized.tm.data.DataManager;
+import me.realized.tm.shop.ShopManager;
 import org.bukkit.ChatColor;
-import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 
 public abstract class SubCommand {
@@ -15,12 +15,9 @@ public abstract class SubCommand {
     private final String permission;
     private final int minLength;
 
-    protected transient final Core instance = Core.getInstance();
-    protected transient final DataManager dataManager = instance.getDataManager();
-    protected transient final ShopManager shopManager = instance.getShopManager();
-    protected transient final TMConfig config = instance.getTMConfig();
+    private transient final Core instance = Core.getInstance();
 
-    public SubCommand(String[] names, String usage, String permission, int minLength) {
+    SubCommand(String[] names, String usage, String permission, int minLength) {
         this.names = names;
         this.usage = usage;
         this.permission = permission;
@@ -43,13 +40,29 @@ public abstract class SubCommand {
         return minLength;
     }
 
-    protected void pm(CommandSender sender, String msg) {
+    Config getConfig() {
+        return instance.getConfiguration();
+    }
+
+    Lang getLang() {
+        return instance.getLang();
+    }
+
+    DataManager getDataManager() {
+        return instance.getDataManager();
+    }
+
+    ShopManager getShopManager() {
+        return instance.getShopManager();
+    }
+
+    Core getInstance() {
+        return instance;
+    }
+
+    void pm(CommandSender sender, String msg) {
         sender.sendMessage(ChatColor.translateAlternateColorCodes('&', msg));
     }
 
-    protected void sendWarning(CommandSender sender, String operation) {
-        pm(sender, "&cOperation (" + operation + ") failed, please contact an administrator.");
-    }
-
-    public abstract void run(CommandSender sender, Command command, String[] args);
+    public abstract void run(CommandSender sender, String label, String[] args);
 }

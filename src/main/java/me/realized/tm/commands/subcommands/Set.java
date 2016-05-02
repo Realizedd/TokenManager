@@ -1,7 +1,8 @@
 package me.realized.tm.commands.subcommands;
 
-import me.realized.tm.utilities.ProfileUtil;
-import org.bukkit.command.Command;
+import me.realized.tm.data.Action;
+import me.realized.tm.utilities.StringUtil;
+import me.realized.tm.utilities.profile.ProfileUtil;
 import org.bukkit.command.CommandSender;
 
 import java.util.UUID;
@@ -9,33 +10,26 @@ import java.util.UUID;
 public class Set extends SubCommand {
 
     public Set() {
-        super(new String[]{"set"}, "set <username> <amount>", "admin", 3);
+        super(new String[] {"set"}, "set <username> <amount>", "admin", 3);
     }
 
     @Override
-    public void run(CommandSender sender, Command command, String[] args) {
+    public void run(CommandSender sender, String label, String[] args) {
         UUID target = ProfileUtil.getUniqueId(args[1]);
 
-        if (target == null) {
-            pm(sender, config.getString("invalid-player").replace("%input%", args[1]));
+        if (target == null || !((boolean) getDataManager().executeAction(Action.EXISTS, target, 0))) {
+            pm(sender, getLang().getString("invalid-player").replace("%input%", args[1]));
             return;
         }
 
-        int amount;
-
-        try {
-            amount = Integer.parseInt(args[2]);
-        } catch (NumberFormatException e) {
-            pm(sender, config.getString("invalid-amount").replace("%input%", String.valueOf(args[2])));
+        if (!StringUtil.isInt(args[2], false)) {
+            pm(sender, getLang().getString("invalid-amount").replace("%input%", String.valueOf(args[2])));
             return;
         }
 
-        if (amount < 0) {
-            pm(sender, config.getString("invalid-amount").replace("%input%", String.valueOf(args[2])));
-            return;
-        }
+        int amount = Integer.parseInt(args[2]);
 
-        dataManager.set(target, amount);
-        pm(sender, config.getString("on-set").replace("%amount%", String.valueOf(amount)).replace("%player%", args[1]));
+        getDataManager().executeAction(Action.SET, target, amount);
+        pm(sender, getLang().getString("on-set").replace("%amount%", String.valueOf(amount)).replace("%player%", args[1]));
     }
 }

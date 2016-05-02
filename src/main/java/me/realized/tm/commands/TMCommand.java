@@ -2,8 +2,8 @@ package me.realized.tm.commands;
 
 import me.realized.tm.Core;
 import me.realized.tm.commands.subcommands.*;
-import me.realized.tm.configuration.TMConfig;
-import me.realized.tm.management.DataManager;
+import me.realized.tm.configuration.Lang;
+import me.realized.tm.data.DataManager;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -15,15 +15,14 @@ import java.util.List;
 
 public class TMCommand implements CommandExecutor {
 
-    private final TMConfig config;
+    private final Lang lang;
     private final DataManager dataManager;
-    private final List<SubCommand> subCommands;
+    private final List<SubCommand> commands = new ArrayList<>();
 
     public TMCommand(Core instance) {
-        config = instance.getTMConfig();
-        dataManager = instance.getDataManager();
-        subCommands = new ArrayList<>();
-        subCommands.addAll(Arrays.asList(new Add(), new Open(), new Remove(), new Set(), new Reload()));
+        this.lang = instance.getLang();
+        this.dataManager = instance.getDataManager();
+        commands.addAll(Arrays.asList(new Add(), new Open(), new Remove(), new Set(), new Reload(), new GiveAll()));
     }
 
     private void pm(CommandSender sender, String txt) {
@@ -33,17 +32,17 @@ public class TMCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!sender.hasPermission("tokenmanager.admin")) {
-            pm(sender, config.getString("no-permission").replace("%permission%", "tokenmanager.admin"));
+            pm(sender, lang.getString("no-permission").replace("%permission%", "tokenmanager.admin"));
             return true;
         }
 
         if (dataManager.hasSQLEnabled() && !dataManager.isConnected()) {
-            pm(sender, "&c&lCould not connect to the database. Please contact an administrator.");
+            pm(sender, "&4Could not connect to the database. Please contact an administrator.");
             return true;
         }
 
         if (args.length == 0) {
-            for (String st : config.getList("tm-help-page")) {
+            for (String st : lang.getStringList("tm-help-page")) {
                 pm(sender, st);
             }
 
@@ -51,27 +50,27 @@ public class TMCommand implements CommandExecutor {
         }
 
 
-        for (SubCommand sub : subCommands) {
+        for (SubCommand subCommand : commands) {
             boolean valid = false;
 
-            for (String alias : sub.getNames()) {
+            for (String alias : subCommand.getNames()) {
                 if (args[0].equalsIgnoreCase(alias)) {
                     valid = true;
                 }
             }
 
             if (valid) {
-                if (args.length < sub.getMinLength()) {
-                    pm(sender, config.getString("sub-command-usage").replace("%usage%", sub.getUsage()).replace("%command%", command.getName()));
+                if (args.length < subCommand.getMinLength()) {
+                    pm(sender, lang.getString("sub-command-usage").replace("%usage%", subCommand.getUsage()).replace("%command%", label));
                     return true;
                 }
 
-                sub.run(sender, command, args);
+                subCommand.run(sender, label, args);
                 return true;
             }
         }
 
-        pm(sender, config.getString("invalid-sub-command").replace("%input%", args[0]).replace("%command%", command.getName()));
+        pm(sender, lang.getString("invalid-sub-command").replace("%input%", args[0]).replace("%command%", label));
         return false;
     }
 }

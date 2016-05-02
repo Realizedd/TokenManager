@@ -1,6 +1,7 @@
 package me.realized.tm.api;
 
 import me.realized.tm.Core;
+import me.realized.tm.data.Action;
 import org.bukkit.entity.Player;
 
 import java.util.UUID;
@@ -32,7 +33,7 @@ public class TMAPI {
      * @param amount - Amount to add.
      */
     public static void addTokens(UUID uuid, int amount) {
-        instance.getDataManager().add(uuid, amount);
+        instance.getDataManager().executeAction(Action.ADD, uuid, amount);
     }
 
     /**
@@ -50,7 +51,7 @@ public class TMAPI {
      * @param amount - Amount to remove.
      */
     public static void removeTokens(UUID uuid, int amount) {
-        instance.getDataManager().remove(uuid, amount);
+        instance.getDataManager().executeAction(Action.REMOVE, uuid, amount);
     }
 
     /**
@@ -68,7 +69,7 @@ public class TMAPI {
      * @param amount - Amount to set.
      */
     public static void setTokens(UUID uuid, int amount) {
-        instance.getDataManager().set(uuid, amount);
+        instance.getDataManager().executeAction(Action.SET, uuid, amount);
     }
 
     /**
@@ -86,6 +87,6 @@ public class TMAPI {
      * @return long - The UUID owner's token balance.
      */
     public static long getTokens(UUID uuid) {
-        return instance.getDataManager().balance(uuid);
+        return (long) instance.getDataManager().executeAction(Action.BALANCE, uuid, 0);
     }
 }

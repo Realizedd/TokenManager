@@ -17,6 +17,9 @@ public class ItemUtil {
 
     private static final List<String> ENCHANTMENTS = new ArrayList<>();
     private static final List<String> EFFECTS = new ArrayList<>();
+    private static final Core instance = Core.getInstance();
+    private static final String INVALID_ITEM = "Failed to create item: ";
+    private static final String INVALID_META = "Failed to apply item meta: ";
 
     static {
         for (Enchantment enchantment : Enchantment.values()) {
@@ -38,11 +41,8 @@ public class ItemUtil {
             ItemStack item;
             String[] args = data.split(" +");
 
-            if (args.length < 2) {
-                return null;
-            }
-
-            if (args[0].split(":").length == 0) {
+            if (args.length < 2 || args[0].split(":").length == 0) {
+                instance.warn(INVALID_ITEM + data + " does not have a type and amount.");
                 return null;
             }
 
@@ -55,31 +55,28 @@ public class ItemUtil {
             }
 
             int amount = Integer.parseInt(args[1]);
-
             item = new ItemStack(material, amount, durability);
-
 
             if (args.length > 2) {
                 for (int i = 2; i < args.length; i++) {
-                    addMeta(item, args[i]);
+                    addItemMeta(item, args[i]);
                 }
             }
 
             return item;
-
         } catch (Exception e) {
-            Core.getInstance().warn("An error occurred while trying to parse '" + data + "' to item: " + e.getMessage());
+            instance.warn(INVALID_ITEM + e.getMessage());
+            return null;
         }
-
-        return null;
     }
 
-    private static void addMeta(ItemStack item, String meta) {
+    private static void addItemMeta(ItemStack item, String meta) {
         try {
             String[] args = meta.split(":", 2);
             ItemMeta itemMeta = item.getItemMeta();
 
             if (args.length < 1) {
+                instance.warn(INVALID_META + meta + " does not contain any meta data.");
                 return;
             }
 
@@ -124,7 +121,7 @@ public class ItemUtil {
                 }
             }
         } catch (Exception e) {
-            Core.getInstance().warn("An error occurred while trying to apply meta '" + meta + "' to item " + item.getType() + ": " + e.getMessage());
+            instance.warn(INVALID_META + e.getMessage());
         }
     }
 

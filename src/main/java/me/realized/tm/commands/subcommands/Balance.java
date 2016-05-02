@@ -1,7 +1,7 @@
 package me.realized.tm.commands.subcommands;
 
-import me.realized.tm.utilities.ProfileUtil;
-import org.bukkit.command.Command;
+import me.realized.tm.data.Action;
+import me.realized.tm.utilities.profile.ProfileUtil;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -14,7 +14,7 @@ public class Balance extends SubCommand {
     }
 
     @Override
-    public void run(CommandSender sender, Command command, String[] args) {
+    public void run(CommandSender sender, String label, String[] args) {
         if (args.length == getMinLength()) {
             if (!(sender instanceof Player)) {
                 pm(sender, "&cCONSOLE does not have any tokens! :(");
@@ -22,8 +22,8 @@ public class Balance extends SubCommand {
             }
 
             Player player = (Player) sender;
-            String balance = String.valueOf(dataManager.balance(player.getUniqueId()));
-            pm(player, config.getString("balance").replace("%tokens%", balance));
+            String balance = String.valueOf(getDataManager().executeAction(Action.BALANCE, player.getUniqueId(), 0));
+            pm(player, getLang().getString("balance").replace("%tokens%", balance));
             return;
         }
 
@@ -31,12 +31,12 @@ public class Balance extends SubCommand {
             UUID target = ProfileUtil.getUniqueId(args[1]);
 
             if (target == null) {
-                pm(sender, config.getString("invalid-player").replace("%input%", args[1]));
+                pm(sender, getLang().getString("invalid-player").replace("%input%", args[1]));
                 return;
             }
 
-            String balance = String.valueOf(dataManager.balance(target));
-            pm(sender, config.getString("balance-others").replace("%tokens%", balance).replace("%player%", args[1]));
+            String balance = String.valueOf(getDataManager().executeAction(Action.BALANCE, target, 0));
+            pm(sender, getLang().getString("balance-others").replace("%tokens%", balance).replace("%player%", args[1]));
         }
     }
 }

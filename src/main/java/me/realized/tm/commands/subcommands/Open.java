@@ -1,8 +1,7 @@
 package me.realized.tm.commands.subcommands;
 
-import me.realized.tm.utilities.TMShop;
+import me.realized.tm.shop.Shop;
 import org.bukkit.Bukkit;
-import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -13,24 +12,24 @@ public class Open extends SubCommand {
     }
 
     @Override
-    public void run(CommandSender sender, Command command, String[] args) {
+    public void run(CommandSender sender, String label, String[] args) {
         Player target = Bukkit.getPlayerExact(args[1]);
 
         if (Bukkit.getPlayerExact(args[1]) == null) {
-            pm(sender, config.getString("invalid-player").replace("%input%", args[1]));
+            pm(sender, getLang().getString("invalid-player").replace("%input%", args[1]));
             return;
         }
 
         String name = args[2].toLowerCase();
 
-        if (!shopManager.isShop(name)) {
-            pm(sender, config.getString("invalid-shop").replace("%input%", name));
+        if (!getShopManager().isShop(name)) {
+            pm(sender, getLang().getString("invalid-shop").replace("%input%", name));
             return;
         }
 
-        TMShop shop = shopManager.getShop(name);
+        Shop shop = getShopManager().getShop(name);
 
         target.openInventory(shop.get());
-        pm(sender, config.getString("on-open").replace("%name%", name).replace("%player%", args[1]));
+        pm(sender, getLang().getString("on-open").replace("%name%", name).replace("%player%", args[1]));
     }
 }

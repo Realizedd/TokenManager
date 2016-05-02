@@ -6,7 +6,7 @@
 
     <groupId>me.realized</groupId>
     <artifactId>tm</artifactId>
-    <version>1.8.9</version>
+    <version>2.0.0</version>
     <name>TokenManager</name>
     <description>A simple sub-economy plugin for your server.</description>
 
@@ -16,9 +16,7 @@
             <resource>
                 <directory>src/main/resources</directory>
                 <includes>
-                    <include>plugin.yml</include>
-                    <include>config.yml</include>
-                    <include>shops.yml</include>
+                    <include>*.yml</include>
                 </includes>
             </resource>
         </resources>
@@ -33,6 +31,7 @@
                 <configuration>
                     <archive>
                         <manifest>
+                            <addClasspath>true</addClasspath>
                             <mainClass>me.realized.tm.Core</mainClass>
                         </manifest>
                     </archive>
@@ -54,18 +53,41 @@
             <name>MVdW Public Repositories</name>
             <url>http://repo.mvdw-software.be/content/groups/public/</url>
         </repository>
+        <repository>
+            <id>vault-repo</id>
+            <url>http://nexus.theyeticave.net/content/repositories/pub_releases</url>
+        </repository>
     </repositories>
+
     <dependencies>
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
-            <version>1.8.8-R0.1-SNAPSHOT</version>
+            <version>1.9.2-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>be.maximvdw</groupId>
             <artifactId>MVdWPlaceholderAPI</artifactId>
             <version>1.0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
+            <version>2.4.5</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>1.7.21</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.milkbowl.vault</groupId>
+            <artifactId>VaultAPI</artifactId>
+            <version>1.5</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 

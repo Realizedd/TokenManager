@@ -1,25 +1,38 @@
 package me.realized.tm.utilities;
 
+import me.realized.tm.shop.Shop;
 import org.bukkit.ChatColor;
 
 import java.util.List;
 
 public class StringUtil {
 
-    public static String join(String joiner, List<TMShop> shops) {
-        if (shops.isEmpty()) return "none";
+    public static String join(String joiner, List<Shop> shops) {
+        if (shops.isEmpty()) {
+            return "none";
+        }
 
         StringBuilder builder = new StringBuilder();
 
         for (int i = 0; i < shops.size() - 1; i++) {
             builder.append(shops.get(i).getName()).append(joiner);
         }
+
         builder.append(shops.get(shops.size() - 1).getName());
         return builder.toString();
     }
 
-    public static String color(String s) {
-        return ChatColor.translateAlternateColorCodes('&', s);
+    public static boolean isInt(String input, boolean allowNegative) {
+        try {
+            int result = Integer.parseInt(input);
+            return result >= 0 || allowNegative;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
+    public static String color(String input) {
+        return ChatColor.translateAlternateColorCodes('&', input);
     }
 
     public static String translateEnchantment(String input) {
@@ -134,7 +147,7 @@ public class StringUtil {
 
     public static String format(long seconds) {
         if (seconds <= 0) {
-            return "Updating...";
+            return "updating...";
         }
 
         long years = seconds / 31556952;

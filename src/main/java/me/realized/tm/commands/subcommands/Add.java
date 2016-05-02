@@ -1,46 +1,43 @@
 package me.realized.tm.commands.subcommands;
 
-import me.realized.tm.utilities.ProfileUtil;
+import me.realized.tm.data.Action;
+import me.realized.tm.utilities.StringUtil;
+import me.realized.tm.utilities.profile.ProfileUtil;
 import org.bukkit.Bukkit;
-import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
 import java.util.UUID;
 
 public class Add extends SubCommand {
 
     public Add() {
-        super(new String[]{"add", "give"}, "add <username> <amount>", "admin", 3);
+        super(new String[] {"add", "give"}, "add <username> <amount>", "admin", 3);
     }
 
     @Override
-    public void run(CommandSender sender, Command command, String[] args) {
+    public void run(CommandSender sender, String label, String[] args) {
         UUID target = ProfileUtil.getUniqueId(args[1]);
 
-        if (target == null) {
-            pm(sender, config.getString("invalid-player").replace("%input%", args[1]));
+        if (target == null || !((boolean) getDataManager().executeAction(Action.EXISTS, target, 0))) {
+            pm(sender, getLang().getString("invalid-player").replace("%input%", args[1]));
             return;
         }
 
-        int amount;
-
-        try {
-            amount = Integer.parseInt(args[2]);
-        } catch (NumberFormatException e) {
-            pm(sender, config.getString("invalid-amount").replace("%input%", String.valueOf(args[2])));
+        if (!StringUtil.isInt(args[2], false)) {
+            pm(sender, getLang().getString("invalid-amount").replace("%input%", String.valueOf(args[2])));
             return;
         }
 
-        if (amount <= 0) {
-            pm(sender, config.getString("invalid-amount").replace("%input%", String.valueOf(args[2])));
-            return;
-        }
+        int amount = Integer.parseInt(args[2]);
 
-        dataManager.add(target, amount);
-        pm(sender, config.getString("on-add").replace("%amount%", String.valueOf(amount)).replace("%player%", args[1]));
+        getDataManager().executeAction(Action.ADD, target, amount);
+        pm(sender, getLang().getString("on-add").replace("%amount%", String.valueOf(amount)).replace("%player%", args[1]));
 
-        if (Bukkit.getPlayer(target) != null) {
-            pm(Bukkit.getPlayer(target), config.getString("on-receive").replace("%amount%", String.valueOf(amount)));
+        Player player = Bukkit.getPlayer(target);
+
+        if (player != null) {
+            pm(player, getLang().getString("on-receive").replace("%amount%", String.valueOf(amount)));
         }
     }
 }
