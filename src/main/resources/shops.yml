@@ -43,6 +43,28 @@
 # (In this case, the item displayed will have Strength II (0:10) and Speed III (0:30).)
 #
 # - Item Ids: http://www.minecraftinfo.com/idlist.htm
+#
+# READ :
+# * In Minecraft 1.9, durability was no longer used for potions & mob spawn eggs.
+# * If your server version is 1.9.x, Please read the following!
+#
+#  (1.9) - Setting mob spawn egg (zombie) as displayed item example -
+#
+#  displayed: MONSTER_EGG:ZOMBIE 1 name:&9Purchase_a_Zombie_Spawn_Egg!
+#
+#
+#  (1.9) - Setting potion (splash strength II) as displayed item example -
+#
+#  displayed: POTION:STRENGTH-strong-splash 1 name:&cSplash_Potion_of_Strength_II
+#
+#
+#  (1.9) - Setting potion (speed I extended) as displayed item example -
+#
+#  displayed: POTION:SPEED-extended 1 name:&bPotion_of_Speed_(Extended)
+#
+#
+# - 1.9 Potions: http://minecraft.gamepedia.com/Potion#Data_values
+#
 # [*]----------------------------------------------------------------------------------------------------[*]
 
 shops:
@@ -66,6 +88,7 @@ shops:
     use-permission: false
     items:
       '1':
+        # Potion won't properly display if you're using 1.9! Read the 1.9 part in the shop configuration tutorial.
         displayed: 373:16421 1 name:&dSplash_Potion_of_Healing lore:&dCost:&a_5_Tokens
         cost: 5
         commands:

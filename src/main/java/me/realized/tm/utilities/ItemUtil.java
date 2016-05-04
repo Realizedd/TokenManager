@@ -1,8 +1,10 @@
 package me.realized.tm.utilities;
 
 import me.realized.tm.Core;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
@@ -11,6 +13,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class ItemUtil {
@@ -38,7 +41,7 @@ public class ItemUtil {
     @SuppressWarnings("deprecation")
     public static ItemStack toItemStack(String data) {
         try {
-            ItemStack item;
+            ItemStack item = null;
             String[] args = data.split(" +");
 
             if (args.length < 2 || args[0].split(":").length == 0) {
@@ -47,15 +50,38 @@ public class ItemUtil {
             }
 
             String[] type = args[0].split(":");
-            Material material = Material.getMaterial(Integer.parseInt(type[0]));
+            int amount = Integer.parseInt(args[1]);
+            Material material = Material.matchMaterial(type[0]);
             short durability = 0;
 
             if (type.length > 1) {
-                durability = Short.parseShort(type[1]);
+                if (Bukkit.getVersion().contains("1.9")) {
+                    if (material == Material.MOB_SPAWNER) {
+                        if (EntityType.fromName(type[1]) == null) {
+                            instance.warn(INVALID_ITEM + type[1] + " is not a valid entity type.");
+                        } else {
+                            SpawnEgg1_9 spawnEgg1_9 = new SpawnEgg1_9(EntityType.fromName(type[1]));
+                            item = spawnEgg1_9.toItemStack(amount);
+                        }
+                    } else if (material == Material.POTION) {
+                        List<String> values = Arrays.asList(type[1].split("-"));
+
+                        if (!Potion1_9.PotionType.isType(values.get(0).toUpperCase())) {
+                            instance.warn(INVALID_ITEM + values.get(0) + " is not a valid potion type. Available: " + Potion1_9.PotionType.names());
+                        } else {
+                            item = new Potion1_9(Potion1_9.PotionType.valueOf(values.get(0).toUpperCase()), values.contains("strong"), values.contains("extended"), values.contains("linger"), values.contains("splash")).toItemStack(amount);
+                        }
+                    } else {
+                        durability = Short.parseShort(type[1]);
+                    }
+                } else {
+                    durability = Short.parseShort(type[1]);
+                }
             }
 
-            int amount = Integer.parseInt(args[1]);
-            item = new ItemStack(material, amount, durability);
+            if (item == null) {
+                item = new ItemStack(material, amount, durability);
+            }
 
             if (args.length > 2) {
                 for (int i = 2; i < args.length; i++) {
@@ -132,51 +158,28 @@ public class ItemUtil {
 
         switch (enchantment.getName()) {
             case "ARROW_DAMAGE":
-                return true;
             case "ARROW_FIRE":
-                return true;
             case "ARROW_INFINITE":
-                return true;
             case "ARROW_KNOCKBACK":
-                return true;
             case "DAMAGE_ALL":
-                return true;
             case "DAMAGE_ARTHROPODS":
-                return true;
             case "DAMAGE_UNDEAD":
-                return true;
             case "DIG_SPEED":
-                return true;
             case "DURABILITY":
-                return true;
             case "THORNS":
-                return true;
             case "FIRE_ASPECT":
-                return true;
             case "KNOCKBACK":
-                return true;
             case "LOOT_BONUS_BLOCKS":
-                return true;
             case "LOOT_BONUS_MOBS":
-                return true;
             case "OXYGEN":
-                return true;
             case "PROTECTION_EXPLOSIONS":
-                return true;
             case "PROTECTION_FALL":
-                return true;
             case "PROTECTION_FIRE":
-                return true;
             case "PROTECTION_PROJECTILE":
-                return true;
             case "PROTECTION_ENVIRONMENTAL":
-                return true;
             case "SILK_TOUCH":
-                return true;
             case "WATER_WORKER":
-                return true;
             case "LUCK":
-                return true;
             case "LURE":
                 return true;
             default:
@@ -191,49 +194,27 @@ public class ItemUtil {
 
         switch (type.getName()) {
             case "SPEED":
-                return true;
             case "SLOW":
-                return true;
             case "FAST_DIGGING":
-                return true;
             case "SLOW_DIGGING":
-                return true;
             case "INCREASE_DAMAGE":
-                return true;
             case "HEAL":
-                return true;
             case "HARM":
-                return true;
             case "JUMP":
-                return true;
             case "NAUSEA":
-                return true;
             case "REGENERATION":
-                return true;
             case "DAMAGE_RESISTANCE":
-                return true;
             case "FIRE_RESISTANCE":
-                return true;
             case "WATER_BREATHING":
-                return true;
             case "INVISIBILITY":
-                return true;
             case "BLINDNESS":
-                return true;
             case "NIGHT_VISION":
-                return true;
             case "HUNGER":
-                return true;
             case "WEAKNESS":
-                return true;
             case "POISON":
-                return true;
             case "WITHER":
-                return true;
             case "HEALTH_BOOST":
-                return true;
             case "ABSORPTION":
-                return true;
             case "SATURATION":
                 return true;
             default:
