@@ -77,7 +77,7 @@ public class TMAPI {
      *
      * @return long - The player's token balance.
      */
-    public static int getTokens(Player player) {
+    public static long getTokens(Player player) {
         return getTokens(player.getUniqueId());
     }
 
@@ -86,7 +86,7 @@ public class TMAPI {
      *
      * @return long - The UUID owner's token balance.
      */
-    public static int getTokens(UUID uuid) {
+    public static long getTokens(UUID uuid) {
         return (int) instance.getDataManager().executeAction(Action.BALANCE, uuid, 0);
     }
 }
