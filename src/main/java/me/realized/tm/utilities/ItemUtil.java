@@ -56,7 +56,7 @@ public class ItemUtil {
 
             if (type.length > 1) {
                 if (Bukkit.getVersion().contains("1.9")) {
-                    if (material == Material.MOB_SPAWNER) {
+                    if (material == Material.MONSTER_EGG) {
                         if (EntityType.fromName(type[1]) == null) {
                             instance.warn(INVALID_ITEM + type[1] + " is not a valid entity type.");
                         } else {
