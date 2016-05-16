@@ -8,12 +8,14 @@ public class SlotData {
     private final List<String> commands;
     private final String message;
     private final String subshop;
+    private boolean permission;
 
-    public SlotData(int cost, List<String> commands, String message, String subshop) {
+    public SlotData(int cost, List<String> commands, String message, String subshop, boolean permission) {
         this.cost = cost;
         this.commands = commands;
         this.message = message;
         this.subshop = subshop;
+        this.permission = permission;
     }
 
     public int getCost() {
@@ -38,5 +40,9 @@ public class SlotData {
 
     public boolean hasSubShop() {
         return subshop != null;
+    }
+
+    public boolean hasPermission() {
+        return permission;
     }
 }

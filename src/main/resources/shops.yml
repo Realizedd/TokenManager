@@ -28,6 +28,8 @@
 #        cost: 5
 #        commands:
 #        - 'give %player% 373:16421 1 name:&dSplash_Potion_of_Healing'
+#        use-permission: true <--- NEW! Allows each slot to have their own permission. In this case,
+#                                       The permission node is: tokenmanager.use.yoursubshop-1
 #
 # Finished reading? Great job, now create your own following those instruction!
 #

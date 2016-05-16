@@ -39,9 +39,9 @@ public class Shop {
         return slots.get(slot);
     }
 
-    public void setItem(int slot, ItemStack displayed, int cost, List<String> commands, String message, String subshop) {
+    public void setItem(int slot, ItemStack displayed, int cost, List<String> commands, String message, String subshop, boolean permission) {
         shop.setItem(slot, displayed);
-        slots.put(slot, new SlotData(cost, commands, message, subshop));
+        slots.put(slot, new SlotData(cost, commands, message, subshop, permission));
     }
 
     public boolean isAutoCloseEnabled() {

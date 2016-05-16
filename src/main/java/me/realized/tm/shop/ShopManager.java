@@ -153,13 +153,19 @@ public class ShopManager implements Listener {
                         subShop = config.getString(path + "subshop");
                     }
 
+                    boolean slotPermission = false;
+
+                    if (config.isBoolean(path + "use-permission")) {
+                        slotPermission = config.getBoolean(path + "use-permission");
+                    }
+
                     List<String> commands = new ArrayList<>();
 
                     if (config.isList(path + "commands") && !config.getStringList(path + "commands").isEmpty()) {
                         commands = config.getStringList(path + "commands");
                     }
 
-                    shop.setItem(slot, item, cost, commands, message, subShop);
+                    shop.setItem(slot, item, cost, commands, message, subShop, slotPermission);
                 }
             }
 
@@ -247,6 +253,11 @@ public class ShopManager implements Listener {
         SlotData data = shop.getSlot(slot);
 
         if (data == null) {
+            return;
+        }
+
+        if (data.hasPermission() && !player.hasPermission("tokenmanager.use." + shop.getName() + "-" + slot)) {
+            pm(player, lang.getString("no-permission").replace("%permission%", "tokenmanager.use." + shop.getName() + "-" + slot));
             return;
         }
 
