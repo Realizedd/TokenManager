@@ -1,6 +1,7 @@
 package me.realized.tm.commands.subcommands;
 
 import me.realized.tm.data.Action;
+import me.realized.tm.events.TokenReceiveEvent;
 import me.realized.tm.utilities.StringUtil;
 import me.realized.tm.utilities.profile.ProfileUtil;
 import org.bukkit.Bukkit;
@@ -30,6 +31,12 @@ public class Add extends SubCommand {
         }
 
         int amount = Integer.parseInt(args[2]);
+        TokenReceiveEvent event = new TokenReceiveEvent(target, amount);
+        Bukkit.getPluginManager().callEvent(event);
+
+        if (event.isCancelled()) {
+            return;
+        }
 
         getDataManager().executeAction(Action.ADD, target, amount);
         pm(sender, getLang().getString("on-add").replace("%amount%", String.valueOf(amount)).replace("%player%", args[1]));

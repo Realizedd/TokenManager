@@ -1,6 +1,7 @@
 package me.realized.tm.commands.subcommands;
 
 import me.realized.tm.data.Action;
+import me.realized.tm.events.TokenReceiveEvent;
 import me.realized.tm.utilities.StringUtil;
 import me.realized.tm.utilities.profile.ProfileUtil;
 import org.bukkit.Bukkit;
@@ -50,10 +51,17 @@ public class Send extends SubCommand {
             return;
         }
 
+        TokenReceiveEvent event = new TokenReceiveEvent(target, amount);
+        Bukkit.getPluginManager().callEvent(event);
+
+        if (event.isCancelled()) {
+            return;
+        }
+
         success = (boolean) getDataManager().executeAction(Action.ADD, target, amount);
 
         if (!success) {
-            pm(sender, "&cFailed to remove " + amount + " token(s) to " + target + "'s balance, please contact an administrator.");
+            pm(sender, "&cFailed to add " + amount + " token(s) to " + target + "'s balance, please contact an administrator.");
             return;
         }
 
