@@ -5,6 +5,7 @@ import com.zaxxer.hikari.HikariDataSource;
 import com.zaxxer.hikari.pool.HikariPool;
 import me.realized.tm.Core;
 import me.realized.tm.configuration.Config;
+import me.realized.tm.events.TokenReceiveEvent;
 import me.realized.tm.utilities.StringUtil;
 import me.realized.tm.utilities.profile.ProfileUtil;
 import org.bukkit.Bukkit;
@@ -398,7 +399,19 @@ public class DataManager implements Listener {
     }
 
     private boolean add(UUID uuid, int amount) {
+        if ((boolean) config.getValue("vault-hook")) {
+            TokenReceiveEvent event = new TokenReceiveEvent(uuid, amount);
+            Bukkit.getPluginManager().callEvent(event);
+
+            if (event.isCancelled()) {
+                return false;
+            }
+
+            amount = event.getAmount();
+        }
+
         return set(uuid, balance(uuid) + amount);
+
     }
 
     private boolean remove(UUID uuid, int amount) {

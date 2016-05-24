@@ -6,7 +6,7 @@
 
     <groupId>me.realized</groupId>
     <artifactId>tm</artifactId>
-    <version>2.0.3</version>
+    <version>2.0.4</version>
     <name>TokenManager</name>
     <description>A simple sub-economy plugin for your server.</description>
 
