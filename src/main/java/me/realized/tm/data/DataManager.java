@@ -399,17 +399,14 @@ public class DataManager implements Listener {
     }
 
     private boolean add(UUID uuid, int amount) {
-        if ((boolean) config.getValue("vault-hook")) {
-            TokenReceiveEvent event = new TokenReceiveEvent(uuid, amount);
-            Bukkit.getPluginManager().callEvent(event);
+        TokenReceiveEvent event = new TokenReceiveEvent(uuid, amount);
+        Bukkit.getPluginManager().callEvent(event);
 
-            if (event.isCancelled()) {
-                return false;
-            }
-
-            amount = event.getAmount();
+        if (event.isCancelled()) {
+            return false;
         }
 
+        amount = event.getAmount();
         return set(uuid, balance(uuid) + amount);
 
     }
