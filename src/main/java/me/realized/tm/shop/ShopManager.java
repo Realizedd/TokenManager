@@ -284,6 +284,7 @@ public class ShopManager implements Listener {
 
         if (shop.isAutoCloseEnabled()) {
             player.closeInventory();
+            player.updateInventory();
         }
 
         if (data.hasMessage()) {
@@ -295,6 +296,7 @@ public class ShopManager implements Listener {
 
             if (!isShop(name)) {
                 pm(player, lang.getString("invalid-shop").replace("%input%", name));
+                player.updateInventory();
                 return;
             }
 
@@ -302,10 +304,12 @@ public class ShopManager implements Listener {
 
             if (subShop.hasPermission() && !player.hasPermission("tokenmanager.use.shop." + name)) {
                 pm(player, lang.getString("no-permission").replace("%permission%", "tokenmanager.use.shop." + name));
+                player.updateInventory();
                 return;
             }
 
             player.openInventory(subShop.get());
+            player.updateInventory();
         }
 
         if (clicks.get(player.getUniqueId()) == null) {
