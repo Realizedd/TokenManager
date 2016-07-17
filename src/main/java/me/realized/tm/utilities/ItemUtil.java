@@ -1,6 +1,8 @@
 package me.realized.tm.utilities;
 
 import me.realized.tm.Core;
+import me.realized.tm.utilities.compat.Potions;
+import me.realized.tm.utilities.compat.SpawnEggs;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
@@ -60,16 +62,15 @@ public class ItemUtil {
                         if (EntityType.fromName(type[1]) == null) {
                             instance.warn(INVALID_ITEM + type[1] + " is not a valid entity type.");
                         } else {
-                            SpawnEgg1_9 spawnEgg1_9 = new SpawnEgg1_9(EntityType.fromName(type[1]));
-                            item = spawnEgg1_9.toItemStack(amount);
+                            item = new SpawnEggs(EntityType.fromName(type[1])).toItemStack(amount);
                         }
                     } else if (material == Material.POTION) {
                         List<String> values = Arrays.asList(type[1].split("-"));
 
-                        if (!Potion1_9.PotionType.isType(values.get(0).toUpperCase())) {
-                            instance.warn(INVALID_ITEM + values.get(0) + " is not a valid potion type. Available: " + Potion1_9.PotionType.names());
+                        if (!Potions.PotionType.isType(values.get(0).toUpperCase())) {
+                            instance.warn(INVALID_ITEM + values.get(0) + " is not a valid potion type. Available: " + Potions.PotionType.names());
                         } else {
-                            item = new Potion1_9(Potion1_9.PotionType.valueOf(values.get(0).toUpperCase()), values.contains("strong"), values.contains("extended"), values.contains("linger"), values.contains("splash")).toItemStack(amount);
+                            item = new Potions(Potions.PotionType.valueOf(values.get(0).toUpperCase()), values.contains("strong"), values.contains("extended"), values.contains("linger"), values.contains("splash")).toItemStack(amount);
                         }
                     } else {
                         durability = Short.parseShort(type[1]);
