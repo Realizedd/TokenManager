@@ -55,7 +55,7 @@ public class ItemUtil {
             short durability = 0;
 
             if (type.length > 1) {
-                if (Bukkit.getVersion().contains("1.9")) {
+                if (!(Bukkit.getVersion().contains("1.7") || Bukkit.getVersion().contains("1.8"))) {
                     if (material == Material.MONSTER_EGG) {
                         if (EntityType.fromName(type[1]) == null) {
                             instance.warn(INVALID_ITEM + type[1] + " is not a valid entity type.");

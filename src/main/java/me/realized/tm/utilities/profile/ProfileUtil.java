@@ -17,8 +17,8 @@ public class ProfileUtil {
     @SuppressWarnings("deprecation")
     public static UUID getUniqueId(final String username) {
         if (Bukkit.getOnlineMode() || Bukkit.spigot().getConfig().getBoolean("settings.bungeecord")) {
-            if (Bukkit.getPlayerExact(username) != null) {
-                return Bukkit.getPlayerExact(username).getUniqueId();
+            if (Bukkit.getPlayer(username) != null) {
+                return Bukkit.getPlayer(username).getUniqueId();
             }
 
             OfflinePlayer player = Bukkit.getOfflinePlayer(username);

@@ -43,6 +43,10 @@ public class PlaceholderReplacer_TM implements PlaceholderReplacer, Listener {
             return "Player is required.";
         }
 
+        if (!manager.hasSQLEnabled()) {
+            return String.valueOf(manager.executeAction(Action.BALANCE, player.getUniqueId(), 0));
+        }
+
         long now = System.currentTimeMillis();
 
         if (lastRequest.get(player.getUniqueId()) != null) {
