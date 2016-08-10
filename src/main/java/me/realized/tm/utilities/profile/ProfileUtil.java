@@ -14,9 +14,25 @@ import java.util.concurrent.Future;
 
 public class ProfileUtil {
 
+    private static final boolean spigot;
+
+    static {
+
+        boolean usingSpigot;
+
+        try {
+            Class.forName("org.spigotmc.CustomTimingsHandler");
+            usingSpigot = true;
+        } catch (ClassNotFoundException ignored) {
+            usingSpigot = false;
+        }
+
+        spigot = usingSpigot;
+    }
+
     @SuppressWarnings("deprecation")
     public static UUID getUniqueId(final String username) {
-        if (Bukkit.getOnlineMode() || Bukkit.spigot().getConfig().getBoolean("settings.bungeecord")) {
+        if (Bukkit.getOnlineMode() || (spigot && Bukkit.spigot().getConfig().getBoolean("settings.bungeecord"))) {
             if (Bukkit.getPlayer(username) != null) {
                 return Bukkit.getPlayer(username).getUniqueId();
             }
@@ -72,7 +88,7 @@ public class ProfileUtil {
                 continue;
             }
 
-            if (Bukkit.getOnlineMode() || Bukkit.spigot().getConfig().getBoolean("settings.bungeecord")) {
+            if (Bukkit.getOnlineMode() || (spigot && Bukkit.spigot().getConfig().getBoolean("settings.bungeecord"))) {
                 if (Bukkit.getPlayer(uuid) != null) {
                     result.add(Bukkit.getPlayer(uuid).getName());
                     continue;

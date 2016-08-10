@@ -153,7 +153,7 @@ public class ItemUtil {
     }
 
     private static boolean isDefaultEnchantment(Enchantment enchantment) {
-        if (enchantment == null) {
+        if (enchantment == null || enchantment.getName() == null) {
             return false;
         }
 
@@ -189,7 +189,7 @@ public class ItemUtil {
     }
 
     private static boolean isDefaultPotionEffectType(PotionEffectType type) {
-        if (type == null) {
+        if (type == null || type.getName() == null) {
             return false;
         }
 

@@ -19,6 +19,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
 import java.io.File;
 import java.util.*;
@@ -126,7 +127,16 @@ public class ShopManager implements Listener {
                         continue;
                     }
 
-                    item = ItemUtil.toItemStack(config.getString(path + "displayed"));
+                    try {
+                        item = ItemUtil.toItemStack(config.getString(path + "displayed"));
+                    } catch (Exception ex) {
+                        item = new ItemStack(Material.REDSTONE_BLOCK, 1);
+                        ItemMeta meta = item.getItemMeta();
+                        List<String> lore = Arrays.asList(ChatColor.RED + "There was an error loading this item.", ChatColor.RED + "Please check your console for more information.", ChatColor.RED + "If you believe this is not a mistake on your shop configuration, please contact the author on SpigotMC.");
+                        meta.setLore(lore);
+                        item.setItemMeta(meta);
+                        instance.warn(warnSlot + ex.getMessage());
+                    }
 
                     if (item == null) {
                         instance.warn(warnSlot + "Item is invalid, see previous logs for more information.");
@@ -210,7 +220,7 @@ public class ShopManager implements Listener {
 
     private void handleClick(InventoryClickEvent event) {
         Player player = (Player) event.getWhoClicked();
-        Inventory clicked = event.getClickedInventory();
+        Inventory clicked = event.getInventory();
         Inventory top = player.getOpenInventory().getTopInventory();
 
         if (clicked == null || top == null) {

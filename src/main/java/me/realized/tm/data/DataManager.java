@@ -273,8 +273,8 @@ public class DataManager implements Listener {
             executor.shutdown();
 
             try {
-                return future.get();
-            } catch (InterruptedException | ExecutionException e) {
+                return future.get(5, TimeUnit.SECONDS);
+            } catch (InterruptedException | ExecutionException | TimeoutException e) {
                 return new ArrayList<>();
             }
 
@@ -447,8 +447,8 @@ public class DataManager implements Listener {
             executor.shutdown();
 
             try {
-                return future.get();
-            } catch (InterruptedException | ExecutionException e) {
+                return future.get(3, TimeUnit.SECONDS);
+            } catch (InterruptedException | ExecutionException | TimeoutException e) {
                 instance.warn("Error caught while executing action " + action + "! (" + e.getMessage() + ")");
                 return action == Action.BALANCE ? 0 : false;
             }
