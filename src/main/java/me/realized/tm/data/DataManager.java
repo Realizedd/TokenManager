@@ -399,16 +399,7 @@ public class DataManager implements Listener {
     }
 
     private boolean add(UUID uuid, int amount) {
-        TokenReceiveEvent event = new TokenReceiveEvent(uuid, amount);
-        Bukkit.getPluginManager().callEvent(event);
-
-        if (event.isCancelled()) {
-            return false;
-        }
-
-        amount = event.getAmount();
         return set(uuid, balance(uuid) + amount);
-
     }
 
     private boolean remove(UUID uuid, int amount) {
@@ -434,13 +425,25 @@ public class DataManager implements Listener {
         return null;
     }
 
-    public Object executeAction(final Action action, final UUID target, final int amount) {
+    public Object executeAction(final Action action, final UUID target, int amount) {
+        if (action == Action.ADD) {
+            TokenReceiveEvent event = new TokenReceiveEvent(target, amount);
+            Bukkit.getPluginManager().callEvent(event);
+
+            if (event.isCancelled()) {
+                return true;
+            }
+
+            amount = event.getAmount();
+        }
+
         if (sql) {
+            final int actualAmount = amount;
             ExecutorService executor = Executors.newFixedThreadPool(1);
             Future<Object> future = executor.submit(new Callable<Object>() {
                 @Override
                 public Object call() throws Exception {
-                    return callByAction(action, target, amount);
+                    return callByAction(action, target, actualAmount);
                 }
             });
 
