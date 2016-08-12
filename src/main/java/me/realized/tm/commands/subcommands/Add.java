@@ -17,7 +17,6 @@ public class Add extends SubCommand {
 
     @Override
     public void run(CommandSender sender, String label, String[] args) {
-        System.out.println("#1");
         UUID target = ProfileUtil.getUniqueId(args[1]);
 
         if (target == null || !((boolean) getDataManager().executeAction(Action.EXISTS, target, 0))) {
@@ -25,13 +24,11 @@ public class Add extends SubCommand {
             return;
         }
 
-        System.out.println("#2");
         if (!StringUtil.isInt(args[2], false)) {
             pm(sender, getLang().getString("invalid-amount").replace("%input%", String.valueOf(args[2])));
             return;
         }
 
-        System.out.println("#3");
         int amount = Integer.parseInt(args[2]);
         boolean success = (boolean) getDataManager().executeAction(Action.ADD, target, amount);
 
