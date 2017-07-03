@@ -1,0 +1,52 @@
+# The default token balance of a first-time joiner.
+default-balance: 25
+
+# [----------------------------] !!! WARNING !!! [----------------------------]
+# 1) All of your previous economy data will be converted to their tokenmanager economy data,
+# and commands such as '/eco (essentials)' will no longer function when player is offline.
+# please use '/tokenmanager add | remove | set' instead, which supports offline players.
+#
+# 2) When you have vault hooks enabled + have attempted to reset the economy,
+# essentials economy data will handleLoad as tokenmanager data, which means they
+# will still handleLoad balances from their essentials userdata file. Best to reset
+# essentials economy before resetting tokenmanager data.
+#
+#  Please be careful with this option!
+#    YOU HAVE BEEN WARNED...
+# [----------------------------] !!! WARNING !!! [----------------------------]
+# Read the comments above if you haven't already.
+# If enabled, TokenManager's economy will be used by all of your
+# plugins with Vault support, including Essentials.
+vault-hook: false
+
+# If enabled, all datas will be stored in the selected SQL database.
+# Else, all datas will be stored in the local flatfile. (data.yml)
+mysql:
+  enabled: false
+  hostname: '127.0.0.1'
+  port: '3306'
+  username: 'root'
+  password: 'password'
+  database: 'yourdatabase'
+
+  # Best to not touch the options below if you don't know what you're doing.
+  maxPoolSize: 20
+  idleTimeOut: 30000
+  connectionTimeOut: 10000
+
+# If enabled, when the command '/token shop' is executed, it will open the shop selected below to player
+# instead of displaying the usage or opening the selected shop.
+use-default:
+  enabled: false
+  shop: test
+
+# Set a delay (in seconds) between purchasing shop items. Set to 0 for no delay.
+# Prevents players click spamming, improving server's performance.
+click-delay: 0
+
+# [Note: Since SQL saves every changes instantly, this option only works if SQL is disabled.]
+# Auto-save interval in minutes. Requires to be higher than 5 minutes.
+auto-save: 10
+
+# Balance top update interval in minutes. Requires to be higher than 5 minutes.
+update-balance-top: 10

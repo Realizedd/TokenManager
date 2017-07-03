@@ -1,9 +1,11 @@
 name: TokenManager
-main: me.realized.tm.Core
-version: 2.0.8
+main: me.realized.tokenmanager.TokenManager
+version: @VERSION@
+softdepend: [MVdWPlaceholderAPI, PlaceholderAPI, Vault]
+
 author: Realized
-softdepends: [MVdWPlaceholderAPI, Vault]
 description: A simple sub-economy plugin for your server.
+website: https://www.spigotmc.org/resources/tokenmanager.8610/
 
 commands:
    token:

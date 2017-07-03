@@ -1,0 +1,90 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+
+group 'me.realized'
+version '3.0.0-SNAPSHOT'
+
+apply plugin: 'java'
+
+compileJava.options.encoding = 'UTF-8'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+jar {
+    manifest.attributes provider: 'gradle'
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+processResources {
+    from(sourceSets.main.resources.srcDirs) {
+        include '**/*.yml'
+        filter(ReplaceTokens, tokens: [VERSION: project.version])
+    }
+}
+
+configurations {
+    provided
+    compile.extendsFrom provided
+}
+
+jar {
+    dependsOn configurations.runtime
+    from {
+        (configurations.runtime - configurations.provided).collect {
+            it.isDirectory() ? it : zipTree(it)
+        }
+    } {
+        exclude "META-INF/*.SF"
+        exclude "META-INF/*.DSA"
+        exclude "META-INF/*.RSA"
+    }
+}
+
+sourceSets {
+    main {
+        output.resourcesDir = "build/classes/main"
+    }
+    test {
+        output.resourcesDir = "build/classes/test"
+    }
+}
+
+repositories {
+    mavenCentral()
+
+    maven {
+        name 'Spigot'
+        url 'https://hub.spigotmc.org/nexus/content/groups/public/'
+    }
+
+    maven {
+        name 'BungeeCord'
+        url 'https://oss.sonatype.org/content/repositories/snapshots'
+    }
+
+    maven {
+        name 'Vault'
+        url 'http://nexus.hc.to/content/repositories/pub_releases'
+    }
+
+    maven {
+        name 'MVdW Public Repositories'
+        url 'http://repo.mvdw-software.be/content/groups/public/'
+    }
+
+    maven {
+        name 'PlaceholderAPI'
+        url 'http://repo.extendedclip.com/content/repositories/placeholderapi/'
+    }
+}
+
+dependencies {
+    provided 'org.spigotmc:spigot-api:1.12-R0.1-SNAPSHOT'
+    provided 'net.milkbowl.vault:VaultAPI:1.6'
+    provided 'me.clip:placeholderapi:2.0.8'
+    provided 'org.projectlombok:lombok:1.16.16'
+
+    compile 'com.zaxxer:HikariCP:2.4.5'
+    compile 'org.slf4j:slf4j-simple:1.7.21'
+    compile 'be.maximvdw:MVdWPlaceholderAPI:1.0.2-SNAPSHOT'
+}

@@ -1,6 +1,5 @@
 .DS_Store
-/out
+.gradle/
 .idea/
-*.iml
-target/
-/jars
+build/
+out/

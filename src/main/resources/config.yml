@@ -1,52 +1,49 @@
-# The default token balance of a first-time joiner.
+# DO NOT EDIT THIS VALUE!
+config-version: 1
+
+# This value will be the default token balance of a first-time joiner.
 default-balance: 25
 
-# [----------------------------] !!! WARNING !!! [----------------------------]
-# 1) All of your previous economy data will be converted to their tokenmanager economy data,
-# and commands such as '/eco (essentials)' will no longer function when player is offline.
-# please use '/tokenmanager add | remove | set' instead, which supports offline players.
-#
-# 2) When you have vault hook enabled + have attempted to reset the economy,
-# essentials economy data will load as tokenmanager data, which means they
-# will still load balances from their essentials userdata file. Best to reset
-# essentials economy before resetting tokenmanager data.
-#
-#  Please be careful with this option!
-#    YOU HAVE BEEN WARNED...
-# [----------------------------] !!! WARNING !!! [----------------------------]
-# Read the comments above if you haven't already.
-# If enabled, TokenManager's economy will be used by all of your
-# plugins with Vault support, including Essentials.
-vault-hook: false
+shop:
 
-# If enabled, all datas will be stored in the selected SQL database.
-# Else, all datas will be stored in the local flatfile. (data.yml)
-mysql:
-  enabled: false
-  hostname: '127.0.0.1'
-  port: '3306'
-  username: 'root'
-  password: 'password'
-  database: 'yourdatabase'
+  # When the command '/token shop' is executed, enabling this will open the specified shop neglecting any arguments followed.
+  open-selected:
+    enabled: false
+    shop: test
 
-  # Best to not touch the options below if you don't know what you're doing.
-  maxPoolSize: 20
-  idleTimeOut: 30000
-  connectionTimeOut: 10000
+  # Set a delay between each purchase. 0 for no delay.
+  click-delay: 0
 
-# If enabled, when the command '/token shop' is executed, it will open the shop selected below to player
-# instead of displaying the usage or opening the selected shop.
-use-default:
-  enabled: false
-  shop: test
+# [WARNING: DANGER ZONE!]
+data:
 
-# Set a delay (in seconds) between purchasing shop items. Set to 0 for no delay.
-# Prevents players click spamming, improving server's performance.
-click-delay: 0
+  # If enabled, the plugin will use selected database as the token balance storage.
+  # Note: To transfer data from local db to remote db, use the command '/tokenmanager convert sqlite mysql'.
+  mysql:
+    enabled: false
+    hostname: '127.0.0.1'
+    port: '3306'
+    username: 'root'
+    password: 'password'
+    database: 'database'
+    table: 'tokenmanager'
 
-# [Note: Since SQL saves every changes instantly, this option only works if SQL is disabled.]
-# Auto-save interval in minutes. Requires to be higher than 5 minutes.
-auto-save: 10
+    # Edit the values below only if you know what you're doing!
+    maxPoolSize: 20
+    idleTimeOut: 30000
+    connectionTimeOut: 10000
 
-# Balance top update interval in minutes. Requires to be higher than 5 minutes.
-update-balance-top: 10
+  # WARNING!
+  #
+  # 1) Enabling this will set TokenManager as your server's main economy.
+  # Your old economy data will most likely RESET, and commands related to Economy
+  # such as Essentials' /eco won't function as expected if target player is offline.
+  #
+  # 2) If you're using Essentials Economy, make sure to reset everyone's balance
+  # before enabling this option! Otherwise, the old Essentials balance of the players
+  # will act as the token balance.
+  #
+  register-economy: false
+
+  # /token top will be updated every x minutes. Must be higher than 0!
+  balance-top-update-interval: 5
