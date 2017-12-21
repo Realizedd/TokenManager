@@ -27,26 +27,26 @@
 
 package me.realized.tokenmanager.command.commands;
 
-import me.realized.tokenmanager.TokenManager;
+import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.command.BaseCommand;
-import me.realized.tokenmanager.command.commands.subcommands.AddCommand;
 import me.realized.tokenmanager.command.commands.subcommands.GiveAllCommand;
+import me.realized.tokenmanager.command.commands.subcommands.OfflineCommand;
+import me.realized.tokenmanager.command.commands.subcommands.OfflineCommand.ModifyType;
 import me.realized.tokenmanager.command.commands.subcommands.OpenCommand;
 import me.realized.tokenmanager.command.commands.subcommands.ReloadCommand;
-import me.realized.tokenmanager.command.commands.subcommands.RemoveCommand;
-import me.realized.tokenmanager.command.commands.subcommands.SetCommand;
 import org.bukkit.command.CommandSender;
 
 public class TMCommand extends BaseCommand {
 
-    public TMCommand(final TokenManager plugin) {
+    public TMCommand(final TokenManagerPlugin plugin) {
         super(plugin, "tokenmanager", "tokenmanager.admin", false);
-        child(new AddCommand(plugin),
-                new RemoveCommand(plugin),
-                new SetCommand(plugin),
-                new GiveAllCommand(plugin),
-                new OpenCommand(plugin),
-                new ReloadCommand(plugin)
+        child(
+            new OfflineCommand(plugin, ModifyType.ADD, "add <username> <amount>", "give"),
+            new OfflineCommand(plugin, ModifyType.REMOVE, "remove <username> <amount>", "delete"),
+            new OfflineCommand(plugin, ModifyType.SET, "set <username> <amount>"),
+            new GiveAllCommand(plugin),
+            new OpenCommand(plugin),
+            new ReloadCommand(plugin)
         );
     }
 

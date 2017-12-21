@@ -28,15 +28,6 @@
 package me.realized.tokenmanager.util.config;
 
 import com.google.common.collect.Lists;
-import lombok.Getter;
-import me.realized.tokenmanager.util.config.convert.Converter;
-import me.realized.tokenmanager.util.plugin.AbstractPluginDelegate;
-import me.realized.tokenmanager.util.plugin.Reloadable;
-import org.bukkit.configuration.InvalidConfigurationException;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.plugin.java.JavaPlugin;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -49,16 +40,24 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import lombok.Getter;
+import me.realized.tokenmanager.util.config.convert.Converter;
+import me.realized.tokenmanager.util.plugin.AbstractPluginDelegate;
+import me.realized.tokenmanager.util.plugin.Reloadable;
+import org.bukkit.configuration.InvalidConfigurationException;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.plugin.java.JavaPlugin;
 
 /**
- *
  * AbstractConfiguration created to maintain spaces and comments on save.
  * Also supports {@link Converter} for automated config updates.
  *
  * Class created at 6/15/17 by Realized
  **/
 
-public abstract class AbstractConfiguration<P extends JavaPlugin> extends AbstractPluginDelegate<P> implements Configuration<P>, Reloadable {
+public abstract class AbstractConfiguration<P extends JavaPlugin> extends AbstractPluginDelegate<P> implements Configuration<P>,
+    Reloadable {
 
     @Getter
     private final String name;
@@ -80,7 +79,8 @@ public abstract class AbstractConfiguration<P extends JavaPlugin> extends Abstra
         getPlugin().getLogger().info("Now starting conversion of " + file.getName() + " to support the updated version.\n");
 
         try {
-            final File result = Files.copy(file.toPath(), new File(getPlugin().getDataFolder(), name + "-old-" + System.nanoTime() + ".yml").toPath()).toFile();
+            final File result = Files
+                .copy(file.toPath(), new File(getPlugin().getDataFolder(), name + "-old-" + System.nanoTime() + ".yml").toPath()).toFile();
             getPlugin().getLogger().info("Old config file was stored as " + result.getName() + ".");
         } catch (IOException ex) {
             getPlugin().getLogger().severe("Convert failed: " + ex.getMessage());
@@ -132,11 +132,14 @@ public abstract class AbstractConfiguration<P extends JavaPlugin> extends Abstra
             configuration.set(newKey, value);
 
             if (censoredKeys != null && censoredKeys.contains(key)) {
-                getPlugin().getLogger().info("(✔) Updated value of censored key '" + newKey + "'" + (!newKey.equals(key) ? " (previously: '" + key + "')" : "") + ".");
+                getPlugin().getLogger().info(
+                    "(✔) Updated value of censored key '" + newKey + "'" + (!newKey.equals(key) ? " (previously: '" + key + "')" : "")
+                        + ".");
                 continue;
             }
 
-            getPlugin().getLogger().info("(✔) Updated value of key '" + newKey + "'" + (!newKey.equals(key) ? " (previously: '" + key + "')" : "") + " = " + value);
+            getPlugin().getLogger().info(
+                "(✔) Updated value of key '" + newKey + "'" + (!newKey.equals(key) ? " (previously: '" + key + "')" : "") + " = " + value);
         }
 
         save();
@@ -163,7 +166,8 @@ public abstract class AbstractConfiguration<P extends JavaPlugin> extends Abstra
     }
 
     @Override
-    public void handleUnload() {}
+    public void handleUnload() {
+    }
 
     public void save() {
         final Map<Integer, List<String>> commentsAndSpaces = new HashMap<>();

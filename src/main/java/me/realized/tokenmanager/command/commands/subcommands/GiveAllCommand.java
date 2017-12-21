@@ -27,27 +27,26 @@
 
 package me.realized.tokenmanager.command.commands.subcommands;
 
-import me.realized.tokenmanager.TokenManager;
+import java.util.Collection;
+import java.util.OptionalLong;
+import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.command.BaseCommand;
 import me.realized.tokenmanager.util.NumberUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import java.util.Collection;
-import java.util.Optional;
-
 public class GiveAllCommand extends BaseCommand {
 
-    public GiveAllCommand(final TokenManager plugin) {
+    public GiveAllCommand(final TokenManagerPlugin plugin) {
         super(plugin, "giveall", "giveall <amount>", null, 2, false, "sendall");
     }
 
     @Override
     protected void execute(final CommandSender sender, final String label, final String[] args) {
-        final Optional<Integer> amount;
+        final OptionalLong amount =  NumberUtil.parseLong(args[1]);
 
-        if (!(amount = NumberUtil.parseInt(args[1])).isPresent() || amount.get() <= 0) {
+        if (!amount.isPresent() || amount.getAsLong() <= 0) {
             sendMessage(sender, true, "invalid-amount", "input", args[1]);
             return;
         }
@@ -55,16 +54,16 @@ public class GiveAllCommand extends BaseCommand {
         final Collection<? extends Player> online = Bukkit.getOnlinePlayers();
 
         for (final Player player : online) {
-            final Optional<Integer> balance = getDataManager().get(player);
+            final OptionalLong balance = getDataManager().get(player);
 
             if (!balance.isPresent()) {
                 continue;
             }
 
-            getDataManager().set(player, balance.get() + amount.get());
-            sendMessage(player, true, "on-receive", "amount", amount.get());
+            getDataManager().set(player, balance.getAsLong() + amount.getAsLong());
+            sendMessage(player, true, "on-receive", "amount", amount.getAsLong());
         }
 
-        sendMessage(sender, true, "on-give-all", "players", online.size(), "amount", amount.get());
+        sendMessage(sender, true, "on-give-all", "players", online.size(), "amount", amount.getAsLong());
     }
 }

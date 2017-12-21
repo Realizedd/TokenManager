@@ -27,14 +27,13 @@
 
 package me.realized.tokenmanager.shop;
 
+import java.util.HashMap;
+import java.util.Map;
 import lombok.Getter;
 import me.realized.tokenmanager.util.StringUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Class created at 6/18/17 by Realized
@@ -42,14 +41,19 @@ import java.util.Map;
 
 public class Shop {
 
-    @Getter private final String name;
-    @Getter private final Inventory gui;
-    @Getter private final boolean autoClose;
-    @Getter private final boolean usePermission;
+    @Getter
+    private final String name;
+    @Getter
+    private final Inventory gui;
+    @Getter
+    private final boolean autoClose;
+    @Getter
+    private final boolean usePermission;
 
-    private Map<Integer, SlotData> slots;
+    private Map<Integer, Slot> slots;
 
-    public Shop(final String name, final String title, final int rows, final boolean autoClose, final boolean usePermission) throws IllegalArgumentException {
+    public Shop(final String name, final String title, final int rows, final boolean autoClose, final boolean usePermission)
+        throws IllegalArgumentException {
         if (name == null || name.isEmpty()) {
             throw new IllegalArgumentException("Name is null or empty.");
         }
@@ -69,7 +73,7 @@ public class Shop {
         this.usePermission = usePermission;
     }
 
-    public void setSlot(final int slot, final ItemStack displayed, final SlotData data) {
+    void setSlot(final int slot, final ItemStack displayed, final Slot data) {
         gui.setItem(slot, displayed);
 
         if (slots == null) {
@@ -79,7 +83,7 @@ public class Shop {
         slots.put(slot, data);
     }
 
-    public SlotData getSlot(final int slot) {
+    public Slot getSlot(final int slot) {
         return slots != null ? slots.get(slot) : null;
     }
 }

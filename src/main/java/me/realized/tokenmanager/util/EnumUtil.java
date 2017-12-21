@@ -37,10 +37,12 @@ import java.util.stream.Collectors;
 
 public final class EnumUtil {
 
-    private EnumUtil() {}
+    private EnumUtil() {
+    }
 
     public static <E extends Enum> E find(final String name, Class<E> clazz) {
-        return clazz.cast(Arrays.stream(clazz.getEnumConstants()).filter(type -> type.name().equalsIgnoreCase(name)).findFirst().orElse(null));
+        return clazz
+            .cast(Arrays.stream(clazz.getEnumConstants()).filter(type -> type.name().equalsIgnoreCase(name)).findFirst().orElse(null));
     }
 
     public static List<String> getNames(final Class<? extends Enum> clazz) {

@@ -27,10 +27,9 @@
 
 package me.realized.tokenmanager.config.converters;
 
-import me.realized.tokenmanager.util.config.convert.Converter;
-
 import java.util.Collection;
 import java.util.Map;
+import me.realized.tokenmanager.util.config.convert.Converter;
 
 /**
  * Class created at 6/17/17 by Realized

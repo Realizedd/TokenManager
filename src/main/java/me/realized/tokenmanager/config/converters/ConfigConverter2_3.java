@@ -27,12 +27,11 @@
 
 package me.realized.tokenmanager.config.converters;
 
-import me.realized.tokenmanager.util.config.convert.Converter;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import me.realized.tokenmanager.util.config.convert.Converter;
 
 /**
  * Class created at 6/16/17 by Realized

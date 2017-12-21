@@ -2,25 +2,27 @@ package me.realized.tokenmanager.util.profile;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 
 public final class NameFetcher {
 
     private static final String PROFILE_URL = "https://sessionserver.mojang.com/session/minecraft/profile/";
     private static final JSONParser JSON_PARSER = new JSONParser();
     private static final Cache<UUID, String> UUID_TO_NAME = CacheBuilder.newBuilder()
-            .concurrencyLevel(4)
-            .maximumSize(1000)
-            .expireAfterWrite(30, TimeUnit.MINUTES)
-            .build();
+        .concurrencyLevel(4)
+        .maximumSize(1000)
+        .expireAfterWrite(30, TimeUnit.MINUTES)
+        .build();
+
+    private NameFetcher() {
+    }
 
     public static String getName(final UUID uuid) {
         final String cached = UUID_TO_NAME.getIfPresent(uuid);
@@ -30,7 +32,8 @@ public final class NameFetcher {
         }
 
         try {
-            final HttpURLConnection connection = (HttpURLConnection) new URL(PROFILE_URL + uuid.toString().replace("-", "")).openConnection();
+            final HttpURLConnection connection = (HttpURLConnection) new URL(PROFILE_URL + uuid.toString().replace("-", ""))
+                .openConnection();
 
             try (final InputStream stream = connection.getInputStream()) {
                 if (stream.available() == 0) {
@@ -51,6 +54,4 @@ public final class NameFetcher {
             return null;
         }
     }
-
-    private NameFetcher() {}
 }

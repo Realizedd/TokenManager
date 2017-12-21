@@ -25,11 +25,37 @@
  *
  */
 
-package me.realized.tokenmanager.api.exception;
+package me.realized.tokenmanager.shop;
 
-public class UserNotFoundException extends RuntimeException {
+import java.util.List;
+import lombok.Getter;
 
-    public UserNotFoundException(final String message) {
-        super(message);
+/**
+ * Class created at 6/18/17 by Realized
+ **/
+
+public class Slot {
+
+    @Getter
+    private final int slot;
+    @Getter
+    private final int cost;
+    @Getter
+    private final String message;
+    @Getter
+    private final String subshop;
+    @Getter
+    private final List<String> commands;
+    @Getter
+    private final boolean usePermission;
+
+    public Slot(final int slot, final int cost, final String message, final String subshop, final List<String> commands,
+        final boolean usePermission) {
+        this.slot = slot;
+        this.cost = cost;
+        this.message = message;
+        this.subshop = subshop;
+        this.commands = commands;
+        this.usePermission = usePermission;
     }
 }

@@ -27,18 +27,17 @@
 
 package me.realized.tokenmanager.util.config;
 
+import java.io.IOException;
 import me.realized.tokenmanager.util.plugin.PluginDelegate;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.plugin.java.JavaPlugin;
-
-import java.io.IOException;
+import org.bukkit.plugin.Plugin;
 
 /**
  * Class created at 6/15/17 by Realized
  **/
 
-public interface Configuration<P extends JavaPlugin> extends PluginDelegate<P> {
+public interface Configuration<P extends Plugin> extends PluginDelegate<P> {
 
     String getName();
 

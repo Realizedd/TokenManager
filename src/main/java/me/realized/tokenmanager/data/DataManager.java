@@ -27,11 +27,16 @@
 
 package me.realized.tokenmanager.data;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.OptionalLong;
 import lombok.Getter;
-import me.realized.tokenmanager.TokenManager;
+import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.data.database.Database;
 import me.realized.tokenmanager.data.database.MySQLDatabase;
 import me.realized.tokenmanager.data.database.SQLiteDatabase;
+import me.realized.tokenmanager.util.Callback;
 import me.realized.tokenmanager.util.StringUtil;
 import me.realized.tokenmanager.util.plugin.AbstractPluginDelegate;
 import me.realized.tokenmanager.util.plugin.Reloadable;
@@ -43,12 +48,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.scheduler.BukkitScheduler;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
-public class DataManager extends AbstractPluginDelegate<TokenManager> implements Reloadable, Listener {
+public class DataManager extends AbstractPluginDelegate<TokenManagerPlugin> implements Reloadable, Listener {
 
     private Database database;
 
@@ -58,17 +58,29 @@ public class DataManager extends AbstractPluginDelegate<TokenManager> implements
     private long lastUpdateMillis;
     private Integer task;
 
-    public DataManager(final TokenManager plugin) {
+    public DataManager(final TokenManagerPlugin plugin) {
         super(plugin);
     }
 
-    public Optional<Integer> get(final Player player) {
-        return database != null ? database.get(player) : Optional.empty();
+    public OptionalLong get(final Player player) {
+        return database != null ? database.get(player) : OptionalLong.empty();
     }
 
-    public void set(final Player player, final int amount) {
+    public void set(final Player player, final long amount) {
         if (database != null) {
             database.set(player, amount);
+        }
+    }
+
+    public void get(final String in, final Callback<OptionalLong> callback) {
+        if (database != null) {
+            database.get(in, callback, false);
+        }
+    }
+
+    public void set(final String key, final boolean set, final long amount, final long updated, final Callback<Boolean> callback) {
+        if (database != null) {
+            database.set(key, set, amount, updated, callback);
         }
     }
 
@@ -85,13 +97,20 @@ public class DataManager extends AbstractPluginDelegate<TokenManager> implements
     }
 
     @EventHandler
-    public void on(PlayerJoinEvent event) {
-        Player player = event.getPlayer();
-        database.load(player, args -> Bukkit.getScheduler().runTask(getPlugin(), () -> database.set(player, args)));
+    public void on(final PlayerJoinEvent event) {
+        final Player player = event.getPlayer();
+
+        database.get(player, balance -> {
+            if (!balance.isPresent()) {
+                return;
+            }
+
+            Bukkit.getScheduler().runTask(getPlugin(), () -> database.set(player, balance.getAsLong()));
+        });
     }
 
     @EventHandler
-    public void on(PlayerQuitEvent event) {
+    public void on(final PlayerQuitEvent event) {
         database.save(event.getPlayer());
     }
 
@@ -102,17 +121,18 @@ public class DataManager extends AbstractPluginDelegate<TokenManager> implements
         database.setup();
 
         // Transfer data from versions below 3.0
-        File file = new File(getPlugin().getDataFolder(), "data.yml");
+        final File file = new File(getPlugin().getDataFolder(), "data.yml");
 
         if (file.exists()) {
             database.transfer(file);
         }
 
         // Task runs sync since Database#ordered creates a copy of the data cache
-        task = Bukkit.getScheduler().runTaskTimer(getPlugin(), () -> database.ordered(5, args -> Bukkit.getScheduler().runTask(getPlugin(), () -> {
-            lastUpdateMillis = System.currentTimeMillis();
-            topCache = args;
-        })), 0L, 20L * 60L * getUpdateInterval()).getTaskId();
+        task = Bukkit.getScheduler()
+            .runTaskTimer(getPlugin(), () -> database.ordered(5, args -> Bukkit.getScheduler().runTask(getPlugin(), () -> {
+                lastUpdateMillis = System.currentTimeMillis();
+                topCache = args;
+            })), 0L, 20L * 60L * getUpdateInterval()).getTaskId();
 
         Bukkit.getPluginManager().registerEvents(this, getPlugin());
     }
@@ -120,7 +140,7 @@ public class DataManager extends AbstractPluginDelegate<TokenManager> implements
     @Override
     public void handleUnload() throws Exception {
         if (task != null) {
-            BukkitScheduler scheduler = Bukkit.getScheduler();
+            final BukkitScheduler scheduler = Bukkit.getScheduler();
 
             if (scheduler.isCurrentlyRunning(task) || scheduler.isQueued(task)) {
                 scheduler.cancelTask(task);
@@ -128,5 +148,6 @@ public class DataManager extends AbstractPluginDelegate<TokenManager> implements
         }
 
         database.save();
+        database = null;
     }
 }

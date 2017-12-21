@@ -28,6 +28,11 @@
 package me.realized.tokenmanager.util;
 
 import com.google.common.collect.Lists;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.OptionalInt;
+import java.util.logging.Logger;
 import me.realized.tokenmanager.util.compat.Potions;
 import me.realized.tokenmanager.util.compat.SpawnEggs;
 import org.bukkit.Bukkit;
@@ -42,26 +47,10 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.potion.PotionType;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.logging.Logger;
-
 public final class ItemUtil {
 
     private static final Map<String, Enchantment> ENCHANTMENTS = new HashMap<>();
     private static final Map<String, PotionEffectType> EFFECTS = new HashMap<>();
-    
-    private static void registerEnchantment(final String key, final Enchantment value) {
-        ENCHANTMENTS.put(key, value);
-        ENCHANTMENTS.put(value.getName(), value);
-    }
-
-    private static void registerEffect(final String key, final PotionEffectType value) {
-        EFFECTS.put(key, value);
-        EFFECTS.put(value.getName(), value);
-    }
 
     static {
         registerEnchantment("power", Enchantment.ARROW_DAMAGE);
@@ -114,6 +103,19 @@ public final class ItemUtil {
         registerEffect("saturation", PotionEffectType.SATURATION);
     }
 
+    private ItemUtil() {
+    }
+
+    private static void registerEnchantment(final String key, final Enchantment value) {
+        ENCHANTMENTS.put(key, value);
+        ENCHANTMENTS.put(value.getName(), value);
+    }
+
+    private static void registerEffect(final String key, final PotionEffectType value) {
+        EFFECTS.put(key, value);
+        EFFECTS.put(value.getName(), value);
+    }
+
     public static ItemStack loadFromString(final String line, final Logger logger) throws Exception {
         if (line == null || line.isEmpty()) {
             throw new IllegalArgumentException("Line is empty or null!");
@@ -137,7 +139,8 @@ public final class ItemUtil {
                     final PotionType type;
 
                     if ((type = EnumUtil.find(values[0], PotionType.class)) == null) {
-                        throw new IllegalArgumentException("'" + values[0] + "' is not a valid PotionType. Available: " + EnumUtil.getNames(PotionType.class));
+                        throw new IllegalArgumentException(
+                            "'" + values[0] + "' is not a valid PotionType. Available: " + EnumUtil.getNames(PotionType.class));
                     }
 
                     result = new Potions(type, Arrays.asList(values)).toItemStack();
@@ -145,17 +148,18 @@ public final class ItemUtil {
                     final EntityType type;
 
                     if ((type = EnumUtil.find(materialData[1], EntityType.class)) == null) {
-                        throw new IllegalArgumentException("'" + materialData[0] + "' is not a valid EntityType. Available: " + EnumUtil.getNames(EntityType.class));
+                        throw new IllegalArgumentException(
+                            "'" + materialData[0] + "' is not a valid EntityType. Available: " + EnumUtil.getNames(EntityType.class));
                     }
 
                     result = new SpawnEggs(type).toItemStack();
                 }
             }
 
-            final Optional<Integer> value;
+            final OptionalInt value;
 
             if ((value = NumberUtil.parseInt(materialData[1])).isPresent()) {
-                result.setDurability(value.get().shortValue());
+                result.setDurability((short) value.getAsInt());
             }
         }
 
@@ -216,7 +220,8 @@ public final class ItemUtil {
             }
         }
 
-        if (item.getType() == Material.SKULL_ITEM && item.getDurability() == 3 && key.equalsIgnoreCase("player") || key.equalsIgnoreCase("owner")) {
+        if (item.getType() == Material.SKULL_ITEM && item.getDurability() == 3 && key.equalsIgnoreCase("player") || key
+            .equalsIgnoreCase("owner")) {
             SkullMeta skullMeta = (SkullMeta) meta;
             skullMeta.setOwner(value);
             item.setItemMeta(skullMeta);
@@ -229,6 +234,4 @@ public final class ItemUtil {
     private static boolean isPre1_9() {
         return Bukkit.getVersion().contains("1.7") || Bukkit.getVersion().contains("1.8");
     }
-
-    private ItemUtil() {}
 }

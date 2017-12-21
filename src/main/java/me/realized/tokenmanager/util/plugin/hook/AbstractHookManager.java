@@ -27,26 +27,26 @@
 
 package me.realized.tokenmanager.util.plugin.hook;
 
-import me.realized.tokenmanager.util.plugin.AbstractPluginDelegate;
-import org.bukkit.Bukkit;
-import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.java.JavaPlugin;
-
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Map;
+import me.realized.tokenmanager.util.plugin.AbstractPluginDelegate;
+import me.realized.tokenmanager.util.plugin.Reloadable;
+import org.bukkit.Bukkit;
+import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.java.JavaPlugin;
 
-public class HookManager<P extends JavaPlugin> extends AbstractPluginDelegate<P> {
+public abstract class AbstractHookManager<P extends JavaPlugin> extends AbstractPluginDelegate<P> implements Reloadable {
 
     private final Map<Class<? extends PluginHook<P>>, PluginHook<P>> hooks = new HashMap<>();
 
-    public HookManager(final P plugin) {
+    public AbstractHookManager(final P plugin) {
         super(plugin);
     }
 
-    public boolean register(final String name, final Class<? extends PluginHook<P>> clazz) {
+    protected boolean register(final String name, final Class<? extends PluginHook<P>> clazz) {
         final Plugin target = Bukkit.getPluginManager().getPlugin(name);
 
         if (target == null || !target.isEnabled() || Modifier.isAbstract(clazz.getModifiers())) {
@@ -63,7 +63,7 @@ public class HookManager<P extends JavaPlugin> extends AbstractPluginDelegate<P>
 
             return result;
         } catch (NoSuchMethodException | IllegalAccessException | InstantiationException | InvocationTargetException ex) {
-            getPlugin().getLogger().warning("Failed to hooks into " + name + ": " + ex.getMessage());
+            getPlugin().getLogger().warning("Failed to hook into " + name + ": " + ex.getMessage());
         }
 
         return false;

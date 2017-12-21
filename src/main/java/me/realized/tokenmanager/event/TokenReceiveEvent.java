@@ -25,13 +25,12 @@
  *
  */
 
-package me.realized.tokenmanager.api.event;
+package me.realized.tokenmanager.event;
 
+import java.util.UUID;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
-
-import java.util.UUID;
 
 public class TokenReceiveEvent extends Event implements Cancellable {
 
@@ -44,6 +43,10 @@ public class TokenReceiveEvent extends Event implements Cancellable {
     public TokenReceiveEvent(final UUID receiver, final int amount) {
         this.receiver = receiver;
         this.amount = amount;
+    }
+
+    public static HandlerList getHandlerList() {
+        return handlers;
     }
 
     public UUID getReceiver() {
@@ -60,10 +63,6 @@ public class TokenReceiveEvent extends Event implements Cancellable {
 
     @Override
     public HandlerList getHandlers() {
-        return handlers;
-    }
-
-    public static HandlerList getHandlerList() {
         return handlers;
     }
 

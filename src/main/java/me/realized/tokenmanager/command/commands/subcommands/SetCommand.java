@@ -27,43 +27,69 @@
 
 package me.realized.tokenmanager.command.commands.subcommands;
 
-import me.realized.tokenmanager.TokenManager;
+import java.util.OptionalLong;
+import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.command.BaseCommand;
 import me.realized.tokenmanager.util.NumberUtil;
-import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
-
-import java.util.Optional;
 
 public class SetCommand extends BaseCommand {
 
-    public SetCommand(TokenManager plugin) {
+    public SetCommand(TokenManagerPlugin plugin) {
         super(plugin, "set", "set <username> <amount>", null, 3, false);
     }
 
     @Override
     protected void execute(CommandSender sender, String label, String[] args) {
-        Player target = Bukkit.getPlayerExact(args[1]);
+        getTarget(args[1], target -> {
+            if (!target.isPresent()) {
+                sendMessage(sender, true, "invalid-player", "input", args[1]);
+                return;
+            }
 
-        if (target == null) {
-            sendMessage(sender, true, "invalid-player", "%input%", args[1]);
-            return;
-        }
+            getDataManager().get(target.get(), balance -> {
+                if (!balance.isPresent()) {
+                    sendMessage(sender, false, "&cFailed to load data of " + args[1] + ".");
+                    return;
+                }
 
-        if (!getDataManager().get(target).isPresent()) {
-            sendMessage(sender, false, "&cFailed to load data of " + target.getName() + ".");
-            return;
-        }
+                final OptionalLong amount = NumberUtil.parseLong(args[2]);
 
-        final Optional<Integer> amount = NumberUtil.parseInt(args[2]);
+                if (!amount.isPresent() || amount.getAsLong() <= 0) {
+                    sendMessage(sender, true, "invalid-amount", "input", args[2]);
+                    return;
+                }
 
-        if (!amount.isPresent() || amount.get() <= 0) {
-            sendMessage(sender, true, "invalid-amount", "input", args[2]);
-            return;
-        }
-
-        getDataManager().set(target, amount.get());
-        sendMessage(sender, true, "on-set","%amount%", amount.get(), "%player%", target.getName());
+                getDataManager().set(target.get(), true, 0, amount.getAsLong(), success -> {
+                    if (success) {
+                        sendMessage(sender, true, "on-remove", "amount", amount.getAsLong(), "player", args[1]);
+                    } else {
+                        sendMessage(sender, false, "&cThere was an error while executing this command, please contact an administrator.");
+                    }
+                });
+            });
+        });
+//
+//        Player target = Bukkit.getPlayerExact(args[1]);
+//
+//        if (target == null) {
+//            sendMessage(sender, true, "invalid-player", "%input%", args[1]);
+//            return;
+//        }
+//
+//        if (!getDataManager().get(target).isPresent()) {
+//            sendMessage(sender, false, "&cFailed to load data of " + target.getName() + ".");
+//            return;
+//        }
+//
+//        final OptionalInt amount = NumberUtil.parseInt(args[2]);
+//
+//        if (!amount.isPresent() || amount.getAsInt() <= 0) {
+//            sendMessage(sender, true, "invalid-amount", "input", args[2]);
+//            return;
+//        }
+//
+//        getDataManager().set(target, amount.getAsInt());
+//        sendMessage(sender, true, "on-set", "%amount%", amount.getAsInt(), "%player%", target.getName());
     }
 }

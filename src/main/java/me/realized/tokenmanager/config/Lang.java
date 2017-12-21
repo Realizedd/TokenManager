@@ -27,7 +27,11 @@
 
 package me.realized.tokenmanager.config;
 
-import me.realized.tokenmanager.TokenManager;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.util.StringUtil;
 import me.realized.tokenmanager.util.config.AbstractConfiguration;
 import org.apache.commons.lang.StringUtils;
@@ -35,17 +39,24 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.MemorySection;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-public class Lang extends AbstractConfiguration<TokenManager> {
+public class Lang extends AbstractConfiguration<TokenManagerPlugin> {
 
     private final Map<String, String> messages = new HashMap<>();
 
-    public Lang(final TokenManager plugin) {
+    public Lang(final TokenManagerPlugin plugin) {
         super(plugin, "lang");
+    }
+
+    private static String withReplacers(String message, final Object... replacers) {
+        for (int i = 0; i < replacers.length; i += 2) {
+            if (i + 1 >= replacers.length) {
+                break;
+            }
+
+            message = message.replace("%" + String.valueOf(replacers[i]) + "%", String.valueOf(replacers[i + 1]));
+        }
+
+        return message;
     }
 
     @Override
@@ -61,30 +72,23 @@ public class Lang extends AbstractConfiguration<TokenManager> {
                 continue;
             }
 
-            String message;
+            String message = value instanceof List ? StringUtil.fromList((List<?>) value) : value.toString();
 
-            if (value instanceof String) {
-                message = (String) value;
-            } else if (value instanceof List) {
-                message = StringUtil.fromList((List<?>) value);
+            // Loads the STRINGS section values by their last section key.
+            if (key.startsWith("STRINGS")) {
+                final String[] args = key.split(".");
+                strings.put(args[args.length - 1], message);
             } else {
-                getPlugin().getLogger().severe("Error while loading lang.yml! Valid value not found for key '" + key + "'");
-                continue;
+                messages.put(key, message);
             }
 
+            // Replace any STRINGS in the message.
             for (final Map.Entry<String, String> entry : strings.entrySet()) {
                 final String placeholder = "{" + entry.getKey() + "}";
 
                 if (StringUtils.containsIgnoreCase(message, placeholder)) {
                     message = message.replaceAll("(?i)" + placeholder, entry.getValue());
                 }
-            }
-
-            if (key.startsWith("STRINGS")) {
-                final String[] args = key.split(".");
-                strings.put(args[args.length - 1], message);
-            } else {
-                messages.put(key, message);
             }
         }
     }
@@ -103,21 +107,10 @@ public class Lang extends AbstractConfiguration<TokenManager> {
                 return;
             }
 
+            // todo: Add check for message length and send them separately if reached max chars
             receiver.sendMessage(StringUtil.color(withReplacers(message, replacers)));
         } else {
             receiver.sendMessage(StringUtil.color(withReplacers(in, replacers)));
         }
-    }
-
-    private static String withReplacers(String message, final Object... replacers) {
-        for (int i = 0; i < replacers.length; i += 2) {
-            if (i + 1 >= replacers.length) {
-                break;
-            }
-
-            message = message.replace("%" + String.valueOf(replacers[i]) + "%", String.valueOf(replacers[i + 1]));
-        }
-
-        return message;
     }
 }

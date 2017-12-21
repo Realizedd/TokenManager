@@ -30,20 +30,19 @@ package me.realized.tokenmanager.hooks;
 import be.maximvdw.placeholderapi.PlaceholderAPI;
 import be.maximvdw.placeholderapi.PlaceholderReplaceEvent;
 import be.maximvdw.placeholderapi.PlaceholderReplacer;
-import me.realized.tokenmanager.TokenManager;
+import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.data.DataManager;
 import me.realized.tokenmanager.util.plugin.hook.PluginHook;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
-public class MVdWPlaceholderHook extends PluginHook<TokenManager> implements PlaceholderReplacer {
+public class MVdWPlaceholderHook extends PluginHook<TokenManagerPlugin> implements PlaceholderReplacer {
 
     private final DataManager dataManager;
 
-    public MVdWPlaceholderHook(final TokenManager plugin, final Plugin target) {
+    public MVdWPlaceholderHook(final TokenManagerPlugin plugin, final Plugin target) {
         super(plugin, target, "MVdWPlaceholderAPI");
         this.dataManager = plugin.getDataManager();
-
         PlaceholderAPI.registerPlaceholder(plugin, "tm_tokens", this);
     }
 
@@ -52,7 +51,7 @@ public class MVdWPlaceholderHook extends PluginHook<TokenManager> implements Pla
         final Player player = event.getPlayer();
 
         if (player == null) {
-            return "Player is required to use this placeholder!";
+            return "Player is required";
         }
 
         return String.valueOf(dataManager.get(player).orElse(0));

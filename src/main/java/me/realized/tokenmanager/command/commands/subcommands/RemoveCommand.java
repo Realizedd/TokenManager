@@ -27,51 +27,82 @@
 
 package me.realized.tokenmanager.command.commands.subcommands;
 
-import me.realized.tokenmanager.TokenManager;
+import java.util.OptionalLong;
+import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.command.BaseCommand;
 import me.realized.tokenmanager.util.NumberUtil;
-import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
-
-import java.util.Optional;
 
 public class RemoveCommand extends BaseCommand {
 
-    public RemoveCommand(final TokenManager plugin) {
+    public RemoveCommand(final TokenManagerPlugin plugin) {
         super(plugin, "remove", "remove <username> <amount>", null, 3, false, "delete");
     }
 
     @Override
     protected void execute(final CommandSender sender, final String label, final String[] args) {
-        final Player target;
+        getTarget(args[1], target -> {
+            if (!target.isPresent()) {
+                sendMessage(sender, true, "invalid-player", "input", args[1]);
+                return;
+            }
 
-        if ((target = Bukkit.getPlayerExact(args[1])) == null) {
-            sendMessage(sender, true, "invalid-player", "input", args[1]);
-            return;
-        }
+            getDataManager().get(target.get(), balance -> {
+                if (!balance.isPresent()) {
+                    sendMessage(sender, false, "&cFailed to load data of " + args[1] + ".");
+                    return;
+                }
 
-        final Optional<Integer> balance = getDataManager().get(target);
+                final OptionalLong amount = NumberUtil.parseLong(args[2]);
 
-        if (!balance.isPresent()) {
-            sendMessage(sender, false, "&cFailed to load data of " + target.getName() + ".");
-            return;
-        }
+                if (!amount.isPresent() || amount.getAsLong() <= 0) {
+                    sendMessage(sender, true, "invalid-amount", "input", args[2]);
+                    return;
+                }
 
-        final Optional<Integer> amount = NumberUtil.parseInt(args[2]);
+                if (balance.getAsLong() - amount.getAsLong() < 0) {
+                    // todo: do stuff
+                    return;
+                }
 
-        if (!amount.isPresent() || amount.get() <= 0) {
-            sendMessage(sender, true, "invalid-amount", "input", args[2]);
-            return;
-        }
-
-        if (balance.get() - amount.get() < 0) {
-            // TODO: 2/24/17 add msg and stuff
-            return;
-        }
-
-        getDataManager().set(target, balance.get() - amount.get());
-        sendMessage(target, true, "on-take", "amount", amount.get());
-        sendMessage(sender, true, "on-remove", "amount", amount.get(), "player", target.getName());
+                getDataManager().set(target.get(), false, -amount.getAsLong(), balance.getAsLong() - amount.getAsLong(), success -> {
+                    if (success) {
+                        sendMessage(sender, true, "on-remove", "amount", amount.getAsLong(), "player", args[1]);
+                    } else {
+                        sendMessage(sender, false, "&cThere was an error while executing this command, please contact an administrator.");
+                    }
+                });
+            });
+        });
+//
+//        final Player target;
+//
+//        if ((target = Bukkit.getPlayerExact(args[1])) == null) {
+//            sendMessage(sender, true, "invalid-player", "input", args[1]);
+//            return;
+//        }
+//
+//        final OptionalLong balance = getDataManager().get(target);
+//
+//        if (!balance.isPresent()) {
+//            sendMessage(sender, false, "&cFailed to load data of " + target.getName() + ".");
+//            return;
+//        }
+//
+//        final OptionalInt amount = NumberUtil.parseInt(args[2]);
+//
+//        if (!amount.isPresent() || amount.getAsInt() <= 0) {
+//            sendMessage(sender, true, "invalid-amount", "input", args[2]);
+//            return;
+//        }
+//
+//        if (balance.getAsLong() - amount.getAsInt() < 0) {
+//            // TODO: 2/24/17 add msg and stuff
+//            return;
+//        }
+//
+//        getDataManager().set(target, balance.getAsLong() - amount.getAsInt());
+//        sendMessage(target, true, "on-take", "amount", amount.getAsInt());
+//        sendMessage(sender, true, "on-remove", "amount", amount.getAsInt(), "player", target.getName());
     }
 }

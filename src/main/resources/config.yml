@@ -28,14 +28,15 @@ data:
     database: 'database'
     table: 'tokenmanager'
 
-    # Edit the values below only if you know what you're doing!
-    maxPoolSize: 20
-    idleTimeOut: 30000
-    connectionTimeOut: 10000
+    # If mysql is enabled, a redis server will be used to handle live balance update across servers.
+    redis:
+      server: '127.0.0.1'
+      port: '6379'
+      password: ''
 
   # WARNING!
   #
-  # 1) Enabling this will set TokenManager as your server's main economy.
+  # 1) Enabling this will set TokenManager's economy as your server's main economy.
   # Your old economy data will most likely RESET, and commands related to Economy
   # such as Essentials' /eco won't function as expected if target player is offline.
   #

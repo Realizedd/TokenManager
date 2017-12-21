@@ -25,31 +25,29 @@
  *
  */
 
-package me.realized.tokenmanager.util.command;
+package me.realized.tokenmanager.api;
 
-import org.bukkit.plugin.java.JavaPlugin;
-
-import java.util.List;
+import java.util.Optional;
+import java.util.OptionalLong;
+import me.realized.tokenmanager.shop.Shop;
+import me.realized.tokenmanager.util.config.Configuration;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
 
 /**
- * Class created at 6/13/17 by Realized
- **/
+ * The API interface for TokenManager.
+ */
+public interface TokenManager {
 
-public interface Command<P extends JavaPlugin> {
+    <C extends Configuration<? extends TokenManager>> Optional<C> getConfiguration(final Class<C> clazz);
 
-    String getName();
+    Optional<Shop> getShop(final String name);
 
-    String getUsage();
+    Optional<Shop> getShop(final Inventory inventory);
 
-    String getPermission();
+    OptionalLong getTokens(final Player player);
 
-    int length();
+    void setTokens(final Player player, final long amount);
 
-    boolean isPlayerOnly();
-
-    List<String> getAliases();
-
-    void register();
-
-    P getPlugin();
+    boolean reload();
 }

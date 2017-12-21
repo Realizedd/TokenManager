@@ -27,22 +27,26 @@
 
 package me.realized.tokenmanager.util.profile;
 
+import java.util.UUID;
+import java.util.regex.Pattern;
+import me.realized.tokenmanager.util.Callback;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
-import java.util.UUID;
-import java.util.regex.Pattern;
-
 public final class ProfileUtil {
 
-    private static final Pattern UUID_PATTERN = Pattern.compile("/^\\{?[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\u200C\u200B}?$/\n");
+    private static final Pattern UUID_PATTERN = Pattern.compile("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[34][0-9a-fA-F]{3}-[89ab][0-9a-fA-F]{3}-[0-9a-fA-F]{12}");
     private static boolean USING_SPIGOT;
 
     static {
         try {
             Class.forName("org.spigotmc.CustomTimingsHandler");
             USING_SPIGOT = true;
-        } catch (ClassNotFoundException ignored) {}
+        } catch (ClassNotFoundException ignored) {
+        }
+    }
+
+    private ProfileUtil() {
     }
 
     public static boolean isUUID(final String input) {
@@ -51,7 +55,8 @@ public final class ProfileUtil {
 
     public static boolean isOnlineMode() {
         final boolean online;
-        return !(online = Bukkit.getOnlineMode()) && USING_SPIGOT && Bukkit.spigot().getConfig().getBoolean("settings.bungeecord") || online;
+        return !(online = Bukkit.getOnlineMode()) && USING_SPIGOT && Bukkit.spigot().getConfig().getBoolean("settings.bungeecord")
+            || online;
     }
 
     public static String getName(final String input) {
@@ -60,23 +65,23 @@ public final class ProfileUtil {
         }
 
         final Player player;
+        final UUID uuid;
 
-        if ((player = Bukkit.getPlayerExact(input)) != null) {
+        if ((player = Bukkit.getPlayer(uuid = UUID.fromString(input))) != null) {
             return player.getName();
         }
 
-        return NameFetcher.getName(UUID.fromString(input));
+        return NameFetcher.getName(uuid);
     }
 
-    public static UUID getUUID(final String name) {
+    public static void getUUIDString(final String name, final Callback<String> callback) {
         final Player player;
 
         if ((player = Bukkit.getPlayerExact(name)) != null) {
-            return player.getUniqueId();
+            callback.call(player.getUniqueId().toString());
+            return;
         }
 
-        return UUIDFetcher.getUUID(name);
+        callback.call(UUIDFetcher.getUUID(name));
     }
-
-    private ProfileUtil() {}
 }

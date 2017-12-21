@@ -27,54 +27,95 @@
 
 package me.realized.tokenmanager.command.commands.subcommands;
 
-import me.realized.tokenmanager.TokenManager;
-import me.realized.tokenmanager.api.event.TokenReceiveEvent;
+import java.util.OptionalLong;
+import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.command.BaseCommand;
 import me.realized.tokenmanager.util.NumberUtil;
-import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
-
-import java.util.Optional;
 
 public class AddCommand extends BaseCommand {
 
-    public AddCommand(final TokenManager plugin) {
+    public AddCommand(final TokenManagerPlugin plugin) {
         super(plugin, "add", "add <username> <amount>", null, 3, false, "give");
     }
 
     @Override
     protected void execute(final CommandSender sender, final String label, final String[] args) {
-        final Player target;
+        getTarget(args[1], target -> {
+            if (!target.isPresent()) {
+                sendMessage(sender, true, "invalid-player", "input", args[1]);
+                return;
+            }
 
-        if ((target = Bukkit.getPlayerExact(args[1])) == null) {
-            sendMessage(sender, true, "invalid-player", "input", args[1]);
-            return;
-        }
+            getDataManager().get(target.get(), balance -> {
+                if (!balance.isPresent()) {
+                    sendMessage(sender, false, "&cFailed to load data of " + args[1] + ".");
+                    return;
+                }
 
-        final Optional<Integer> balance = getDataManager().get(target);
+                final OptionalLong amount = NumberUtil.parseLong(args[2]);
 
-        if (!balance.isPresent()) {
-            sendMessage(sender, false, "&cFailed to load data of " + target.getName() + ".");
-            return;
-        }
+                if (!amount.isPresent() || amount.getAsLong() <= 0) {
+                    sendMessage(sender, true, "invalid-amount", "input", args[2]);
+                    return;
+                }
 
-        final Optional<Integer> amount;
+                getDataManager().set(target.get(), false, amount.getAsLong(), balance.getAsLong() + amount.getAsLong(), success -> {
+                    if (success) {
+                        sendMessage(sender, true, "on-add", "amount", amount.getAsLong(), "player", args[1]);
+                    } else {
+                        sendMessage(sender, false, "&cThere was an error while executing this command, please contact an administrator.");
+                    }
+                });
+            });
+        });
 
-        if (!(amount = NumberUtil.parseInt(args[2])).isPresent() || amount.get() <= 0) {
-            sendMessage(sender, true, "invalid-amount", "input", args[2]);
-            return;
-        }
+//        final TokenReceiveEvent event = new TokenReceiveEvent(target.getUniqueId(), amount.get());
+//        Bukkit.getPluginManager().callEvent(event);
+//
+//        if (event.isCancelled()) {
+//            return;
+//        }
+//
+//        getDataManager().get(target, data -> {
+//            if (!data.isPresent()) {
+//                sendMessage(sender, false, "&cFailed to load data of " + target + ".");
+//                return;
+//            }
+//
+//
+//        });
 
-        final TokenReceiveEvent event = new TokenReceiveEvent(target.getUniqueId(), amount.get());
-        Bukkit.getPluginManager().callEvent(event);
-
-        if (event.isCancelled()) {
-            return;
-        }
-
-        getDataManager().set(target, balance.get() + amount.get());
-        sendMessage(sender, true, "on-add", "amount", amount.get(), "player", target.getName());
-        sendMessage(target, true, "on-receive", "amount", amount.get());
+        //final Player target;
+        //
+        //if ((target = Bukkit.getPlayerExact(args[1])) == null) {
+        //    sendMessage(sender, true, "invalid-player", "input", args[1]);
+        //    return;
+        //}
+        //
+        //final Optional<Integer> balance = getDataManager().get(target);
+        //
+        //if (!balance.isPresent()) {
+        //    sendMessage(sender, false, "&cFailed to load data of " + target.getName() + ".");
+        //    return;
+        //}
+        //
+        //final Optional<Integer> amount;
+        //
+        //if (!(amount = NumberUtil.parseInt(args[2])).isPresent() || amount.get() <= 0) {
+        //    sendMessage(sender, true, "invalid-amount", "input", args[2]);
+        //    return;
+        //}
+        //
+        //final TokenReceiveEvent event = new TokenReceiveEvent(target.getUniqueId(), amount.get());
+        //Bukkit.getPluginManager().callEvent(event);
+        //
+        //if (event.isCancelled()) {
+        //    return;
+        //}
+        //
+        //getDataManager().set(target, balance.get() + amount.get());
+        //sendMessage(sender, true, "on-add", "amount", amount.get(), "player", target.getName());
+        //sendMessage(target, true, "on-receive", "amount", amount.get());
     }
 }

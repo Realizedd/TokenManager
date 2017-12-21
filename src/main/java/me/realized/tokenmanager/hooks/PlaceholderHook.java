@@ -28,7 +28,7 @@
 package me.realized.tokenmanager.hooks;
 
 import me.clip.placeholderapi.external.EZPlaceholderHook;
-import me.realized.tokenmanager.TokenManager;
+import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.data.DataManager;
 import me.realized.tokenmanager.util.plugin.hook.PluginHook;
 import org.bukkit.entity.Player;
@@ -38,11 +38,11 @@ import org.bukkit.plugin.Plugin;
  * Class created at 6/26/17 by Realized
  **/
 
-public class PlaceholderHook extends PluginHook<TokenManager> {
+public class PlaceholderHook extends PluginHook<TokenManagerPlugin> {
 
     private final DataManager dataManager;
 
-    public PlaceholderHook(final TokenManager plugin, final Plugin target) {
+    public PlaceholderHook(final TokenManagerPlugin plugin, final Plugin target) {
         super(plugin, target, "PlaceholderAPI");
         this.dataManager = plugin.getDataManager();
 
@@ -54,7 +54,7 @@ public class PlaceholderHook extends PluginHook<TokenManager> {
                 }
 
                 if (player == null) {
-                    return "Player is required to use this placeholder!";
+                    return "Player is required";
                 }
 
                 return String.valueOf(dataManager.get(player).orElse(0));

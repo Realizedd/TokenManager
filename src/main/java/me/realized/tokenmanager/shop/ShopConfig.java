@@ -27,7 +27,13 @@
 
 package me.realized.tokenmanager.shop;
 
-import me.realized.tokenmanager.TokenManager;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.OptionalInt;
+import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.util.ItemBuilder;
 import me.realized.tokenmanager.util.ItemUtil;
 import me.realized.tokenmanager.util.NumberUtil;
@@ -37,21 +43,15 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.inventory.ItemStack;
 
-import java.io.IOException;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-
 /**
  * Class created at 6/18/17 by Realized
  **/
 
-public class ShopConfig extends AbstractConfiguration<TokenManager> {
+public class ShopConfig extends AbstractConfiguration<TokenManagerPlugin> {
 
     private final Map<String, Shop> shops = new HashMap<>();
 
-    public ShopConfig(final TokenManager plugin) {
+    public ShopConfig(final TokenManagerPlugin plugin) {
         super(plugin, "shops");
     }
 
@@ -70,11 +70,12 @@ public class ShopConfig extends AbstractConfiguration<TokenManager> {
             final Shop shop;
 
             try {
-                shop = new Shop(name,
-                        shopSection.getString("title", "&cShop title was not found!"),
-                        shopSection.getInt("rows", 1),
-                        shopSection.getBoolean("auto-close", false),
-                        shopSection.getBoolean("use-permission", false)
+                shop = new Shop(
+                    name,
+                    shopSection.getString("title", "&cShop title was not specified."),
+                    shopSection.getInt("rows", 1),
+                    shopSection.getBoolean("auto-close", false),
+                    shopSection.getBoolean("use-permission", false)
                 );
             } catch (IllegalArgumentException ex) {
                 getPlugin().getLogger().warning("Failed to initialize shop '" + name + "': " + ex.getMessage());
@@ -85,10 +86,12 @@ public class ShopConfig extends AbstractConfiguration<TokenManager> {
 
             if (itemsSection != null) {
                 for (final String num : itemsSection.getKeys(false)) {
-                    final Optional<Integer> slot = NumberUtil.parseInt(num);
+                    // TODO: 8/12/17 Temporary!
+                    final OptionalInt slot = NumberUtil.parseInt(num);
 
-                    if (!slot.isPresent() || slot.get() < 0 || slot.get() >= shop.getGui().getSize()) {
-                        getPlugin().getLogger().warning("Failed to load slot '" + num + "' for shop '" + name + "': '" + slot + "' is not a valid number or is over the shop size.");
+                    if (!slot.isPresent() || slot.getAsInt() < 0 || slot.getAsInt() >= shop.getGui().getSize()) {
+                        getPlugin().getLogger().warning("Failed to load slot '" + num + "' for shop '" + name + "': '" + slot
+                            + "' is not a valid number or is over the shop size.");
                         continue;
                     }
 
@@ -98,29 +101,30 @@ public class ShopConfig extends AbstractConfiguration<TokenManager> {
                     try {
                         displayed = ItemUtil.loadFromString(slotSection.getString("displayed"), getPlugin().getLogger());
                     } catch (Exception ex) {
-                        shop.getGui().setItem(slot.get(), ItemBuilder
-                                .of(Material.REDSTONE_BLOCK)
-                                .name("&4&m------------------")
-                                .lore(
-                                        "&cThere was an error",
-                                        "&cwhile loading this",
-                                        "&citem, please contact",
-                                        "&can administrator.",
-                                        "&4&m------------------"
-                                )
-                                .build()
+                        shop.getGui().setItem(slot.getAsInt(), ItemBuilder
+                            .of(Material.REDSTONE_BLOCK)
+                            .name("&4&m------------------")
+                            .lore(
+                                "&cThere was an error",
+                                "&cwhile loading this",
+                                "&citem, please contact",
+                                "&can administrator.",
+                                "&4&m------------------"
+                            )
+                            .build()
                         );
-                        getPlugin().getLogger().warning("Failed to load displayed item for slot '" + num + "' of shop '" + name + "': " + ex.getMessage());
+                        getPlugin().getLogger()
+                            .warning("Failed to load displayed item for slot '" + num + "' of shop '" + name + "': " + ex.getMessage());
                         continue;
                     }
 
-                    shop.setSlot(slot.get(), displayed, new SlotData(
-                            slot.get(),
-                            slotSection.getInt("cost", 1000000),
-                            slotSection.getString("message"),
-                            slotSection.getString("subshop"),
-                            slotSection.getStringList("commands"),
-                            slotSection.getBoolean("use-permission", false)
+                    shop.setSlot(slot.getAsInt(), displayed, new Slot(
+                        slot.getAsInt(),
+                        slotSection.getInt("cost", 1000000),
+                        slotSection.getString("message"),
+                        slotSection.getString("subshop"),
+                        slotSection.getStringList("commands"),
+                        slotSection.getBoolean("use-permission", false)
                     ));
                 }
             }
@@ -134,8 +138,8 @@ public class ShopConfig extends AbstractConfiguration<TokenManager> {
         shops.clear();
     }
 
-    public Shop getShop(final String name) {
-        return shops.get(name);
+    public Optional<Shop> getShop(final String name) {
+        return Optional.ofNullable(shops.get(name));
     }
 
     public Collection<Shop> getShops() {

@@ -27,12 +27,11 @@
 
 package me.realized.tokenmanager.util;
 
+import java.util.Arrays;
+import java.util.List;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * Class created at 6/19/17 by Realized
@@ -44,6 +43,18 @@ public final class ItemBuilder {
 
     private ItemBuilder(final Material type, final int amount, final short durability) {
         this.result = new ItemStack(type, amount, durability);
+    }
+
+    public static ItemBuilder of(final Material type) {
+        return of(type, 1);
+    }
+
+    public static ItemBuilder of(final Material type, final int amount) {
+        return of(type, amount, (short) 0);
+    }
+
+    public static ItemBuilder of(final Material type, final int amount, final short durability) {
+        return new ItemBuilder(type, amount, durability);
     }
 
     public ItemBuilder name(final String name) {
@@ -66,17 +77,5 @@ public final class ItemBuilder {
 
     public ItemStack build() {
         return result;
-    }
-
-    public static ItemBuilder of(final Material type) {
-        return of(type, 1);
-    }
-
-    public static ItemBuilder of(final Material type, final int amount) {
-        return of(type, amount, (short) 0);
-    }
-
-    public static ItemBuilder of(final Material type, final int amount, final short durability) {
-        return new ItemBuilder(type, amount, durability);
     }
 }

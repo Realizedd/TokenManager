@@ -27,33 +27,32 @@
 
 package me.realized.tokenmanager.command.commands.subcommands;
 
-import me.realized.tokenmanager.TokenManager;
+import java.util.OptionalLong;
+import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.command.BaseCommand;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import java.util.Optional;
-
 public class BalanceCommand extends BaseCommand {
 
-    public BalanceCommand(final TokenManager plugin) {
+    public BalanceCommand(final TokenManagerPlugin plugin) {
         super(plugin, "balance", "balance", null, 1, false, "bal", "money");
     }
 
     @Override
     protected void execute(final CommandSender sender, final String label, final String[] args) {
-        final Optional<Integer> balance;
+        final OptionalLong balance;
 
         if (args.length == length()) {
-            balance = sender instanceof Player ? getDataManager().get((Player) sender) : Optional.of(0);
+            balance = sender instanceof Player ? getDataManager().get((Player) sender) : OptionalLong.of(0);
 
             if (!balance.isPresent()) {
                 sendMessage(sender, false, "&cFailed to load data of " + sender.getName() + ".");
                 return;
             }
 
-            sendMessage(sender, true, "balance", "tokens", balance.get());
+            sendMessage(sender, true, "balance", "tokens", balance.getAsLong());
             return;
         }
 
@@ -71,6 +70,6 @@ public class BalanceCommand extends BaseCommand {
             return;
         }
 
-        sendMessage(sender, true, "balance-others", "player", target.getName(), "tokens", balance.get());
+        sendMessage(sender, true, "balance-others", "player", target.getName(), "tokens", balance.getAsLong());
     }
 }

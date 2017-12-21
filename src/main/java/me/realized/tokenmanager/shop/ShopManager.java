@@ -27,13 +27,17 @@
 
 package me.realized.tokenmanager.shop;
 
-import me.realized.tokenmanager.TokenManager;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.data.DataManager;
 import me.realized.tokenmanager.util.StringUtil;
 import me.realized.tokenmanager.util.plugin.AbstractPluginDelegate;
 import me.realized.tokenmanager.util.plugin.Reloadable;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -43,22 +47,17 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
 /**
  * Class created at 6/19/17 by Realized
  **/
 
-public class ShopManager extends AbstractPluginDelegate<TokenManager> implements Reloadable, Listener {
+public class ShopManager extends AbstractPluginDelegate<TokenManagerPlugin> implements Reloadable, Listener {
 
     private final ShopConfig config;
     private final DataManager dataManager;
     private final Map<UUID, Long> cooldowns = new HashMap<>();
 
-    public ShopManager(final TokenManager plugin) {
+    public ShopManager(final TokenManagerPlugin plugin) {
         super(plugin);
         this.config = plugin.getShopConfig();
         this.dataManager = plugin.getDataManager();
@@ -76,12 +75,9 @@ public class ShopManager extends AbstractPluginDelegate<TokenManager> implements
         Bukkit.getOnlinePlayers().forEach(player -> {
             final Inventory top = player.getOpenInventory().getTopInventory();
 
-            for (final Shop shop : config.getShops()) {
-                if (shop.getGui().equals(top)) {
-                    player.closeInventory();
-                    player.sendMessage(ChatColor.RED + "TokenManager is disabling, shops are automatically closed.");
-                    break;
-                }
+            if (config.getShops().stream().anyMatch(shop -> shop.getGui().equals(top))) {
+                player.closeInventory();
+                player.sendMessage(StringUtil.color("&cTokenManager: Shops are automatically closed when the plugin is disabling."));
             }
         });
     }
@@ -125,27 +121,29 @@ public class ShopManager extends AbstractPluginDelegate<TokenManager> implements
         final long remaining = cooldowns.getOrDefault(player.getUniqueId(), 0L) + getPlugin().getConfiguration().getClickDelay() - now;
 
         if (remaining > 0) {
-            getPlugin().getLang().sendMessage(player, true, "click-spamming","%remaining%", StringUtil.format(remaining / 1000 + (remaining % 1000 > 0 ? 1 : 0)));
+            getPlugin().getLang().sendMessage(player, true, "click-spamming", "%remaining%",
+                StringUtil.format(remaining / 1000 + (remaining % 1000 > 0 ? 1 : 0)));
             return;
         }
 
         cooldowns.put(player.getUniqueId(), System.currentTimeMillis());
 
         final int slot;
-        final SlotData data;
+        final Slot data;
 
         if ((data = target.getSlot(slot = event.getSlot())) == null) {
             return;
         }
 
         if (data.isUsePermission() && !player.hasPermission("tokenmanager.use." + target.getName() + "-" + slot)) {
-            getPlugin().getLang().sendMessage(player, true, "no-permission", "%permission%", "tokenmanager.use." + target.getName() + "-" + slot);
+            getPlugin().getLang()
+                .sendMessage(player, true, "no-permission", "%permission%", "tokenmanager.use." + target.getName() + "-" + slot);
             return;
         }
 
         final int cost = data.getCost();
         // todo: fix
-        final int balance = dataManager.get(player).get();
+        final long balance = dataManager.get(player).orElse(0);
 
         if (balance - cost < 0) {
             getPlugin().getLang().sendMessage(player, true, "not-enough-tokens", "%needed%", cost - balance);
@@ -175,14 +173,14 @@ public class ShopManager extends AbstractPluginDelegate<TokenManager> implements
         }
 
         if ((subshop = data.getSubshop()) != null) {
-            Shop shop = config.getShop(subshop);
+            Optional<Shop> shop = config.getShop(subshop);
 
-            if (shop == null) {
+            if (!shop.isPresent()) {
                 getPlugin().getLang().sendMessage(player, true, "invalid-shop", "%input%", subshop);
                 return;
             }
 
-            player.openInventory(shop.getGui());
+            player.openInventory(shop.get().getGui());
         }
     }
 

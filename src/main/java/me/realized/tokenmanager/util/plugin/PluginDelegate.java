@@ -27,13 +27,13 @@
 
 package me.realized.tokenmanager.util.plugin;
 
-import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.plugin.Plugin;
 
 /**
  * Class created at 6/18/17 by Realized
  **/
 
-public interface PluginDelegate<P extends JavaPlugin> {
+public interface PluginDelegate<P extends Plugin> {
 
     P getPlugin();
 }

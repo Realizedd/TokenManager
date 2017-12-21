@@ -27,28 +27,20 @@
 
 package me.realized.tokenmanager.hooks;
 
-import me.realized.tokenmanager.TokenManager;
-import me.realized.tokenmanager.api.exception.UserNotFoundException;
-import me.realized.tokenmanager.data.DataManager;
+import java.util.List;
+import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.util.plugin.hook.PluginHook;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.ServicePriority;
 
-import java.util.List;
-import java.util.Optional;
+public class VaultHook extends PluginHook<TokenManagerPlugin> implements Economy {
 
-public class VaultHook extends PluginHook<TokenManager> implements Economy {
-
-    private final DataManager dataManager;
-
-    public VaultHook(final TokenManager plugin, final Plugin target) {
+    public VaultHook(final TokenManagerPlugin plugin, final Plugin target) {
         super(plugin, target, "Vault");
-        this.dataManager = plugin.getDataManager();
 
         if (plugin.getConfiguration().isRegisterEconomy()) {
             Bukkit.getServicesManager().register(Economy.class, this, plugin, ServicePriority.Highest);
@@ -87,20 +79,12 @@ public class VaultHook extends PluginHook<TokenManager> implements Economy {
 
     @Override
     public double getBalance(String name) {
-        Player player = Bukkit.getPlayerExact(name);
-        return player != null ? getBalance(player) : 0;
+        return getBalance(Bukkit.getPlayerExact(name));
     }
 
     @Override
     public double getBalance(OfflinePlayer player) {
-        Optional<Integer> balance = dataManager.get(player.getPlayer());
-
-        if (!balance.isPresent()) {
-            // TODO: 2/23/17 ex message
-            throw new UserNotFoundException("");
-        }
-
-        return balance.get();
+        return player != null ? getPlugin().getTokens(player.getPlayer()).orElse(0) : 0;
     }
 
     @Override
@@ -115,7 +99,7 @@ public class VaultHook extends PluginHook<TokenManager> implements Economy {
 
     @Override
     public boolean has(String name, double amount) {
-        return getBalance(name) >= amount;
+        return getBalance(name) >= (long) amount;
     }
 
     @Override
@@ -135,20 +119,18 @@ public class VaultHook extends PluginHook<TokenManager> implements Economy {
 
     @Override
     public EconomyResponse withdrawPlayer(String name, double amount) {
-        Player player = Bukkit.getPlayerExact(name);
-
-        if (player == null) {
-            return new EconomyResponse(0, 0, EconomyResponse.ResponseType.FAILURE, "Player must be online.");
-        }
-
-        return withdrawPlayer(player, (int) amount);
+        return withdrawPlayer(Bukkit.getPlayerExact(name), amount);
     }
 
     @Override
     public EconomyResponse withdrawPlayer(OfflinePlayer player, double amount) {
-        int balance = (int) getBalance(player);
-        dataManager.set(player.getPlayer(), Math.abs(balance - (int) amount));
-        return new EconomyResponse(balance - (int) amount, amount, EconomyResponse.ResponseType.SUCCESS, "");
+        if (player == null) {
+            return new EconomyResponse(0, 0, EconomyResponse.ResponseType.FAILURE, "Player is not online");
+        }
+
+        final long balance = (long) getBalance(player);
+        getPlugin().setTokens(player.getPlayer(), Math.abs(balance - (long) amount));
+        return new EconomyResponse(balance - (long) amount, (long) amount, EconomyResponse.ResponseType.SUCCESS, "");
     }
 
     @Override
@@ -163,20 +145,18 @@ public class VaultHook extends PluginHook<TokenManager> implements Economy {
 
     @Override
     public EconomyResponse depositPlayer(String name, double amount) {
-        Player player = Bukkit.getPlayer(name);
-
-        if (player == null) {
-            return new EconomyResponse(0, 0, EconomyResponse.ResponseType.FAILURE, "Player must be online!");
-        }
-
-        return withdrawPlayer(player, amount);
+        return withdrawPlayer(Bukkit.getPlayer(name), amount);
     }
 
     @Override
     public EconomyResponse depositPlayer(OfflinePlayer player, double amount) {
-        int balance = (int) getBalance(player);
-        dataManager.set(player.getPlayer(), balance + (int) amount);
-        return new EconomyResponse(balance + (int) amount, amount, EconomyResponse.ResponseType.SUCCESS, "");
+        if (player == null) {
+            return new EconomyResponse(0, 0, EconomyResponse.ResponseType.FAILURE, "Player is not online");
+        }
+
+        final long balance = (long) getBalance(player);
+        getPlugin().setTokens(player.getPlayer(), balance + (long) amount);
+        return new EconomyResponse(balance + (long) amount, amount, EconomyResponse.ResponseType.SUCCESS, "");
     }
 
     @Override
@@ -188,9 +168,6 @@ public class VaultHook extends PluginHook<TokenManager> implements Economy {
     public EconomyResponse depositPlayer(OfflinePlayer player, String world, double amount) {
         return depositPlayer(player, amount);
     }
-
-
-
 
     @Override
     public boolean hasBankSupport() {

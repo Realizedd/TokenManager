@@ -27,7 +27,8 @@
 
 package me.realized.tokenmanager.util;
 
-import java.util.Optional;
+import java.util.OptionalInt;
+import java.util.OptionalLong;
 
 /**
  * Class created at 6/23/17 by Realized
@@ -35,68 +36,67 @@ import java.util.Optional;
 
 public final class NumberUtil {
 
-    private NumberUtil() {}
+    private NumberUtil() {
+    }
 
     /**
-     *
-     * Exactly the same as {@link Integer#parseInt(String)} but returns empty {@link Optional} instead of throwing exception.
+     * Clone of {@link Long#parseLong(String)} but returns an empty {@link OptionalLong} instead of throwing a {@link NumberFormatException}.
      *
      * @param s String to parse.
-     * @return {@link Optional} instance with parsed value inside or empty if string is invalid.
+     * @return {@link OptionalLong} instance with parsed value inside or empty if string is invalid.
      */
-    public static Optional<Integer> parseInt(String s) {
+    public static OptionalLong parseLong(final String s) throws NumberFormatException {
         if (s == null) {
-            return Optional.empty();
+            return OptionalLong.empty();
         }
 
-        int result = 0;
+        long result = 0;
         boolean negative = false;
         int i = 0, len = s.length();
-        int limit = -Integer.MAX_VALUE;
-        int multmin;
+        long limit = -Long.MAX_VALUE;
+        long multmin;
         int digit;
 
         if (len > 0) {
             char firstChar = s.charAt(0);
-
-            if (firstChar < '0') { // Possible leading "+" or "-"
+            if (firstChar < '0') {
                 if (firstChar == '-') {
                     negative = true;
-                    limit = Integer.MIN_VALUE;
-                } else if (firstChar != '+')
-                    return Optional.empty();
+                    limit = Long.MIN_VALUE;
+                } else if (firstChar != '+') {
+                    return OptionalLong.empty();
+                }
+
                 if (len == 1) {
-                    return Optional.empty();
+                    return OptionalLong.empty();
                 }
 
                 i++;
             }
-
             multmin = limit / 10;
-
             while (i < len) {
                 digit = Character.digit(s.charAt(i++), 10);
 
                 if (digit < 0) {
-                    return Optional.empty();
+                    return OptionalLong.empty();
                 }
-
                 if (result < multmin) {
-                    return Optional.empty();
+                    return OptionalLong.empty();
                 }
-
                 result *= 10;
-
                 if (result < limit + digit) {
-                    return Optional.empty();
+                    return OptionalLong.empty();
                 }
-
                 result -= digit;
             }
         } else {
-            return Optional.empty();
+            return OptionalLong.empty();
         }
 
-        return Optional.of(negative ? result : -result);
+        return OptionalLong.of(negative ? result : -result);
+    }
+
+    public static OptionalInt parseInt(final String s) {
+        return OptionalInt.of((int) parseLong(s).orElse(0));
     }
 }

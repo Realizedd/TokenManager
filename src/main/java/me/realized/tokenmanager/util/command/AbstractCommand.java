@@ -27,7 +27,12 @@
 
 package me.realized.tokenmanager.util.command;
 
-import com.google.common.collect.Lists;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import me.realized.tokenmanager.util.plugin.AbstractPluginDelegate;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -36,19 +41,7 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-/**
- * Simple abstract command class built to handleMessage sub-commands efficiently.
- *
- * @author Realized
- */
-
-public abstract class AbstractCommand<P extends JavaPlugin> extends AbstractPluginDelegate<P> implements Command<P>, TabCompleter {
+public abstract class AbstractCommand<P extends JavaPlugin> extends AbstractPluginDelegate<P> implements TabCompleter {
 
     private final String name;
     private final String usage;
@@ -59,18 +52,15 @@ public abstract class AbstractCommand<P extends JavaPlugin> extends AbstractPlug
 
     private Map<String, AbstractCommand<P>> children;
 
-    public AbstractCommand(final P plugin, final String name, final String usage, final String permission, final int length, final boolean playerOnly, final String... aliases) {
+    public AbstractCommand(final P plugin, final String name, final String usage, final String permission, final int length,
+        final boolean playerOnly, final String... aliases) {
         super(plugin);
         this.name = name;
         this.usage = usage;
         this.permission = permission;
         this.length = length;
         this.playerOnly = playerOnly;
-
-        List<String> allAliases = Lists.newArrayList(aliases);
-        allAliases.add(name.toLowerCase());
-
-        this.aliases = Collections.unmodifiableList(allAliases);
+        this.aliases = Collections.unmodifiableList(Arrays.asList(aliases));
     }
 
     public final String getName() {
@@ -195,18 +185,10 @@ public abstract class AbstractCommand<P extends JavaPlugin> extends AbstractPlug
         PluginCommand pluginCommand = getPlugin().getCommand(name);
 
         if (pluginCommand == null) {
-            throw new IllegalArgumentException("Command is not registered in getPlugin().yml");
+            throw new IllegalArgumentException("Command is not registered in plugin.yml");
         }
 
         return pluginCommand;
-    }
-
-    protected enum MessageType {
-
-        PLAYER_ONLY,
-        NO_PERMISSION,
-        SUB_COMMAND_INVALID,
-        SUB_COMMAND_USAGE
     }
 
     public void handleMessage(final CommandSender sender, final MessageType type, final String... args) {
@@ -241,13 +223,21 @@ public abstract class AbstractCommand<P extends JavaPlugin> extends AbstractPlug
 
         if (args.length == 1 && children != null) {
             return children.values().stream()
-                    .filter(child -> child.getName().startsWith(args[0].toLowerCase()))
-                    .map(AbstractCommand::getName)
-                    .distinct()
-                    .sorted(String::compareTo)
-                    .collect(Collectors.toList());
+                .filter(child -> child.getName().startsWith(args[0].toLowerCase()))
+                .map(AbstractCommand::getName)
+                .distinct()
+                .sorted(String::compareTo)
+                .collect(Collectors.toList());
         }
 
         return null;
+    }
+
+    protected enum MessageType {
+
+        PLAYER_ONLY,
+        NO_PERMISSION,
+        SUB_COMMAND_INVALID,
+        SUB_COMMAND_USAGE
     }
 }

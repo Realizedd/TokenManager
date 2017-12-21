@@ -27,36 +27,55 @@
 
 package me.realized.tokenmanager.config;
 
+import java.io.IOException;
 import lombok.Getter;
-import me.realized.tokenmanager.TokenManager;
+import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.config.converters.ConfigConverter2_3;
 import me.realized.tokenmanager.util.config.AbstractConfiguration;
 import org.bukkit.configuration.InvalidConfigurationException;
-
-import java.io.IOException;
 
 /**
  * Class created at 6/16/17 by Realized
  **/
 
-public class TMConfig extends AbstractConfiguration<TokenManager> {
+public class TMConfig extends AbstractConfiguration<TokenManagerPlugin> {
 
-    @Getter private int version;
-    @Getter private int defaultBalance;
-    @Getter private boolean openSelectedEnabled;
-    @Getter private String openSelectedShop;
-    @Getter private int clickDelay;
-    @Getter private boolean mysqlEnabled;
-    @Getter private String mysqlUsername;
-    @Getter private String mysqlPassword;
-    @Getter private String mysqlHostname;
-    @Getter private String mysqlPort;
-    @Getter private String mysqlDatabase;
-    @Getter private String mysqlTable;
-    @Getter private boolean registerEconomy;
-    @Getter private int balanceTopUpdateInterval;
+    @Getter
+    private int version;
+    @Getter
+    private int defaultBalance;
+    @Getter
+    private boolean openSelectedEnabled;
+    @Getter
+    private String openSelectedShop;
+    @Getter
+    private int clickDelay;
+    @Getter
+    private boolean mysqlEnabled;
+    @Getter
+    private String mysqlUsername;
+    @Getter
+    private String mysqlPassword;
+    @Getter
+    private String mysqlHostname;
+    @Getter
+    private String mysqlPort;
+    @Getter
+    private String mysqlDatabase;
+    @Getter
+    private String mysqlTable;
+    @Getter
+    private String redisServer;
+    @Getter
+    private int redisPort;
+    @Getter
+    private String redisPassword;
+    @Getter
+    private boolean registerEconomy;
+    @Getter
+    private int balanceTopUpdateInterval;
 
-    public TMConfig(final TokenManager plugin) {
+    public TMConfig(final TokenManagerPlugin plugin) {
         super(plugin, "config");
     }
 
@@ -81,6 +100,9 @@ public class TMConfig extends AbstractConfiguration<TokenManager> {
         mysqlPort = getConfiguration().getString("data.mysql.port", "3306");
         mysqlDatabase = getConfiguration().getString("data.mysql.database", "database");
         mysqlTable = getConfiguration().getString("data.mysql.table", "tokenmanager");
+        redisServer = getConfiguration().getString("data.mysql.redis.server", "127.0.0.1");
+        redisPort = getConfiguration().getInt("data.mysql.redis.port", 6379);
+        redisPassword = getConfiguration().getString("data.mysql.redis.password", "");
         registerEconomy = getConfiguration().getBoolean("data.register-economy", false);
         balanceTopUpdateInterval = getConfiguration().getInt("data.balance-top-update-interval", 5);
     }

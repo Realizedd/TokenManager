@@ -27,7 +27,8 @@
 
 package me.realized.tokenmanager.command.commands.subcommands;
 
-import me.realized.tokenmanager.TokenManager;
+import java.util.Optional;
+import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.command.BaseCommand;
 import me.realized.tokenmanager.shop.Shop;
 import org.bukkit.Bukkit;
@@ -36,7 +37,7 @@ import org.bukkit.entity.Player;
 
 public class OpenCommand extends BaseCommand {
 
-    public OpenCommand(final TokenManager plugin) {
+    public OpenCommand(final TokenManagerPlugin plugin) {
         super(plugin, "open", "open <username> <_shop>", null, 3, true, "show");
     }
 
@@ -50,14 +51,14 @@ public class OpenCommand extends BaseCommand {
         }
 
         final String name = args[2].toLowerCase();
-        final Shop shop;
+        final Optional<Shop> shop = getShopConfig().getShop(name);
 
-        if ((shop = getShopConfig().getShop(name)) == null) {
+        if (!shop.isPresent()) {
             sendMessage(sender, true, "invalid-shop", "input", name);
             return;
         }
 
-        target.openInventory(shop.getGui());
+        target.openInventory(shop.get().getGui());
         sendMessage(sender, true, "on-open", "name", name, "player", target.getName());
     }
 }

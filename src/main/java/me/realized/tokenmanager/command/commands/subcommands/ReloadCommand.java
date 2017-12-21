@@ -27,13 +27,13 @@
 
 package me.realized.tokenmanager.command.commands.subcommands;
 
-import me.realized.tokenmanager.TokenManager;
+import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.command.BaseCommand;
 import org.bukkit.command.CommandSender;
 
 public class ReloadCommand extends BaseCommand {
 
-    public ReloadCommand(final TokenManager plugin) {
+    public ReloadCommand(final TokenManagerPlugin plugin) {
         super(plugin, "reload", "reload", null, 1, false, "rl");
     }
 

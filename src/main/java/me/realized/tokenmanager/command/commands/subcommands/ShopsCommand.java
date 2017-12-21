@@ -27,22 +27,22 @@
 
 package me.realized.tokenmanager.command.commands.subcommands;
 
-import me.realized.tokenmanager.TokenManager;
+import java.util.stream.Collectors;
+import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.command.BaseCommand;
 import me.realized.tokenmanager.shop.Shop;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.command.CommandSender;
 
-import java.util.stream.Collectors;
-
 public class ShopsCommand extends BaseCommand {
 
-    public ShopsCommand(final TokenManager plugin) {
+    public ShopsCommand(final TokenManagerPlugin plugin) {
         super(plugin, "shops", "shops", "tokenmanager.use.shop", 1, false);
     }
 
     @Override
     protected void execute(final CommandSender sender, final String label, final String[] args) {
-        sendMessage(sender, true, "shops", "shops", StringUtils.join(getShopConfig().getShops().stream().map(Shop::getName).sorted(String::compareTo).collect(Collectors.toList()), ", "));
+        sendMessage(sender, true, "shops", "shops", StringUtils
+            .join(getShopConfig().getShops().stream().map(Shop::getName).sorted(String::compareTo).collect(Collectors.toList()), ", "));
     }
 }

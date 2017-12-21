@@ -27,7 +27,8 @@
 
 package me.realized.tokenmanager.command.commands;
 
-import me.realized.tokenmanager.TokenManager;
+import java.util.OptionalLong;
+import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.command.BaseCommand;
 import me.realized.tokenmanager.command.commands.subcommands.BalanceCommand;
 import me.realized.tokenmanager.command.commands.subcommands.SendCommand;
@@ -38,24 +39,23 @@ import me.realized.tokenmanager.command.commands.subcommands.VersionCommand;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import java.util.Optional;
-
 public class TokenCommand extends BaseCommand {
 
-    public TokenCommand(final TokenManager plugin) {
+    public TokenCommand(final TokenManagerPlugin plugin) {
         super(plugin, "token", "tokenmanager.use", false);
-        child(new BalanceCommand(plugin),
-                new SendCommand(plugin),
-                new TopCommand(plugin),
-                new ShopCommand(plugin),
-                new ShopsCommand(plugin),
-                new VersionCommand(plugin)
+        child(
+            new BalanceCommand(plugin),
+            new SendCommand(plugin),
+            new TopCommand(plugin),
+            new ShopCommand(plugin),
+            new ShopsCommand(plugin),
+            new VersionCommand(plugin)
         );
     }
 
     @Override
     protected void execute(final CommandSender sender, final String label, final String[] args) {
-        final Optional<Integer> balance;
+        final OptionalLong balance;
 
         if (sender instanceof Player) {
             Player player = (Player) sender;
@@ -66,7 +66,7 @@ public class TokenCommand extends BaseCommand {
                 return;
             }
         } else {
-            balance = Optional.empty();
+            balance = OptionalLong.empty();
         }
 
         if (args.length == 0) {

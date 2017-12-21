@@ -27,19 +27,19 @@
 
 package me.realized.tokenmanager.command.commands.subcommands;
 
-import me.realized.tokenmanager.TokenManager;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.command.BaseCommand;
 import me.realized.tokenmanager.shop.Shop;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 public class ShopCommand extends BaseCommand {
 
-    public ShopCommand(final TokenManager plugin) {
+    public ShopCommand(final TokenManagerPlugin plugin) {
         super(plugin, "shop", "shop <name>", "tokenmanager.use.shop", plugin.getConfiguration().isOpenSelectedEnabled() ? 1 : 2, true);
     }
 
@@ -47,33 +47,35 @@ public class ShopCommand extends BaseCommand {
     protected void execute(final CommandSender sender, final String label, final String[] args) {
         final Player player = (Player) sender;
         final String target;
-        final Shop shop;
+        final Optional<Shop> shop;
 
         if (getConfig().isOpenSelectedEnabled()) {
             target = getConfig().getOpenSelectedShop();
+            shop = getShopConfig().getShop(target);
 
-            if ((shop = getShopConfig().getShop(target)) == null) {
+            if (!shop.isPresent()) {
                 sendMessage(sender, true, "invalid-shop", "input", target);
                 return;
             }
 
-            player.openInventory(shop.getGui());
+            player.openInventory(shop.get().getGui());
             return;
         }
 
         target = args[1].toLowerCase();
+        shop = getShopConfig().getShop(target);
 
-        if ((shop = getShopConfig().getShop(target)) == null) {
+        if (!shop.isPresent()) {
             sendMessage(player, true, "invalid-shop", "input", target);
             return;
         }
 
-        if (shop.isUsePermission() && !player.hasPermission("tokenmanager.use.shop." + target)) {
+        if (shop.get().isUsePermission() && !player.hasPermission("tokenmanager.use.shop." + target)) {
             sendMessage(player, true, "no-permission", "permission", "tokenmanager.use.shop." + target);
             return;
         }
 
-        player.openInventory(shop.getGui());
+        player.openInventory(shop.get().getGui());
     }
 
     @Override
@@ -81,9 +83,9 @@ public class ShopCommand extends BaseCommand {
         if (args.length == 2 && !getConfig().isOpenSelectedEnabled()) {
             // Collects the names of registered shops for tab completion.
             return getShopConfig().getShops().stream().map(Shop::getName)
-                    .filter(name -> name.toLowerCase().startsWith(args[1].toLowerCase()))
-                    .sorted(String::compareTo)
-                    .collect(Collectors.toList());
+                .filter(name -> name.toLowerCase().startsWith(args[1].toLowerCase()))
+                .sorted(String::compareTo)
+                .collect(Collectors.toList());
         }
 
         return null;

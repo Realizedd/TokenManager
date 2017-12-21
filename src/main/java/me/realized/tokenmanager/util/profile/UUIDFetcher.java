@@ -29,11 +29,6 @@ package me.realized.tokenmanager.util.profile;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import me.realized.tokenmanager.util.Callback;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Reader;
@@ -42,6 +37,9 @@ import java.net.URL;
 import java.util.Collections;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 
 /**
  * Modified version of UUIDFetcher by evilmidget38
@@ -50,17 +48,20 @@ import java.util.concurrent.TimeUnit;
  * @author Realized
  **/
 
-public final class UUIDFetcher {
+final class UUIDFetcher {
 
     private static final String PROFILE_URL = "https://api.mojang.com/profiles/minecraft";
     private static final JSONParser JSON_PARSER = new JSONParser();
     private static final Cache<String, UUID> NAME_TO_UUID = CacheBuilder.newBuilder()
-            .concurrencyLevel(4)
-            .maximumSize(1000)
-            .expireAfterWrite(30, TimeUnit.MINUTES)
-            .build();
+        .concurrencyLevel(4)
+        .maximumSize(1000)
+        .expireAfterWrite(30, TimeUnit.MINUTES)
+        .build();
 
-    public static UUID getUUID(final String name) {
+    private UUIDFetcher() {
+    }
+
+    static String getUUID(final String name) {
         final UUID cached = NAME_TO_UUID.getIfPresent(name);
 
         if (cached != null) {
@@ -77,7 +78,7 @@ public final class UUIDFetcher {
                 final JSONObject profile = (JSONObject) array.get(0);
                 final UUID uuid;
                 NAME_TO_UUID.put((String) profile.get("name"), uuid = get((String) profile.get("id")));
-                return uuid;
+                return uuid.toString();
             }
         } catch (Exception ex) {
             return null;
@@ -103,8 +104,8 @@ public final class UUIDFetcher {
     }
 
     private static UUID get(String id) {
-        return UUID.fromString(id.substring(0, 8) + "-" + id.substring(8, 12) + "-" + id.substring(12, 16) + "-" + id.substring(16, 20) + "-" +id.substring(20, 32));
+        return UUID.fromString(
+            id.substring(0, 8) + "-" + id.substring(8, 12) + "-" + id.substring(12, 16) + "-" + id.substring(16, 20) + "-" + id
+                .substring(20, 32));
     }
-
-    private UUIDFetcher() {}
 }

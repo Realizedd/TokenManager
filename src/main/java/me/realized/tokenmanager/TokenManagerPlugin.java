@@ -28,38 +28,43 @@
 package me.realized.tokenmanager;
 
 import com.google.common.collect.Lists;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.OptionalLong;
 import lombok.Getter;
-import me.realized.tokenmanager.api.TokenManagerAPI;
+import me.realized.tokenmanager.api.TokenManager;
 import me.realized.tokenmanager.command.commands.TMCommand;
 import me.realized.tokenmanager.command.commands.TokenCommand;
 import me.realized.tokenmanager.config.Lang;
 import me.realized.tokenmanager.config.TMConfig;
 import me.realized.tokenmanager.data.DataManager;
-import me.realized.tokenmanager.hooks.MVdWPlaceholderHook;
-import me.realized.tokenmanager.hooks.PlaceholderHook;
-import me.realized.tokenmanager.hooks.VaultHook;
+import me.realized.tokenmanager.hooks.HookManager;
+import me.realized.tokenmanager.shop.Shop;
 import me.realized.tokenmanager.shop.ShopConfig;
 import me.realized.tokenmanager.shop.ShopManager;
+import me.realized.tokenmanager.util.config.Configuration;
 import me.realized.tokenmanager.util.plugin.Reloadable;
-import me.realized.tokenmanager.util.plugin.hook.HookManager;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
-public class TokenManager extends JavaPlugin implements TokenManagerAPI {
-
-    @Getter private TMConfig configuration;
-    @Getter private Lang lang;
-    @Getter private ShopConfig shopConfig;
-    @Getter private DataManager dataManager;
-    @Getter private ShopManager shopManager;
-    @Getter private HookManager<TokenManager> hookManager;
+public class TokenManagerPlugin extends JavaPlugin implements TokenManager {
 
     private final List<Reloadable> reloadables = new ArrayList<>();
+
+    @Getter
+    private TMConfig configuration;
+    @Getter
+    private Lang lang;
+    @Getter
+    private ShopConfig shopConfig;
+    @Getter
+    private DataManager dataManager;
+    @Getter
+    private ShopManager shopManager;
+    @Getter
+    private HookManager hookManager;
 
     @Override
     public void onEnable() {
@@ -68,6 +73,7 @@ public class TokenManager extends JavaPlugin implements TokenManagerAPI {
         shopConfig = register(new ShopConfig(this));
         dataManager = register(new DataManager(this));
         shopManager = register(new ShopManager(this));
+        hookManager = register(new HookManager(this));
 
         if (!loadReloadables()) {
             return;
@@ -75,11 +81,6 @@ public class TokenManager extends JavaPlugin implements TokenManagerAPI {
 
         new TMCommand(this).register();
         new TokenCommand(this).register();
-
-        hookManager = new HookManager<>(this);
-        hookManager.register("MVdWPlaceholderAPI", MVdWPlaceholderHook.class);
-        hookManager.register("PlaceholderAPI", PlaceholderHook.class);
-        hookManager.register("Vault", VaultHook.class);
     }
 
     @Override
@@ -118,28 +119,63 @@ public class TokenManager extends JavaPlugin implements TokenManagerAPI {
         return reloadable;
     }
 
+    @Override
+    public <C extends Configuration<? extends TokenManager>> Optional<C> getConfiguration(final Class<C> clazz) {
+        if (clazz == null) {
+            return Optional.empty();
+        }
+
+        for (final Reloadable reloadable : reloadables) {
+            if (clazz.isAssignableFrom(reloadable.getClass())) {
+                return Optional.of(clazz.cast(reloadable));
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<Shop> getShop(final String name) {
+        return shopConfig.getShop(name);
+    }
+
+    @Override
+    public Optional<Shop> getShop(final Inventory inventory) {
+        return shopConfig.getShops().stream().filter(shop -> shop.getGui().equals(inventory)).findFirst();
+    }
+
+    @Override
+    public OptionalLong getTokens(final Player player) {
+        return dataManager.get(player);
+    }
+
+    @Override
+    public void setTokens(final Player player, final long amount) {
+        dataManager.set(player, amount);
+    }
+
+    @Override
     public boolean reload() {
         unloadReloadables();
         return loadReloadables();
     }
 
-    @Override
-    public int getTokens(final Player player) {
-        return dataManager.get(player).get();
-    }
+//
+//    void info(final String message) {
+//
+//    }
+//
+//    void info(final String message, final Exception exception);
+//
+//    void warn(final String message);
+//
+//    void warn(final String message, final Exception exception);
+//
+//    void severe(final String message);
+//
+//    void severe(final String message, final Exception exception);
 
-    @Override
-    public int getTokens(final UUID uuid) {
-        return getTokens(Bukkit.getPlayer(uuid));
-    }
-
-    @Override
-    public boolean setTokens(final Player player, final int amount) {
-        return false;
-    }
-
-    @Override
-    public boolean setTokens(final UUID uuid, final int amount) {
-        return false;
+    public static TokenManagerPlugin getInstance() {
+        return getPlugin(TokenManagerPlugin.class);
     }
 }

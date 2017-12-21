@@ -27,14 +27,14 @@
 
 package me.realized.tokenmanager.command.commands.subcommands;
 
-import me.realized.tokenmanager.TokenManager;
+import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.command.BaseCommand;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
 public class VersionCommand extends BaseCommand {
 
-    public VersionCommand(final TokenManager plugin) {
+    public VersionCommand(final TokenManagerPlugin plugin) {
         super(plugin, "version", "version", null, 1, false, "v");
     }
 

@@ -41,7 +41,6 @@ public interface Converter {
     Map<String, String> renamedKeys();
 
     /**
-     *
      * Return a collection of keys containing information that shouldn't display its value on conversion.
      *
      * @return List of censored keys

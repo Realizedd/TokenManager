@@ -27,12 +27,12 @@
 
 package me.realized.tokenmanager.data.database;
 
-import me.realized.tokenmanager.TokenManager;
-
 import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Collections;
+import me.realized.tokenmanager.TokenManagerPlugin;
 
 public class SQLiteDatabase extends Database {
 
@@ -40,12 +40,11 @@ public class SQLiteDatabase extends Database {
 
     private Connection connection;
 
-    public SQLiteDatabase(final TokenManager plugin) throws Exception {
+    public SQLiteDatabase(final TokenManagerPlugin plugin) throws Exception {
         super(plugin);
         this.base = new File(plugin.getDataFolder(), "data.db");
     }
 
-    @SuppressWarnings("ResultOfMethodCallIgnored")
     @Override
     public void setup() throws Exception {
         if (!base.exists()) {
@@ -66,7 +65,7 @@ public class SQLiteDatabase extends Database {
     }
 
     @Override
-    AutoCloseable getCloseable() {
-        return connection;
+    Iterable<AutoCloseable> getCloseables() {
+        return Collections.singleton(connection);
     }
 }
