@@ -43,9 +43,6 @@ import org.json.simple.parser.JSONParser;
 
 /**
  * Modified version of UUIDFetcher by evilmidget38
- *
- * @author evilmidget38
- * @author Realized
  **/
 
 final class UUIDFetcher {
@@ -61,27 +58,23 @@ final class UUIDFetcher {
     private UUIDFetcher() {
     }
 
-    static String getUUID(final String name) {
+    static String getUUID(final String name) throws Exception {
         final UUID cached = NAME_TO_UUID.getIfPresent(name);
 
         if (cached != null) {
-            return null;
+            return cached.toString();
         }
 
-        try {
-            final HttpURLConnection connection = createConnection();
-            final String body = JSONArray.toJSONString(Collections.singletonList(name));
-            writeBody(connection, body);
+        final HttpURLConnection connection = createConnection();
+        final String body = JSONArray.toJSONString(Collections.singletonList(name));
+        writeBody(connection, body);
 
-            try (Reader reader = new InputStreamReader(connection.getInputStream())) {
-                JSONArray array = (JSONArray) JSON_PARSER.parse(reader);
-                final JSONObject profile = (JSONObject) array.get(0);
-                final UUID uuid;
-                NAME_TO_UUID.put((String) profile.get("name"), uuid = get((String) profile.get("id")));
-                return uuid.toString();
-            }
-        } catch (Exception ex) {
-            return null;
+        try (Reader reader = new InputStreamReader(connection.getInputStream())) {
+            JSONArray array = (JSONArray) JSON_PARSER.parse(reader);
+            final JSONObject profile = (JSONObject) array.get(0);
+            final UUID uuid;
+            NAME_TO_UUID.put((String) profile.get("name"), uuid = get((String) profile.get("id")));
+            return uuid.toString();
         }
     }
 

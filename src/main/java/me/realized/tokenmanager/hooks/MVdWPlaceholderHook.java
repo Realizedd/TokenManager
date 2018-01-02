@@ -32,16 +32,15 @@ import be.maximvdw.placeholderapi.PlaceholderReplaceEvent;
 import be.maximvdw.placeholderapi.PlaceholderReplacer;
 import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.data.DataManager;
-import me.realized.tokenmanager.util.plugin.hook.PluginHook;
+import me.realized.tokenmanager.util.hook.PluginHook;
 import org.bukkit.entity.Player;
-import org.bukkit.plugin.Plugin;
 
 public class MVdWPlaceholderHook extends PluginHook<TokenManagerPlugin> implements PlaceholderReplacer {
 
     private final DataManager dataManager;
 
-    public MVdWPlaceholderHook(final TokenManagerPlugin plugin, final Plugin target) {
-        super(plugin, target, "MVdWPlaceholderAPI");
+    public MVdWPlaceholderHook(final TokenManagerPlugin plugin) {
+        super(plugin, "MVdWPlaceholderAPI");
         this.dataManager = plugin.getDataManager();
         PlaceholderAPI.registerPlaceholder(plugin, "tm_tokens", this);
     }

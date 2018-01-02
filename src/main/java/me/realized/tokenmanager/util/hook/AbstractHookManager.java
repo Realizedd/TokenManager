@@ -25,25 +25,26 @@
  *
  */
 
-package me.realized.tokenmanager.util.plugin.hook;
+package me.realized.tokenmanager.util.hook;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Map;
-import me.realized.tokenmanager.util.plugin.AbstractPluginDelegate;
-import me.realized.tokenmanager.util.plugin.Reloadable;
+import me.realized.tokenmanager.util.Reloadable;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
-public abstract class AbstractHookManager<P extends JavaPlugin> extends AbstractPluginDelegate<P> implements Reloadable {
+public abstract class AbstractHookManager<P extends JavaPlugin> implements Reloadable {
+
+    protected final P plugin;
 
     private final Map<Class<? extends PluginHook<P>>, PluginHook<P>> hooks = new HashMap<>();
 
     public AbstractHookManager(final P plugin) {
-        super(plugin);
+        this.plugin = plugin;
     }
 
     protected boolean register(final String name, final Class<? extends PluginHook<P>> clazz) {
@@ -54,16 +55,16 @@ public abstract class AbstractHookManager<P extends JavaPlugin> extends Abstract
         }
 
         try {
-            final Constructor<? extends PluginHook<P>> constructor = clazz.getConstructor(getPlugin().getClass(), Plugin.class);
+            final Constructor<? extends PluginHook<P>> constructor = clazz.getConstructor(plugin.getClass());
             final boolean result;
 
-            if (result = constructor != null && hooks.putIfAbsent(clazz, constructor.newInstance(getPlugin(), target)) == null) {
-                getPlugin().getLogger().info("Successfully hooked into '" + name + "'!");
+            if (result = constructor != null && hooks.putIfAbsent(clazz, constructor.newInstance(plugin)) == null) {
+                plugin.getLogger().info("Successfully hooked into '" + name + "'!");
             }
 
             return result;
         } catch (NoSuchMethodException | IllegalAccessException | InstantiationException | InvocationTargetException ex) {
-            getPlugin().getLogger().warning("Failed to hook into " + name + ": " + ex.getMessage());
+            plugin.getLogger().warning("Failed to hook into " + name + ": " + ex.getMessage());
         }
 
         return false;

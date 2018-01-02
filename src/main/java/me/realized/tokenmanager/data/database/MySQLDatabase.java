@@ -48,11 +48,12 @@ import redis.clients.jedis.JedisPubSub;
 public class MySQLDatabase extends Database {
 
     private HikariDataSource dataSource;
+
     @Getter
     private JedisPool jedisPool;
     private JedisListener listener;
 
-    public MySQLDatabase(final TokenManagerPlugin plugin) throws Exception {
+    public MySQLDatabase(final TokenManagerPlugin plugin) {
         super(plugin);
         Query.INSERT.replace(s -> "INSERT INTO {table} ({identifier}, tokens) VALUES (?, ?) ON DUPLICATE KEY UPDATE tokens=?;");
         updateQueries();
@@ -60,7 +61,7 @@ public class MySQLDatabase extends Database {
 
     @Override
     public void setup() throws Exception {
-        final TMConfig config = getPlugin().getConfiguration();
+        final TMConfig config = plugin.getConfiguration();
         final HikariConfig hikariConfig = new HikariConfig();
         hikariConfig
             .setJdbcUrl("jdbc:mysql://" + config.getMysqlHostname() + ":" + config.getMysqlPort() + "/" + config.getMysqlDatabase());
@@ -74,16 +75,17 @@ public class MySQLDatabase extends Database {
 
         if (password.isEmpty()) {
             this.jedisPool = new JedisPool(new JedisPoolConfig(), config.getRedisServer(), config.getRedisPort(), 0);
+
         } else {
             this.jedisPool = new JedisPool(new JedisPoolConfig(), config.getRedisServer(), config.getRedisPort(), 0,
                 config.getRedisPassword());
         }
 
-        Bukkit.getScheduler().runTaskAsynchronously(getPlugin(), () -> {
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             try (Jedis jedis = jedisPool.getResource()) {
                 jedis.subscribe(listener = new JedisListener(), "tokenmanager");
             } catch (Exception ex) {
-                getPlugin().getLogger().severe("Failed to connect to the redis server: " + ex.getMessage());
+                plugin.error("Failed to connect to the redis server! Commands modifying offline player token balance will not synchronize between servers properly.");
             }
         });
 
@@ -118,7 +120,7 @@ public class MySQLDatabase extends Database {
                 return;
             }
 
-            Bukkit.getScheduler().runTask(getPlugin(), () -> {
+            Bukkit.getScheduler().runTask(plugin, () -> {
                 final Player player;
 
                 if (ProfileUtil.isUUID(args[0])) {
@@ -137,7 +139,7 @@ public class MySQLDatabase extends Database {
                     return;
                 }
 
-                if (Boolean.parseBoolean(args[2])) {
+                if (args[2].equalsIgnoreCase("true")) {
                     set(player, amount.getAsLong());
                     return;
                 }
@@ -151,15 +153,15 @@ public class MySQLDatabase extends Database {
                 set(player, cached.getAsLong() + amount.getAsLong());
 
                 if (amount.getAsLong() > 0) {
-                    getPlugin().getLang().sendMessage(player, true, "on-receive", "amount",  amount.getAsLong());
+                    plugin.getLang().sendMessage(player, true, "COMMAND.receive", "amount",  amount.getAsLong());
                 } else {
-                    getPlugin().getLang().sendMessage(player, true, "on-take", "amount",  Math.abs(amount.getAsLong()));
+                    plugin.getLang().sendMessage(player, true, "COMMAND.take", "amount",  Math.abs(amount.getAsLong()));
                 }
             });
         }
 
         @Override
-        public void close() throws Exception {
+        public void close() {
             unsubscribe();
         }
     }

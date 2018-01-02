@@ -35,10 +35,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
-/**
- * Class created at 6/18/17 by Realized
- **/
-
 public class Shop {
 
     @Getter

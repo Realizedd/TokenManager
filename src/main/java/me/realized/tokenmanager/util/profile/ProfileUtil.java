@@ -35,22 +35,15 @@ import org.bukkit.entity.Player;
 
 public final class ProfileUtil {
 
-    private static final Pattern UUID_PATTERN = Pattern.compile("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[34][0-9a-fA-F]{3}-[89ab][0-9a-fA-F]{3}-[0-9a-fA-F]{12}");
+    private static final Pattern UUID_PATTERN = Pattern
+        .compile("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[34][0-9a-fA-F]{3}-[89ab][0-9a-fA-F]{3}-[0-9a-fA-F]{12}");
     private static boolean USING_SPIGOT;
 
     static {
         try {
-            Class.forName("org.spigotmc.CustomTimingsHandler");
+            Class.forName("org.spigotmc.SpigotConfig");
             USING_SPIGOT = true;
-        } catch (ClassNotFoundException ignored) {
-        }
-    }
-
-    private ProfileUtil() {
-    }
-
-    public static boolean isUUID(final String input) {
-        return UUID_PATTERN.matcher(input).matches();
+        } catch (ClassNotFoundException ignored) {}
     }
 
     public static boolean isOnlineMode() {
@@ -59,22 +52,21 @@ public final class ProfileUtil {
             || online;
     }
 
-    public static String getName(final String input) {
-        if (!isUUID(input)) {
-            return null;
-        }
+    public static boolean isUUID(final String s) {
+        return UUID_PATTERN.matcher(s).matches();
+    }
 
+    public static String getName(final UUID uuid) {
         final Player player;
-        final UUID uuid;
 
-        if ((player = Bukkit.getPlayer(uuid = UUID.fromString(input))) != null) {
+        if ((player = Bukkit.getPlayer(uuid)) != null) {
             return player.getName();
         }
 
         return NameFetcher.getName(uuid);
     }
 
-    public static void getUUIDString(final String name, final Callback<String> callback) {
+    public static void getUUID(final String name, final Callback<String> callback, final Callback<String> errorHandler) {
         final Player player;
 
         if ((player = Bukkit.getPlayerExact(name)) != null) {
@@ -82,6 +74,12 @@ public final class ProfileUtil {
             return;
         }
 
-        callback.call(UUIDFetcher.getUUID(name));
+        try {
+            callback.call(UUIDFetcher.getUUID(name));
+        } catch (Exception ex) {
+            errorHandler.call(ex.getMessage());
+        }
     }
+
+    private ProfileUtil() {}
 }

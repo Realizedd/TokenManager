@@ -37,9 +37,8 @@ import me.realized.tokenmanager.data.database.Database;
 import me.realized.tokenmanager.data.database.MySQLDatabase;
 import me.realized.tokenmanager.data.database.SQLiteDatabase;
 import me.realized.tokenmanager.util.Callback;
+import me.realized.tokenmanager.util.Reloadable;
 import me.realized.tokenmanager.util.StringUtil;
-import me.realized.tokenmanager.util.plugin.AbstractPluginDelegate;
-import me.realized.tokenmanager.util.plugin.Reloadable;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -48,7 +47,9 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.scheduler.BukkitScheduler;
 
-public class DataManager extends AbstractPluginDelegate<TokenManagerPlugin> implements Reloadable, Listener {
+public class DataManager implements Reloadable, Listener {
+
+    private final TokenManagerPlugin plugin;
 
     private Database database;
 
@@ -59,7 +60,7 @@ public class DataManager extends AbstractPluginDelegate<TokenManagerPlugin> impl
     private Integer task;
 
     public DataManager(final TokenManagerPlugin plugin) {
-        super(plugin);
+        this.plugin = plugin;
     }
 
     public OptionalLong get(final Player player) {
@@ -89,7 +90,7 @@ public class DataManager extends AbstractPluginDelegate<TokenManagerPlugin> impl
             return updateInterval;
         }
 
-        return (updateInterval = getPlugin().getConfiguration().getBalanceTopUpdateInterval()) < 1 ? 1 : updateInterval;
+        return (updateInterval = plugin.getConfiguration().getBalanceTopUpdateInterval()) < 1 ? 1 : updateInterval;
     }
 
     public String getNextUpdate() {
@@ -105,7 +106,7 @@ public class DataManager extends AbstractPluginDelegate<TokenManagerPlugin> impl
                 return;
             }
 
-            Bukkit.getScheduler().runTask(getPlugin(), () -> database.set(player, balance.getAsLong()));
+            Bukkit.getScheduler().runTask(plugin, () -> database.set(player, balance.getAsLong()));
         });
     }
 
@@ -116,12 +117,11 @@ public class DataManager extends AbstractPluginDelegate<TokenManagerPlugin> impl
 
     @Override
     public void handleLoad() throws Exception {
-        this.database = getPlugin().getConfiguration().isMysqlEnabled() ? new MySQLDatabase(getPlugin()) : new SQLiteDatabase(getPlugin());
-
+        this.database = plugin.getConfiguration().isMysqlEnabled() ? new MySQLDatabase(plugin) : new SQLiteDatabase(plugin);
         database.setup();
 
         // Transfer data from versions below 3.0
-        final File file = new File(getPlugin().getDataFolder(), "data.yml");
+        final File file = new File(plugin.getDataFolder(), "data.yml");
 
         if (file.exists()) {
             database.transfer(file);
@@ -129,12 +129,12 @@ public class DataManager extends AbstractPluginDelegate<TokenManagerPlugin> impl
 
         // Task runs sync since Database#ordered creates a copy of the data cache
         task = Bukkit.getScheduler()
-            .runTaskTimer(getPlugin(), () -> database.ordered(5, args -> Bukkit.getScheduler().runTask(getPlugin(), () -> {
+            .runTaskTimer(plugin, () -> database.ordered(10, args -> Bukkit.getScheduler().runTask(plugin, () -> {
                 lastUpdateMillis = System.currentTimeMillis();
                 topCache = args;
             })), 0L, 20L * 60L * getUpdateInterval()).getTaskId();
 
-        Bukkit.getPluginManager().registerEvents(this, getPlugin());
+        Bukkit.getPluginManager().registerEvents(this, plugin);
     }
 
     @Override

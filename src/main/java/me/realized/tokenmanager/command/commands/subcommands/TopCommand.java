@@ -41,20 +41,20 @@ public class TopCommand extends BaseCommand {
 
     @Override
     protected void execute(final CommandSender sender, final String label, final String[] args) {
-        sendMessage(sender, true, "top-next-update", "remaining", getDataManager().getNextUpdate());
+        sendMessage(sender, true, "COMMAND.token.balance-top.next-update", "remaining", dataManager.getNextUpdate());
 
-        final List<Database.RankedData> top = getDataManager().getTopCache();
+        final List<Database.RankedData> top = dataManager.getTopCache();
 
-        sendMessage(sender, true, "top-header", "total", (top != null ? top.size() : 0));
+        sendMessage(sender, true, "COMMAND.token.balance-top.header", "total", (top != null ? top.size() : 0));
 
         if (top == null || top.isEmpty()) {
-            sendMessage(sender, true, "no-data");
+            sendMessage(sender, true, "ERROR.data-not-enough");
         } else {
             for (final Database.RankedData data : top) {
-                sendMessage(sender, true, "top-format", "rank", data.getRank(), "name", data.getKey(), "tokens", data.getValue());
+                sendMessage(sender, true, "COMMAND.token.balance-top.display-format", "rank", data.getRank(), "name", data.getKey(), "tokens", data.getTokens());
             }
         }
 
-        sendMessage(sender, true, "top-footer");
+        sendMessage(sender, true, "COMMAND.token.balance-top.footer");
     }
 }

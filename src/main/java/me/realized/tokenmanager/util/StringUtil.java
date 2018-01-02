@@ -33,19 +33,18 @@ import org.bukkit.ChatColor;
 
 public final class StringUtil {
 
-    private StringUtil() {
-    }
+    private StringUtil() {}
 
     public static String fromList(final List<?> list) {
-        String out = "";
+        StringBuilder builder = new StringBuilder();
 
         if (list != null && !list.isEmpty()) {
             for (int i = 0; i < list.size(); i++) {
-                out += list.get(i).toString() + (i + 1 != list.size() ? "\n" : "");
+                builder.append(list.get(i).toString()).append(i + 1 != list.size() ? "\n" : "");
             }
         }
 
-        return out;
+        return builder.toString();
     }
 
     public static String color(final String input) {

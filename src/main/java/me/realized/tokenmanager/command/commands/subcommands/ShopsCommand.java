@@ -42,7 +42,7 @@ public class ShopsCommand extends BaseCommand {
 
     @Override
     protected void execute(final CommandSender sender, final String label, final String[] args) {
-        sendMessage(sender, true, "shops", "shops", StringUtils
-            .join(getShopConfig().getShops().stream().map(Shop::getName).sorted(String::compareTo).collect(Collectors.toList()), ", "));
+        sendMessage(sender, true, "COMMAND.token.shops", "shops", StringUtils
+            .join(shopConfig.getShops().stream().map(Shop::getName).sorted(String::compareTo).collect(Collectors.toList()), ", "));
     }
 }

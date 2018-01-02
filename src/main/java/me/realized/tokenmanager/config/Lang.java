@@ -31,13 +31,15 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 import me.realized.tokenmanager.TokenManagerPlugin;
+import me.realized.tokenmanager.config.converters.LangConverter2_3;
 import me.realized.tokenmanager.util.StringUtil;
 import me.realized.tokenmanager.util.config.AbstractConfiguration;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.command.CommandSender;
-import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.MemorySection;
+import org.bukkit.configuration.file.FileConfiguration;
 
 public class Lang extends AbstractConfiguration<TokenManagerPlugin> {
 
@@ -53,44 +55,10 @@ public class Lang extends AbstractConfiguration<TokenManagerPlugin> {
                 break;
             }
 
-            message = message.replace("%" + String.valueOf(replacers[i]) + "%", String.valueOf(replacers[i + 1]));
+            message = message.replace("%" + replacers[i].toString() + "%", String.valueOf(replacers[i + 1]));
         }
 
         return message;
-    }
-
-    @Override
-    public void handleLoad() throws IOException, InvalidConfigurationException {
-        super.handleLoad();
-
-        final Map<String, String> strings = new HashMap<>();
-
-        for (final String key : getConfiguration().getKeys(true)) {
-            final Object value = getConfiguration().get(key);
-
-            if (value == null || value instanceof MemorySection) {
-                continue;
-            }
-
-            String message = value instanceof List ? StringUtil.fromList((List<?>) value) : value.toString();
-
-            // Loads the STRINGS section values by their last section key.
-            if (key.startsWith("STRINGS")) {
-                final String[] args = key.split(".");
-                strings.put(args[args.length - 1], message);
-            } else {
-                messages.put(key, message);
-            }
-
-            // Replace any STRINGS in the message.
-            for (final Map.Entry<String, String> entry : strings.entrySet()) {
-                final String placeholder = "{" + entry.getKey() + "}";
-
-                if (StringUtils.containsIgnoreCase(message, placeholder)) {
-                    message = message.replaceAll("(?i)" + placeholder, entry.getValue());
-                }
-            }
-        }
     }
 
     @Override
@@ -98,12 +66,63 @@ public class Lang extends AbstractConfiguration<TokenManagerPlugin> {
         messages.clear();
     }
 
+    @Override
+    protected void loadValues(FileConfiguration configuration) throws IOException {
+        if (!configuration.isInt("config-version")) {
+            configuration = convert(new LangConverter2_3());
+        } else if (configuration.getInt("config-version") < getLatestVersion()) {
+            configuration = convert(null);
+        }
+
+        final Map<String, String> strings = new HashMap<>();
+
+        for (String key : configuration.getKeys(true)) {
+            if (key.equals("config-version")) {
+                continue;
+            }
+
+            // Fixes weird issue with getKeys that appends an extra separator when called after set
+            if (key.startsWith(".")) {
+                key = key.substring(1);
+            }
+
+            final Object value = configuration.get(key);
+
+            if (value == null || value instanceof MemorySection) {
+                continue;
+            }
+
+            final String message = value instanceof List ? StringUtil.fromList((List<?>) value) : value.toString();
+
+            // Loads the STRINGS section values by their last section key.
+            if (key.startsWith("STRINGS")) {
+                final String[] args = key.split(Pattern.quote("."));
+                strings.put(args[args.length - 1], message);
+            } else {
+                messages.put(key, message);
+            }
+        }
+
+        // Replace any STRINGS in each messages.
+        messages.replaceAll((key, value) -> {
+            for (final Map.Entry<String, String> entry : strings.entrySet()) {
+                final String placeholder = "{" + entry.getKey() + "}";
+
+                if (StringUtils.containsIgnoreCase(value, placeholder)) {
+                    value = value.replaceAll("(?i)" + Pattern.quote(placeholder), entry.getValue());
+                }
+            }
+
+            return value;
+        });
+    }
+
     public void sendMessage(final CommandSender receiver, final boolean config, final String in, final Object... replacers) {
         if (config) {
             final String message = messages.get(in);
 
             if (message == null) {
-                getPlugin().getLogger().warning("Provided key '" + in + "' has no assigned value, cannot send message");
+                plugin.error(this, "Provided key '" + in + "' has no assigned value, cannot send message");
                 return;
             }
 

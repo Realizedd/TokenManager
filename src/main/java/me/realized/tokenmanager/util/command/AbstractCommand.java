@@ -27,64 +27,52 @@
 
 package me.realized.tokenmanager.util.command;
 
-import java.util.Arrays;
+import com.google.common.collect.Lists;
+import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import me.realized.tokenmanager.util.plugin.AbstractPluginDelegate;
-import org.bukkit.ChatColor;
+import lombok.Getter;
+import me.realized.tokenmanager.util.StringUtil;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
-public abstract class AbstractCommand<P extends JavaPlugin> extends AbstractPluginDelegate<P> implements TabCompleter {
+public abstract class AbstractCommand<P extends JavaPlugin> implements TabCompleter {
 
+    protected final P plugin;
+
+    @Getter
     private final String name;
+    @Getter
     private final String usage;
+    @Getter
     private final String permission;
+    @Getter
     private final boolean playerOnly;
+    @Getter
     private final int length;
+    @Getter
     private final List<String> aliases;
 
     private Map<String, AbstractCommand<P>> children;
 
     public AbstractCommand(final P plugin, final String name, final String usage, final String permission, final int length,
         final boolean playerOnly, final String... aliases) {
-        super(plugin);
+        this.plugin = plugin;
         this.name = name;
         this.usage = usage;
         this.permission = permission;
         this.length = length;
         this.playerOnly = playerOnly;
-        this.aliases = Collections.unmodifiableList(Arrays.asList(aliases));
-    }
 
-    public final String getName() {
-        return name;
-    }
-
-    public final String getUsage() {
-        return usage;
-    }
-
-    public final String getPermission() {
-        return permission;
-    }
-
-    public final int length() {
-        return length;
-    }
-
-    public final boolean isPlayerOnly() {
-        return playerOnly;
-    }
-
-    public final List<String> getAliases() {
-        return aliases;
+        final List<String> names = Lists.newArrayList(aliases);
+        names.add(name);
+        this.aliases = Collections.unmodifiableList(names);
     }
 
     @SafeVarargs
@@ -97,38 +85,52 @@ public abstract class AbstractCommand<P extends JavaPlugin> extends AbstractPlug
             children = new HashMap<>();
         }
 
-        for (AbstractCommand<P> child : commands) {
-            // Command Name is contained in aliases.
-            for (String alias : child.getAliases()) {
+        for (final AbstractCommand<P> child : commands) {
+            for (final String alias : child.getAliases()) {
                 children.put(alias.toLowerCase(), child);
             }
         }
 
-        if (children != null && !children.isEmpty()) {
-            getCommand().setTabCompleter((sender, command, alias, args) -> {
-                if (args.length > 1) {
-                    List<String> result;
+        getCommand().setTabCompleter((sender, command, alias, args) -> {
+            if (args.length > 1) {
+                List<String> result;
 
-                    for (AbstractCommand<P> child : children.values()) {
-                        // Filter out unrelated sub-commands
-                        if (!child.getAliases().contains(args[0].toLowerCase())) {
-                            continue;
-                        }
+                for (final AbstractCommand<P> child : children.values()) {
+                    // Filter out unrelated sub-commands
+                    if (!child.getAliases().contains(args[0].toLowerCase())) {
+                        continue;
+                    }
 
-                        result = child.onTabComplete(sender, command, alias, args);
+                    result = child.onTabComplete(sender, command, alias, args);
 
-                        if (result != null) {
-                            return result;
-                        }
+                    if (result != null) {
+                        return result;
                     }
                 }
+            }
 
-                return onTabComplete(sender, command, alias, args);
-            });
+            return onTabComplete(sender, command, alias, args);
+        });
+    }
+
+    protected enum MessageType {
+
+        PLAYER_ONLY("&cThis command can only be executed by a player!"),
+        NO_PERMISSION("&cYou need the following permission: {0}"),
+        SUB_COMMAND_INVALID("&c''{1}'' is not a valid sub command. Type /{0} for help."),
+        SUB_COMMAND_USAGE("&cUsage: /{0} {1}");
+
+        @Getter
+        private final MessageFormat defaultMessage;
+
+        MessageType(final String defaultMessage) {
+            this.defaultMessage = new MessageFormat(StringUtil.color(defaultMessage));
         }
     }
 
-    protected abstract void execute(final CommandSender sender, final String label, final String[] args);
+    protected void handleMessage(final CommandSender sender, final MessageType type, final String... args) {
+        sender.sendMessage(type.defaultMessage.format(args));
+    }
 
     public final void register() {
         final PluginCommand pluginCommand = getCommand();
@@ -140,12 +142,12 @@ public abstract class AbstractCommand<P extends JavaPlugin> extends AbstractPlug
             }
 
             if (permission != null && !sender.hasPermission(getPermission())) {
-                handleMessage(sender, MessageType.NO_PERMISSION, label, args[0]);
+                handleMessage(sender, MessageType.NO_PERMISSION, permission);
                 return true;
             }
 
             if (args.length > 0 && children != null) {
-                AbstractCommand child = children.get(args[0].toLowerCase());
+                final AbstractCommand child = children.get(args[0].toLowerCase());
 
                 if (child == null) {
                     handleMessage(sender, MessageType.SUB_COMMAND_INVALID, label, args[0]);
@@ -182,37 +184,13 @@ public abstract class AbstractCommand<P extends JavaPlugin> extends AbstractPlug
     }
 
     private PluginCommand getCommand() {
-        PluginCommand pluginCommand = getPlugin().getCommand(name);
+        PluginCommand pluginCommand = plugin.getCommand(name);
 
         if (pluginCommand == null) {
             throw new IllegalArgumentException("Command is not registered in plugin.yml");
         }
 
         return pluginCommand;
-    }
-
-    public void handleMessage(final CommandSender sender, final MessageType type, final String... args) {
-        final String message;
-
-        switch (type) {
-            case PLAYER_ONLY:
-                message = "This command can only be executed by a player!";
-                break;
-            case NO_PERMISSION:
-                message = "You need the following permission: " + args[0];
-                break;
-            case SUB_COMMAND_INVALID:
-                message = "'" + args[1] + "' is not a valid sub command. Type /" + args[0] + " for help.";
-                break;
-            case SUB_COMMAND_USAGE:
-                message = "Usage: /" + args[0] + " " + args[1];
-                break;
-            default:
-                message = "Invalid MessageType";
-                break;
-        }
-
-        sender.sendMessage(ChatColor.RED + message);
     }
 
     @Override
@@ -233,11 +211,5 @@ public abstract class AbstractCommand<P extends JavaPlugin> extends AbstractPlug
         return null;
     }
 
-    protected enum MessageType {
-
-        PLAYER_ONLY,
-        NO_PERMISSION,
-        SUB_COMMAND_INVALID,
-        SUB_COMMAND_USAGE
-    }
+    protected abstract void execute(final CommandSender sender, final String label, final String[] args);
 }

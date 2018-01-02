@@ -27,23 +27,9 @@
 
 package me.realized.tokenmanager.util.config.convert;
 
-import java.util.Collection;
 import java.util.Map;
-
-/**
- * @see me.realized.tokenmanager.util.config.AbstractConfiguration#convert(Converter)
- *
- * Class created at 6/16/17 by Realized
- **/
 
 public interface Converter {
 
     Map<String, String> renamedKeys();
-
-    /**
-     * Return a collection of keys containing information that shouldn't display its value on conversion.
-     *
-     * @return List of censored keys
-     */
-    Collection<String> censoredKeys();
 }

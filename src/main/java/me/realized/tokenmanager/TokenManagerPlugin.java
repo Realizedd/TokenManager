@@ -43,8 +43,9 @@ import me.realized.tokenmanager.hooks.HookManager;
 import me.realized.tokenmanager.shop.Shop;
 import me.realized.tokenmanager.shop.ShopConfig;
 import me.realized.tokenmanager.shop.ShopManager;
-import me.realized.tokenmanager.util.config.Configuration;
-import me.realized.tokenmanager.util.plugin.Reloadable;
+import me.realized.tokenmanager.util.Reloadable;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -52,6 +53,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class TokenManagerPlugin extends JavaPlugin implements TokenManager {
 
     private final List<Reloadable> reloadables = new ArrayList<>();
+    private int lastLoad;
 
     @Getter
     private TMConfig configuration;
@@ -76,6 +78,7 @@ public class TokenManagerPlugin extends JavaPlugin implements TokenManager {
         hookManager = register(new HookManager(this));
 
         if (!loadReloadables()) {
+            getPluginLoader().disablePlugin(this);
             return;
         }
 
@@ -88,14 +91,23 @@ public class TokenManagerPlugin extends JavaPlugin implements TokenManager {
         unloadReloadables();
     }
 
+    private <R extends Reloadable> R register(final R reloadable) {
+        reloadables.add(reloadable);
+        return reloadable;
+    }
+
+    /**
+     * @return true if load was successful, otherwise false
+     */
     private boolean loadReloadables() {
         for (final Reloadable reloadable : reloadables) {
             try {
                 reloadable.handleLoad();
+                lastLoad = reloadables.indexOf(reloadable);
+                info("Loaded " + reloadable.getClass().getSimpleName() + ".");
             } catch (Exception ex) {
-                getLogger().severe(reloadable.getClass().getSimpleName() + " has failed to load! plugin will be disabled.");
-                getLogger().severe("Cause: " + ex.getMessage());
-                getPluginLoader().disablePlugin(this);
+                error("An error occured while loading " + reloadable.getClass().getSimpleName() + ", please contact the developer.");
+                ex.printStackTrace();
                 return false;
             }
         }
@@ -103,35 +115,26 @@ public class TokenManagerPlugin extends JavaPlugin implements TokenManager {
         return true;
     }
 
-    private void unloadReloadables() {
-        Lists.reverse(reloadables).forEach(reloadable -> {
+    /**
+     * @return true if unload was successful, otherwise false
+     */
+    private boolean unloadReloadables() {
+        for (final Reloadable reloadable : Lists.reverse(reloadables)) {
             try {
+                if (reloadables.indexOf(reloadable) > lastLoad) {
+                    continue;
+                }
+
                 reloadable.handleUnload();
+                info("Unloaded " + reloadable.getClass().getSimpleName() + ".");
             } catch (Exception ex) {
-                getLogger().severe(reloadable.getClass().getName() + " has failed to unload!");
-                getLogger().severe("Cause: " + ex.getMessage());
-            }
-        });
-    }
-
-    private <R extends Reloadable> R register(final R reloadable) {
-        reloadables.add(reloadable);
-        return reloadable;
-    }
-
-    @Override
-    public <C extends Configuration<? extends TokenManager>> Optional<C> getConfiguration(final Class<C> clazz) {
-        if (clazz == null) {
-            return Optional.empty();
-        }
-
-        for (final Reloadable reloadable : reloadables) {
-            if (clazz.isAssignableFrom(reloadable.getClass())) {
-                return Optional.of(clazz.cast(reloadable));
+                error("An error occured while unloading " + reloadable.getClass().getSimpleName() + ", please contact the developer.");
+                ex.printStackTrace();
+                return false;
             }
         }
 
-        return Optional.empty();
+        return true;
     }
 
     @Override
@@ -155,27 +158,30 @@ public class TokenManagerPlugin extends JavaPlugin implements TokenManager {
     }
 
     @Override
-    public boolean reload() {
-        unloadReloadables();
-        return loadReloadables();
+    public void info(final String msg) {
+        getLogger().info(msg);
     }
 
-//
-//    void info(final String message) {
-//
-//    }
-//
-//    void info(final String message, final Exception exception);
-//
-//    void warn(final String message);
-//
-//    void warn(final String message, final Exception exception);
-//
-//    void severe(final String message);
-//
-//    void severe(final String message, final Exception exception);
+    public void info(final Reloadable reloadable, final String msg) {
+        info(reloadable.getClass().getSimpleName() + ": " + msg);
+    }
 
-    public static TokenManagerPlugin getInstance() {
-        return getPlugin(TokenManagerPlugin.class);
+    @Override
+    public void error(final String msg) {
+        Bukkit.getConsoleSender().sendMessage("[" + getName() + "] " + ChatColor.RED + msg);
+    }
+
+    public void error(final Reloadable reloadable, final String msg) {
+        error(reloadable.getClass().getSimpleName() + ": " + msg);
+    }
+
+    @Override
+    public boolean reload() {
+        if (!(unloadReloadables() && loadReloadables())) {
+            getPluginLoader().disablePlugin(this);
+            return false;
+        }
+
+        return true;
     }
 }

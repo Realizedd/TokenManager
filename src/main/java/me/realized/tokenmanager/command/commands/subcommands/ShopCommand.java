@@ -49,12 +49,12 @@ public class ShopCommand extends BaseCommand {
         final String target;
         final Optional<Shop> shop;
 
-        if (getConfig().isOpenSelectedEnabled()) {
-            target = getConfig().getOpenSelectedShop();
-            shop = getShopConfig().getShop(target);
+        if (config.isOpenSelectedEnabled()) {
+            target = config.getOpenSelectedShop();
+            shop = shopConfig.getShop(target);
 
             if (!shop.isPresent()) {
-                sendMessage(sender, true, "invalid-shop", "input", target);
+                sendMessage(sender, true, "ERROR.shop-not-found", "input", target);
                 return;
             }
 
@@ -63,15 +63,15 @@ public class ShopCommand extends BaseCommand {
         }
 
         target = args[1].toLowerCase();
-        shop = getShopConfig().getShop(target);
+        shop = shopConfig.getShop(target);
 
         if (!shop.isPresent()) {
-            sendMessage(player, true, "invalid-shop", "input", target);
+            sendMessage(player, true, "ERROR.shop-not-found", "input", target);
             return;
         }
 
         if (shop.get().isUsePermission() && !player.hasPermission("tokenmanager.use.shop." + target)) {
-            sendMessage(player, true, "no-permission", "permission", "tokenmanager.use.shop." + target);
+            sendMessage(player, true, "ERROR.no-permission", "permission", "tokenmanager.use.shop." + target);
             return;
         }
 
@@ -80,9 +80,9 @@ public class ShopCommand extends BaseCommand {
 
     @Override
     public List<String> onTabComplete(final CommandSender sender, final Command command, final String alias, final String[] args) {
-        if (args.length == 2 && !getConfig().isOpenSelectedEnabled()) {
+        if (args.length == 2 && !config.isOpenSelectedEnabled()) {
             // Collects the names of registered shops for tab completion.
-            return getShopConfig().getShops().stream().map(Shop::getName)
+            return shopConfig.getShops().stream().map(Shop::getName)
                 .filter(name -> name.toLowerCase().startsWith(args[1].toLowerCase()))
                 .sorted(String::compareTo)
                 .collect(Collectors.toList());

@@ -27,209 +27,196 @@
 
 package me.realized.tokenmanager.util.config;
 
+import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import lombok.Getter;
+import me.realized.tokenmanager.util.Reloadable;
 import me.realized.tokenmanager.util.config.convert.Converter;
-import me.realized.tokenmanager.util.plugin.AbstractPluginDelegate;
-import me.realized.tokenmanager.util.plugin.Reloadable;
-import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
-/**
- * AbstractConfiguration created to maintain spaces and comments on save.
- * Also supports {@link Converter} for automated config updates.
- *
- * Class created at 6/15/17 by Realized
- **/
+public abstract class AbstractConfiguration<P extends JavaPlugin> implements Reloadable {
 
-public abstract class AbstractConfiguration<P extends JavaPlugin> extends AbstractPluginDelegate<P> implements Configuration<P>,
-    Reloadable {
+    private static final Pattern KEY_PATTERN = Pattern.compile("^([ ]*)([^ \"]+)[:].*$");
+    private static final Pattern COMMENT_PATTERN = Pattern.compile("^([ ]*[#].*)|[ ]*$");
+
+    protected final P plugin;
 
     @Getter
     private final String name;
     private final File file;
+
     private FileConfiguration configuration;
 
     public AbstractConfiguration(final P plugin, final String name) {
-        super(plugin);
-        this.name = name;
-        this.file = new File(plugin.getDataFolder(), name + ".yml");
-
-        if (!file.exists()) {
-            generateFile();
-        }
+        this.plugin = plugin;
+        this.name = name + ".yml";
+        this.file = new File(plugin.getDataFolder(), this.name);
     }
 
-    protected void convert(final Converter converter) {
-        getPlugin().getLogger().info("================================== NOTICE ==================================\n");
-        getPlugin().getLogger().info("Now starting conversion of " + file.getName() + " to support the updated version.\n");
+    @Override
+    public void handleLoad() throws IOException {
+        checkFile();
+        loadValues(configuration = YamlConfiguration.loadConfiguration(file));
+    }
 
-        try {
-            final File result = Files
-                .copy(file.toPath(), new File(getPlugin().getDataFolder(), name + "-old-" + System.nanoTime() + ".yml").toPath()).toFile();
-            getPlugin().getLogger().info("Old config file was stored as " + result.getName() + ".");
+    @Override
+    public void handleUnload() {}
+
+    protected abstract void loadValues(final FileConfiguration configuration) throws IOException;
+
+    protected int getLatestVersion() {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(plugin.getClass().getResourceAsStream("/" + name)))) {
+            final FileConfiguration config = YamlConfiguration.loadConfiguration(reader);
+
+            if (config.isInt("config-version")) {
+                return config.getInt("config-version");
+            }
         } catch (IOException ex) {
-            getPlugin().getLogger().severe("Convert failed: " + ex.getMessage());
-            return;
+            ex.printStackTrace();
         }
 
-        // Old previous config instance was not loaded, force load
-        if (configuration == null) {
-            try {
-                setConfiguration();
-            } catch (InvalidConfigurationException | IOException ex) {
-                getPlugin().getLogger().severe("Convert failed: " + ex.getMessage());
-                return;
-            }
+        return -1;
+    }
+
+    private boolean checkFile() {
+        if (!file.exists()) {
+            plugin.saveResource(name, true);
+            return true;
         }
 
-        // Store a local copy of the previous config instance
-        final FileConfiguration old = configuration;
+        return false;
+    }
 
-        // Generate the updated config file from resources
-        generateFile();
-        getPlugin().getLogger().info("Generated the new config file. Updating values...");
-
-        // Load new config
-        try {
-            setConfiguration();
-        } catch (InvalidConfigurationException | IOException ex) {
-            getPlugin().getLogger().severe("Convert failed: " + ex.getMessage());
-            return;
+    protected FileConfiguration convert(final Converter converter) throws IOException {
+        // Do nothing since the configuration file was just generated.
+        if (checkFile()) {
+            return configuration;
         }
 
-        final Map<String, String> renamedKeys = converter.renamedKeys();
-        final Collection<String> censoredKeys = converter.censoredKeys();
+        plugin.getLogger().info("[!] Converting your current configuration (" + name + ") to the new version...");
 
-        // Could use a stream but inefficient since value is still used after filters
-        for (final String key : old.getKeys(true)) {
-            final Object value = old.get(key);
+        final Map<String, Object> oldValues = new HashMap<>();
 
-            if (value == null) {
+        for (final String key : configuration.getKeys(true)) {
+            if (key.equals("config-version")) {
                 continue;
             }
 
-            String newKey = key;
-
-            if (configuration.get(key) == null && (renamedKeys == null || (newKey = renamedKeys.get(key)) == null)) {
-                continue;
-            }
-
-            configuration.set(newKey, value);
-
-            if (censoredKeys != null && censoredKeys.contains(key)) {
-                getPlugin().getLogger().info(
-                    "(✔) Updated value of censored key '" + newKey + "'" + (!newKey.equals(key) ? " (previously: '" + key + "')" : "")
-                        + ".");
-                continue;
-            }
-
-            getPlugin().getLogger().info(
-                "(✔) Updated value of key '" + newKey + "'" + (!newKey.equals(key) ? " (previously: '" + key + "')" : "") + " = " + value);
+            oldValues.put(key, configuration.get(key));
         }
 
-        save();
-        getPlugin().getLogger().info("Successfully converted the following config: " + file.getName() + "\n");
-        getPlugin().getLogger().info("============================================================================");
-    }
+        if (converter != null) {
+            converter.renamedKeys().forEach((old, changed) -> {
+                final Object previous = oldValues.get(old);
 
-    public FileConfiguration getConfiguration() throws IOException, InvalidConfigurationException {
-        if (configuration == null) {
-            setConfiguration();
+                if (previous != null) {
+                    oldValues.remove(old);
+                    oldValues.put(changed, previous);
+                }
+            });
         }
 
-        return configuration;
-    }
+        final String newName = name.replace(".yml", "") + "-" + System.currentTimeMillis() + ".yml";
+        final File copied = Files.copy(file.toPath(), new File(plugin.getDataFolder(), newName).toPath()).toFile();
+        plugin.getLogger().info("[!] Your old configuration was stored as " + copied.getName() + ".");
+        plugin.saveResource(name, true);
 
-    private void setConfiguration() throws IOException, InvalidConfigurationException {
-        this.configuration = new YamlConfiguration();
-        configuration.load(file);
-    }
-
-    @Override
-    public void handleLoad() throws IOException, InvalidConfigurationException {
-        setConfiguration();
-    }
-
-    @Override
-    public void handleUnload() {
-    }
-
-    public void save() {
-        final Map<Integer, List<String>> commentsAndSpaces = new HashMap<>();
-
+        // Loads comments of the new configuration file
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            int index = 0;
-            List<String> comments = new ArrayList<>();
+            final Multimap<String, List<String>> comments = LinkedListMultimap.create();
+            final List<String> currentComments = new ArrayList<>();
+
             String line;
+            Matcher matcher;
 
             while ((line = reader.readLine()) != null) {
-                // Check for comments and spaces
-                if (line.trim().startsWith("#") || line.trim().isEmpty()) {
-                    comments.add(line);
-                } else if (!line.isEmpty() && !line.trim().startsWith("-") && line.split(":").length > 0) {
-                    // New key is detected, push previous information with last key index
-                    if (!comments.isEmpty()) {
-                        commentsAndSpaces.put(index, new ArrayList<>(comments));
-                        comments.clear();
-                    }
-
-                    // Increase index only if key is detected
-                    index++;
+                if ((matcher = KEY_PATTERN.matcher(line)).find() && !COMMENT_PATTERN.matcher(line).matches()) {
+                    comments.put(matcher.group(2), Lists.newArrayList(currentComments));
+                    currentComments.clear();
+                } else if (COMMENT_PATTERN.matcher(line).matches()) {
+                    currentComments.add(line);
                 }
             }
-        } catch (IOException ex) {
-            getPlugin().getLogger().warning("Configuration read operation failed: " + ex.getMessage());
-            return;
-        }
 
-        configuration.options().header(null);
+            configuration = YamlConfiguration.loadConfiguration(file);
+            configuration.options().header(null);
 
-        List<String> entries = Lists.newArrayList(configuration.saveToString().split("\n"));
+            // Transfer values from the old configuration
+            for (Map.Entry<String, Object> entry : oldValues.entrySet()) {
+                final Object previous;
 
-        if (!file.exists()) {
-            generateFile();
-        }
+                if ((previous = configuration.get(entry.getKey())) != null && entry.getValue().getClass().isInstance(previous)) {
+                    configuration.set(entry.getKey(), entry.getValue());
+                }
+            }
 
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
-            for (int index = 0; index < entries.size(); index++) {
-                List<String> data = commentsAndSpaces.get(index);
+            final List<String> commentlessData = Lists.newArrayList(configuration.saveToString().split("\n"));
 
-                if (data != null) {
-                    for (String comment : data) {
-                        writer.write(comment);
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+                for (final String data : commentlessData) {
+                    matcher = KEY_PATTERN.matcher(data);
+
+                    if (matcher.find()) {
+                        final String key = matcher.group(2);
+                        final Collection<List<String>> result = comments.get(key);
+
+                        if (result != null) {
+                            final List<List<String>> commentData = Lists.newArrayList(result);
+
+                            if (!commentData.isEmpty()) {
+                                for (final String comment : commentData.get(0)) {
+                                    writer.write(comment);
+                                    writer.newLine();
+                                }
+
+                                commentData.remove(0);
+                                comments.replaceValues(key, commentData);
+                            }
+                        }
+                    }
+
+                    writer.write(data);
+
+                    if (commentlessData.indexOf(data) + 1 < commentlessData.size()) {
+                        writer.newLine();
+                    } else if (!currentComments.isEmpty()) {
                         writer.newLine();
                     }
                 }
 
-                writer.write(entries.get(index));
+                // Handles comments at the end of the file without any key
+                for (final String comment : currentComments) {
+                    writer.write(comment);
 
-                if (index + 1 != entries.size()) {
-                    writer.newLine();
+                    if (currentComments.indexOf(comment) + 1 < currentComments.size()) {
+                        writer.newLine();
+                    }
                 }
+
+                writer.flush();
             }
 
-            writer.flush();
-        } catch (IOException ex) {
-            getPlugin().getLogger().warning("Configuration write operation failed: " + ex.getMessage());
+            plugin.getLogger().info("[!] Conversion complete!");
         }
-    }
 
-    private void generateFile() {
-        getPlugin().saveResource(name + ".yml", true);
+        return configuration;
     }
 }

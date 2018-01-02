@@ -44,15 +44,14 @@ import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Function;
-import java.util.logging.Level;
 import lombok.AccessLevel;
 import lombok.Getter;
 import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.util.Callback;
-import me.realized.tokenmanager.util.plugin.AbstractPluginDelegate;
+import me.realized.tokenmanager.util.profile.NameFetcher;
 import me.realized.tokenmanager.util.profile.ProfileUtil;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.bukkit.Bukkit;
@@ -60,25 +59,28 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
-public abstract class Database extends AbstractPluginDelegate<TokenManagerPlugin> {
+public abstract class Database {
+
+    protected final TokenManagerPlugin plugin;
 
     @Getter(value = AccessLevel.PROTECTED)
     private final boolean online;
     private final boolean mysql;
     private final String table;
-    private final ExecutorService executor;
+    // TODO: 12/23/17 New ExecutorService for /token top to load names with delays?
+    private final ScheduledExecutorService executor;
     // NOTE: UUID is still usable for servers in offline mode since it only tracks players currently online.
     private final Map<UUID, Long> data = new HashMap<>();
 
-    Database(final TokenManagerPlugin plugin) throws Exception {
-        super(plugin);
+    Database(final TokenManagerPlugin plugin) {
+        this.plugin = plugin;
         this.online = ProfileUtil.isOnlineMode();
-        this.mysql = getPlugin().getConfiguration().isMysqlEnabled();
-        this.executor = Executors.newCachedThreadPool();
+        this.mysql = plugin.getConfiguration().isMysqlEnabled();
+        this.executor = Executors.newSingleThreadScheduledExecutor();
 
         Query.CREATE_TABLE.replace(s -> s.replace("{column}", online ? "uuid varchar(36)" : "name varchar(16)"));
 
-        this.table = StringEscapeUtils.escapeSql(getPlugin().getConfiguration().getMysqlTable());
+        this.table = StringEscapeUtils.escapeSql(plugin.getConfiguration().getMysqlTable());
         updateQueries();
     }
 
@@ -176,7 +178,7 @@ public abstract class Database extends AbstractPluginDelegate<TokenManagerPlugin
      * Save the updated balance of the key to the database.
      *
      * @param key Key associated with the balance.
-     * @param set true if method is invoked from {@link me.realized.tokenmanager.command.commands.subcommands.SetCommand}, otherwise false.
+     * @param set true to set the balance to updated value, otherwise false.
      * @param amount The difference between the old balance and the new balance.
      * @param updated The new balance to save.
      * @param callback Callback to call once the operation is completed.
@@ -191,7 +193,8 @@ public abstract class Database extends AbstractPluginDelegate<TokenManagerPlugin
                     ((MySQLDatabase) this).publish(key + ":" + (set ? updated : amount) + ":" + set);
                 }
             } catch (Exception ex) {
-                getPlugin().getLogger().log(Level.SEVERE, "Failed to save data for " + key + "!", ex);
+                plugin.error("Failed to save data for " + key + ": " + ex.getMessage());
+                ex.printStackTrace();
                 callback.call(false);
             }
         });
@@ -214,7 +217,8 @@ public abstract class Database extends AbstractPluginDelegate<TokenManagerPlugin
             try (Connection connection = getConnection()) {
                 insert(connection, online ? player.getUniqueId().toString() : player.getName(), balance.getAsLong());
             } catch (Exception ex) {
-                getPlugin().getLogger().log(Level.SEVERE, "Failed to save data for " + player.getName() + "!", ex);
+                plugin.error("Failed to save data for " + player.getName() + ": " + ex.getMessage());
+                ex.printStackTrace();
             }
         });
     }
@@ -244,18 +248,42 @@ public abstract class Database extends AbstractPluginDelegate<TokenManagerPlugin
                 try (PreparedStatement statement = connection.prepareStatement(Query.SELECT_WITH_LIMIT.get())) {
                     statement.setInt(1, limit);
 
+                    final List<UUID> uuids = new ArrayList<>();
                     final ResultSet resultSet = statement.executeQuery();
                     int rank = 0;
 
                     while (resultSet.next()) {
-                        final String name = online ? ProfileUtil.getName(resultSet.getString("uuid")) : resultSet.getString("name");
-                        result.add(new RankedData(++rank, name != null ? name : "&cName load failure!", (int) resultSet.getLong("tokens")));
+                        final String key = online ? resultSet.getString("uuid") : resultSet.getString("name");
+
+                        if (online) {
+                            uuids.add(UUID.fromString(key));
+                        }
+
+                        result.add(new RankedData(key, ++rank, (int) resultSet.getLong("tokens")));
                     }
 
-                    callback.call(result);
+                    if (online) {
+                        NameFetcher.getNames(uuids, names -> {
+                            for (final RankedData data : result) {
+                                final String name = names.get(UUID.fromString(data.getKey()));
+
+                                if (name == null) {
+                                    data.setKey("&cFailed to get name!");
+                                    continue;
+                                }
+
+                                data.setKey(name);
+                            }
+
+                            callback.call(result);
+                        });
+                    } else {
+                        callback.call(result);
+                    }
                 }
             } catch (Exception ex) {
-                getPlugin().getLogger().log(Level.SEVERE, "Failed to load top balances for /token top!", ex);
+                plugin.error("Failed to load top balances for /token top: " + ex.getMessage());
+                ex.printStackTrace();
             }
         });
     }
@@ -280,8 +308,8 @@ public abstract class Database extends AbstractPluginDelegate<TokenManagerPlugin
                     try {
                         closeable.close();
                     } catch (Exception ex) {
-                        getPlugin().getLogger()
-                            .log(Level.SEVERE, "Failed to close " + closeable.getClass().getSimpleName() + ": " + ex.getMessage(), ex);
+                        plugin.error("Failed to close " + closeable.getClass().getSimpleName() + ": " + ex.getMessage());
+                        ex.printStackTrace();
                     }
                 }
             }
@@ -334,7 +362,7 @@ public abstract class Database extends AbstractPluginDelegate<TokenManagerPlugin
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (!resultSet.isBeforeFirst()) {
                     if (save) {
-                        final long defaultBalance = getPlugin().getConfiguration().getDefaultBalance();
+                        final long defaultBalance = plugin.getConfiguration().getDefaultBalance();
                         insert(connection, key, defaultBalance);
                         return OptionalLong.of(defaultBalance);
                     }
@@ -343,7 +371,6 @@ public abstract class Database extends AbstractPluginDelegate<TokenManagerPlugin
                 }
 
                 resultSet.next();
-
                 return OptionalLong.of(resultSet.getLong("tokens"));
             }
         }
@@ -372,19 +399,20 @@ public abstract class Database extends AbstractPluginDelegate<TokenManagerPlugin
             return;
         }
 
-        getPlugin().getLogger().info("Starting to transfer data of file('" + data.getName() + "') to the new data storage...");
+        plugin.getLogger().info("Starting to transfer data of file('" + data.getName() + "') to the new data storage...");
 
         try {
             final File renamed = Files
-                .copy(file.toPath(), new File(getPlugin().getDataFolder(), "data-old-" + System.nanoTime() + ".yml").toPath()).toFile();
-            getPlugin().getLogger().info("Old data file('" + file.getName() + "') was stored as " + renamed.getName() + ".");
+                .copy(file.toPath(), new File(plugin.getDataFolder(), "data-old-" + System.nanoTime() + ".yml").toPath()).toFile();
+            plugin.getLogger().info("Old data file('" + file.getName() + "') was stored as " + renamed.getName() + ".");
 
             if (!file.delete()) {
-                getPlugin().getLogger().severe("Failed to delete '" + file.getName()
+                plugin.getLogger().severe("Failed to delete '" + file.getName()
                     + "'. Please manually rename/delete it or the data conversion will occur on every load.");
             }
         } catch (IOException ex) {
-            getPlugin().getLogger().severe("Failed to transfer data: " + ex.getMessage());
+            plugin.error("Failed to convert from flatfile to sql: " + ex.getMessage());
+            ex.printStackTrace();
             return;
         }
 
@@ -399,7 +427,7 @@ public abstract class Database extends AbstractPluginDelegate<TokenManagerPlugin
 
             for (final String key : keys) {
                 if (ProfileUtil.isUUID(key) != online) {
-                    getPlugin().getLogger().severe(
+                    plugin.getLogger().severe(
                         "Key '" + key + "' was not a valid " + (online ? "UUID" : "name") + ". Assigned data '" + data.getInt(key)
                             + "' will not be transferred.");
                     continue;
@@ -420,7 +448,7 @@ public abstract class Database extends AbstractPluginDelegate<TokenManagerPlugin
             }
 
             connection.commit();
-            getPlugin().getLogger().info("Successfully transferred data of " + i + " user(s).");
+            plugin.getLogger().info("Successfully transferred data of " + i + " user(s).");
         }
     }
 
@@ -448,25 +476,29 @@ public abstract class Database extends AbstractPluginDelegate<TokenManagerPlugin
 
     public class RankedData {
 
-        private final int rank, value;
-        private final String key;
+        private String key;
+        private final int rank, tokens;
 
-        RankedData(final int rank, final String key, final int value) {
-            this.rank = rank;
+        RankedData(final String key, final int rank, final int tokens) {
             this.key = key;
-            this.value = value;
-        }
-
-        public int getRank() {
-            return rank;
+            this.rank = rank;
+            this.tokens = tokens;
         }
 
         public String getKey() {
             return key;
         }
 
-        public int getValue() {
-            return value;
+        public void setKey(final String key) {
+            this.key = key;
+        }
+
+        public int getRank() {
+            return rank;
+        }
+
+        public int getTokens() {
+            return tokens;
         }
     }
 }

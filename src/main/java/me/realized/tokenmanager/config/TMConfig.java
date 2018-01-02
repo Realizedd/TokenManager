@@ -32,11 +32,7 @@ import lombok.Getter;
 import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.config.converters.ConfigConverter2_3;
 import me.realized.tokenmanager.util.config.AbstractConfiguration;
-import org.bukkit.configuration.InvalidConfigurationException;
-
-/**
- * Class created at 6/16/17 by Realized
- **/
+import org.bukkit.configuration.file.FileConfiguration;
 
 public class TMConfig extends AbstractConfiguration<TokenManagerPlugin> {
 
@@ -80,30 +76,29 @@ public class TMConfig extends AbstractConfiguration<TokenManagerPlugin> {
     }
 
     @Override
-    public void handleLoad() throws IOException, InvalidConfigurationException {
-        super.handleLoad();
-
-        // Detects any config created before v3.0
-        if (!getConfiguration().isInt("config-version")) {
-            convert(new ConfigConverter2_3());
+    protected void loadValues(FileConfiguration configuration) throws IOException {
+        if (!configuration.isInt("config-version")) {
+            configuration = convert(new ConfigConverter2_3());
+        } else if (configuration.getInt("config-version") < getLatestVersion()) {
+            configuration = convert(null);
         }
 
-        version = getConfiguration().getInt("config-version", 0);
-        defaultBalance = getConfiguration().getInt("default-balance", 25);
-        openSelectedEnabled = getConfiguration().getBoolean("shop.open-selected.enabled", false);
-        openSelectedShop = getConfiguration().getString("shop.open-selected.shop", "test");
-        clickDelay = getConfiguration().getInt("shop.click-delay", 0);
-        mysqlEnabled = getConfiguration().getBoolean("data.mysql.enabled", false);
-        mysqlUsername = getConfiguration().getString("data.mysql.username", "root");
-        mysqlPassword = getConfiguration().getString("data.mysql.password", "password");
-        mysqlHostname = getConfiguration().getString("data.mysql.hostname", "127.0.0.1");
-        mysqlPort = getConfiguration().getString("data.mysql.port", "3306");
-        mysqlDatabase = getConfiguration().getString("data.mysql.database", "database");
-        mysqlTable = getConfiguration().getString("data.mysql.table", "tokenmanager");
-        redisServer = getConfiguration().getString("data.mysql.redis.server", "127.0.0.1");
-        redisPort = getConfiguration().getInt("data.mysql.redis.port", 6379);
-        redisPassword = getConfiguration().getString("data.mysql.redis.password", "");
-        registerEconomy = getConfiguration().getBoolean("data.register-economy", false);
-        balanceTopUpdateInterval = getConfiguration().getInt("data.balance-top-update-interval", 5);
+        version = configuration.getInt("config-version");
+        defaultBalance = configuration.getInt("default-balance", 25);
+        openSelectedEnabled = configuration.getBoolean("shop.open-selected.enabled", false);
+        openSelectedShop = configuration.getString("shop.open-selected.shop", "test");
+        clickDelay = configuration.getInt("shop.click-delay", 0);
+        mysqlEnabled = configuration.getBoolean("data.mysql.enabled", false);
+        mysqlUsername = configuration.getString("data.mysql.username", "root");
+        mysqlPassword = configuration.getString("data.mysql.password", "password");
+        mysqlHostname = configuration.getString("data.mysql.hostname", "127.0.0.1");
+        mysqlPort = configuration.getString("data.mysql.port", "3306");
+        mysqlDatabase = configuration.getString("data.mysql.database", "database");
+        mysqlTable = configuration.getString("data.mysql.table", "tokenmanager");
+        redisServer = configuration.getString("data.mysql.redis.server", "127.0.0.1");
+        redisPort = configuration.getInt("data.mysql.redis.port", 6379);
+        redisPassword = configuration.getString("data.mysql.redis.password", "");
+        registerEconomy = configuration.getBoolean("data.register-economy", false);
+        balanceTopUpdateInterval = configuration.getInt("data.balance-top-update-interval", 5);
     }
 }

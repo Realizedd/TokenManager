@@ -59,7 +59,7 @@ public class TokenCommand extends BaseCommand {
 
         if (sender instanceof Player) {
             Player player = (Player) sender;
-            balance = getDataManager().get(player);
+            balance = dataManager.get(player);
 
             if (!balance.isPresent()) {
                 sendMessage(player, false, "&cYour data is improperly loaded, please re-log.");
@@ -70,7 +70,7 @@ public class TokenCommand extends BaseCommand {
         }
 
         if (args.length == 0) {
-            sendMessage(sender, true, "token-help-page", "tokens", balance.orElse(0));
+            sendMessage(sender, true, "COMMAND.token.usage", "tokens", balance.orElse(0));
         }
     }
 }

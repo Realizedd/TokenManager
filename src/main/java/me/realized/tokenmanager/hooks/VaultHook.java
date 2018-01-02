@@ -29,18 +29,17 @@ package me.realized.tokenmanager.hooks;
 
 import java.util.List;
 import me.realized.tokenmanager.TokenManagerPlugin;
-import me.realized.tokenmanager.util.plugin.hook.PluginHook;
+import me.realized.tokenmanager.util.hook.PluginHook;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.ServicePriority;
 
 public class VaultHook extends PluginHook<TokenManagerPlugin> implements Economy {
 
-    public VaultHook(final TokenManagerPlugin plugin, final Plugin target) {
-        super(plugin, target, "Vault");
+    public VaultHook(final TokenManagerPlugin plugin) {
+        super(plugin, "Vault");
 
         if (plugin.getConfiguration().isRegisterEconomy()) {
             Bukkit.getServicesManager().register(Economy.class, this, plugin, ServicePriority.Highest);
@@ -84,7 +83,7 @@ public class VaultHook extends PluginHook<TokenManagerPlugin> implements Economy
 
     @Override
     public double getBalance(OfflinePlayer player) {
-        return player != null ? getPlugin().getTokens(player.getPlayer()).orElse(0) : 0;
+        return player != null ? plugin.getTokens(player.getPlayer()).orElse(0) : 0;
     }
 
     @Override
@@ -129,7 +128,7 @@ public class VaultHook extends PluginHook<TokenManagerPlugin> implements Economy
         }
 
         final long balance = (long) getBalance(player);
-        getPlugin().setTokens(player.getPlayer(), Math.abs(balance - (long) amount));
+        plugin.setTokens(player.getPlayer(), Math.abs(balance - (long) amount));
         return new EconomyResponse(balance - (long) amount, (long) amount, EconomyResponse.ResponseType.SUCCESS, "");
     }
 
@@ -155,7 +154,7 @@ public class VaultHook extends PluginHook<TokenManagerPlugin> implements Economy
         }
 
         final long balance = (long) getBalance(player);
-        getPlugin().setTokens(player.getPlayer(), balance + (long) amount);
+        plugin.setTokens(player.getPlayer(), balance + (long) amount);
         return new EconomyResponse(balance + (long) amount, amount, EconomyResponse.ResponseType.SUCCESS, "");
     }
 

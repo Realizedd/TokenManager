@@ -1,5 +1,5 @@
 # DO NOT EDIT THIS VALUE!
-config-version: 1
+config-version: 2
 
 # This value will be the default token balance of a first-time joiner.
 default-balance: 25

@@ -38,7 +38,7 @@ import org.bukkit.entity.Player;
 public class OpenCommand extends BaseCommand {
 
     public OpenCommand(final TokenManagerPlugin plugin) {
-        super(plugin, "open", "open <username> <_shop>", null, 3, true, "show");
+        super(plugin, "open", "open <username> <shop>", null, 3, true, "show");
     }
 
     @Override
@@ -46,19 +46,19 @@ public class OpenCommand extends BaseCommand {
         final Player target;
 
         if ((target = Bukkit.getPlayerExact(args[1])) == null) {
-            sendMessage(sender, true, "invalid-player", "input", args[1]);
+            sendMessage(sender, true, "ERROR.player-not-found", "input", args[1]);
             return;
         }
 
         final String name = args[2].toLowerCase();
-        final Optional<Shop> shop = getShopConfig().getShop(name);
+        final Optional<Shop> shop = shopConfig.getShop(name);
 
         if (!shop.isPresent()) {
-            sendMessage(sender, true, "invalid-shop", "input", name);
+            sendMessage(sender, true, "ERROR.shop-not-found", "input", name);
             return;
         }
 
         target.openInventory(shop.get().getGui());
-        sendMessage(sender, true, "on-open", "name", name, "player", target.getName());
+        sendMessage(sender, true, "COMMAND.tokenmanager.open", "name", name, "player", target.getName());
     }
 }

@@ -34,9 +34,8 @@ import java.util.Optional;
 import java.util.UUID;
 import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.data.DataManager;
+import me.realized.tokenmanager.util.Reloadable;
 import me.realized.tokenmanager.util.StringUtil;
-import me.realized.tokenmanager.util.plugin.AbstractPluginDelegate;
-import me.realized.tokenmanager.util.plugin.Reloadable;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -47,21 +46,17 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
-/**
- * Class created at 6/19/17 by Realized
- **/
+public class ShopManager implements Reloadable, Listener {
 
-public class ShopManager extends AbstractPluginDelegate<TokenManagerPlugin> implements Reloadable, Listener {
-
+    private final TokenManagerPlugin plugin;
     private final ShopConfig config;
     private final DataManager dataManager;
     private final Map<UUID, Long> cooldowns = new HashMap<>();
 
     public ShopManager(final TokenManagerPlugin plugin) {
-        super(plugin);
+        this.plugin = plugin;
         this.config = plugin.getShopConfig();
         this.dataManager = plugin.getDataManager();
-
         Bukkit.getPluginManager().registerEvents(this, plugin);
     }
 
@@ -118,10 +113,10 @@ public class ShopManager extends AbstractPluginDelegate<TokenManagerPlugin> impl
         }
 
         final long now = System.currentTimeMillis();
-        final long remaining = cooldowns.getOrDefault(player.getUniqueId(), 0L) + getPlugin().getConfiguration().getClickDelay() - now;
+        final long remaining = cooldowns.getOrDefault(player.getUniqueId(), 0L) + plugin.getConfiguration().getClickDelay() - now;
 
         if (remaining > 0) {
-            getPlugin().getLang().sendMessage(player, true, "click-spamming", "%remaining%",
+            plugin.getLang().sendMessage(player, true, "ERROR.on-click-cooldown", "remaining",
                 StringUtil.format(remaining / 1000 + (remaining % 1000 > 0 ? 1 : 0)));
             return;
         }
@@ -136,8 +131,8 @@ public class ShopManager extends AbstractPluginDelegate<TokenManagerPlugin> impl
         }
 
         if (data.isUsePermission() && !player.hasPermission("tokenmanager.use." + target.getName() + "-" + slot)) {
-            getPlugin().getLang()
-                .sendMessage(player, true, "no-permission", "%permission%", "tokenmanager.use." + target.getName() + "-" + slot);
+            plugin.getLang()
+                .sendMessage(player, true, "ERROR.no-permission", "permission", "tokenmanager.use." + target.getName() + "-" + slot);
             return;
         }
 
@@ -146,7 +141,7 @@ public class ShopManager extends AbstractPluginDelegate<TokenManagerPlugin> impl
         final long balance = dataManager.get(player).orElse(0);
 
         if (balance - cost < 0) {
-            getPlugin().getLang().sendMessage(player, true, "not-enough-tokens", "%needed%", cost - balance);
+            plugin.getLang().sendMessage(player, true, "ERROR.balance-not-enough", "needed", cost - balance);
             return;
         }
 
@@ -158,7 +153,7 @@ public class ShopManager extends AbstractPluginDelegate<TokenManagerPlugin> impl
 
         if ((commands = data.getCommands()) != null) {
             for (final String command : commands) {
-                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command.replace("%player%", player.getName()));
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command.replace("player", player.getName()));
             }
         }
 
@@ -169,14 +164,14 @@ public class ShopManager extends AbstractPluginDelegate<TokenManagerPlugin> impl
         final String message, subshop;
 
         if ((message = data.getMessage()) != null) {
-            getPlugin().getLang().sendMessage(player, false, message, "%player%", player.getName());
+            plugin.getLang().sendMessage(player, false, message, "player", player.getName());
         }
 
         if ((subshop = data.getSubshop()) != null) {
             Optional<Shop> shop = config.getShop(subshop);
 
             if (!shop.isPresent()) {
-                getPlugin().getLang().sendMessage(player, true, "invalid-shop", "%input%", subshop);
+                plugin.getLang().sendMessage(player, true, "ERROR.shop-not-found", "input", subshop);
                 return;
             }
 

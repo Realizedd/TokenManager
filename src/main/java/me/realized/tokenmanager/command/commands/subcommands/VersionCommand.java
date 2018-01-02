@@ -40,7 +40,7 @@ public class VersionCommand extends BaseCommand {
 
     @Override
     protected void execute(final CommandSender sender, final String label, final String[] args) {
-        sender.sendMessage(ChatColor.BLUE + getPlugin().getDescription().getFullName());
-        sender.sendMessage(ChatColor.BLUE + "Download: " + getPlugin().getDescription().getWebsite());
+        sender.sendMessage(ChatColor.BLUE + plugin.getDescription().getFullName());
+        sender.sendMessage(ChatColor.BLUE + "Download: " + plugin.getDescription().getWebsite());
     }
 }

@@ -44,32 +44,32 @@ public class BalanceCommand extends BaseCommand {
     protected void execute(final CommandSender sender, final String label, final String[] args) {
         final OptionalLong balance;
 
-        if (args.length == length()) {
-            balance = sender instanceof Player ? getDataManager().get((Player) sender) : OptionalLong.of(0);
+        if (args.length == getLength()) {
+            balance = sender instanceof Player ? dataManager.get((Player) sender) : OptionalLong.of(0);
 
             if (!balance.isPresent()) {
                 sendMessage(sender, false, "&cFailed to load data of " + sender.getName() + ".");
                 return;
             }
 
-            sendMessage(sender, true, "balance", "tokens", balance.getAsLong());
+            sendMessage(sender, true, "COMMAND.token.balance", "tokens", balance.getAsLong());
             return;
         }
 
         final Player target;
 
         if ((target = Bukkit.getPlayerExact(args[1])) == null) {
-            sendMessage(sender, true, "invalid-player", "input", args[1]);
+            sendMessage(sender, true, "ERROR.player-not-found", "input", args[1]);
             return;
         }
 
-        balance = getDataManager().get(target);
+        balance = dataManager.get(target);
 
         if (!balance.isPresent()) {
             sendMessage(sender, false, "&cFailed to load data of " + target.getName() + ".");
             return;
         }
 
-        sendMessage(sender, true, "balance-others", "player", target.getName(), "tokens", balance.getAsLong());
+        sendMessage(sender, true, "COMMAND.token.balance-others", "player", target.getName(), "tokens", balance.getAsLong());
     }
 }

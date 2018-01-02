@@ -25,21 +25,15 @@
  *
  */
 
-package me.realized.tokenmanager.util.plugin;
-
-import lombok.Getter;
-import org.bukkit.plugin.java.JavaPlugin;
+package me.realized.tokenmanager.util;
 
 /**
  * Class created at 6/18/17 by Realized
  **/
 
-public abstract class AbstractPluginDelegate<P extends JavaPlugin> implements PluginDelegate<P> {
+public interface Reloadable {
 
-    @Getter
-    private final P plugin;
+    void handleLoad() throws Exception;
 
-    public AbstractPluginDelegate(final P plugin) {
-        this.plugin = plugin;
-    }
+    void handleUnload() throws Exception;
 }

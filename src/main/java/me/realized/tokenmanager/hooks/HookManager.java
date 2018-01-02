@@ -1,7 +1,7 @@
 package me.realized.tokenmanager.hooks;
 
 import me.realized.tokenmanager.TokenManagerPlugin;
-import me.realized.tokenmanager.util.plugin.hook.AbstractHookManager;
+import me.realized.tokenmanager.util.hook.AbstractHookManager;
 
 public class HookManager extends AbstractHookManager<TokenManagerPlugin> {
 
@@ -10,12 +10,12 @@ public class HookManager extends AbstractHookManager<TokenManagerPlugin> {
     }
 
     @Override
-    public void handleLoad() throws Exception {
+    public void handleLoad() {
         register("MVdWPlaceholderAPI", MVdWPlaceholderHook.class);
         register("PlaceholderAPI", PlaceholderHook.class);
         register("Vault", VaultHook.class);
     }
 
     @Override
-    public void handleUnload() throws Exception {}
+    public void handleUnload() {}
 }

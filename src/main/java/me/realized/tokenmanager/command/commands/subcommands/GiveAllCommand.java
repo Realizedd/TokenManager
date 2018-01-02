@@ -47,23 +47,23 @@ public class GiveAllCommand extends BaseCommand {
         final OptionalLong amount =  NumberUtil.parseLong(args[1]);
 
         if (!amount.isPresent() || amount.getAsLong() <= 0) {
-            sendMessage(sender, true, "invalid-amount", "input", args[1]);
+            sendMessage(sender, true, "ERROR.invalid-amount", "input", args[1]);
             return;
         }
 
         final Collection<? extends Player> online = Bukkit.getOnlinePlayers();
 
         for (final Player player : online) {
-            final OptionalLong balance = getDataManager().get(player);
+            final OptionalLong balance = dataManager.get(player);
 
             if (!balance.isPresent()) {
                 continue;
             }
 
-            getDataManager().set(player, balance.getAsLong() + amount.getAsLong());
-            sendMessage(player, true, "on-receive", "amount", amount.getAsLong());
+            dataManager.set(player, balance.getAsLong() + amount.getAsLong());
+            sendMessage(player, true, "COMMAND.receive", "amount", amount.getAsLong());
         }
 
-        sendMessage(sender, true, "on-give-all", "players", online.size(), "amount", amount.getAsLong());
+        sendMessage(sender, true, "COMMAND.tokenmanager.giveall", "players", online.size(), "amount", amount.getAsLong());
     }
 }

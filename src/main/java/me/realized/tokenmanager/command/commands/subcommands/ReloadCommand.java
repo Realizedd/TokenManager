@@ -39,10 +39,10 @@ public class ReloadCommand extends BaseCommand {
 
     @Override
     protected void execute(final CommandSender sender, final String label, final String[] args) {
-        if (getPlugin().reload()) {
-            sendMessage(sender, false, "&9Reload complete.");
+        if (plugin.reload()) {
+            sendMessage(sender, false, "&a[" + plugin.getDescription().getFullName() + "] Reload complete.");
         } else {
-            sendMessage(sender, false, "&cReload failed, plugin will be disabled. Please check the console for more information.");
+            sendMessage(sender, false, "&cAn error occured while reloading the plugin! The plugin will be disabled, please check the console for more information.");
         }
     }
 }

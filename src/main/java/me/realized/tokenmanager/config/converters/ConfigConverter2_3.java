@@ -27,21 +27,15 @@
 
 package me.realized.tokenmanager.config.converters;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.TreeMap;
 import me.realized.tokenmanager.util.config.convert.Converter;
-
-/**
- * Class created at 6/16/17 by Realized
- **/
 
 public class ConfigConverter2_3 implements Converter {
 
     @Override
     public Map<String, String> renamedKeys() {
-        final Map<String, String> keys = new TreeMap<>();
+        final Map<String, String> keys = new HashMap<>();
         keys.put("use-default.enabled", "shop.open-selected.enabled");
         keys.put("use-default.shop", "shop.open-selected.shop");
         keys.put("mysql.enabled", "data.mysql.enabled");
@@ -54,10 +48,5 @@ public class ConfigConverter2_3 implements Converter {
         keys.put("update-balance-top", "data.balance-top-update-interval");
         keys.put("vault-hooks", "data.register-economy");
         return keys;
-    }
-
-    @Override
-    public List<String> censoredKeys() {
-        return Arrays.asList("mysql.hostname", "mysql.port", "mysql.username", "mysql.password", "mysql.database");
     }
 }

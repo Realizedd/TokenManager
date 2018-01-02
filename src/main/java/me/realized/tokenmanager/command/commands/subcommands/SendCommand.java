@@ -36,6 +36,7 @@ import me.realized.tokenmanager.command.BaseCommand;
 import me.realized.tokenmanager.event.TokenReceiveEvent;
 import me.realized.tokenmanager.util.NumberUtil;
 import org.bukkit.Bukkit;
+import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -50,13 +51,13 @@ public class SendCommand extends BaseCommand {
         final Player target;
 
         if ((target = Bukkit.getPlayerExact(args[1])) == null) {
-            sendMessage(sender, true, "invalid-player", "input", args[1]);
+            sendMessage(sender, true, "ERROR.player-not-found", "input", args[1]);
             return;
         }
 
         // TODO: 6/14/17 Check if target is sender to prevent token duplication
 
-        final OptionalLong targetBalance = getDataManager().get(target);
+        final OptionalLong targetBalance = dataManager.get(target);
 
         if (!targetBalance.isPresent()) {
             sendMessage(sender, false, "&cFailed to load data of " + target.getName() + ".");
@@ -66,12 +67,12 @@ public class SendCommand extends BaseCommand {
         final OptionalInt amount = NumberUtil.parseInt(args[2]);
 
         if (!amount.isPresent() || amount.getAsInt() <= 0) {
-            sendMessage(sender, true, "invalid-amount", "input", args[2]);
+            sendMessage(sender, true, "ERROR.invalid-amount", "input", args[2]);
             return;
         }
 
         final Player player = (Player) sender;
-        final OptionalLong balance = getDataManager().get(player);
+        final OptionalLong balance = dataManager.get(player);
 
         if (!balance.isPresent()) {
             sendMessage(sender, true, "&cFailed to load data of " + sender.getName() + ".");
@@ -80,7 +81,7 @@ public class SendCommand extends BaseCommand {
 
         // TODO: 2/24/17 Instead of invalid-amount, use lack of money for msg
         if (balance.getAsLong() - amount.getAsInt() < 0) {
-            sendMessage(sender, true, "invalid-amount", "input", args[2]);
+            sendMessage(sender, true, "ERROR.invalid-amount", "input", args[2]);
             return;
         }
 
@@ -91,14 +92,14 @@ public class SendCommand extends BaseCommand {
             return;
         }
 
-        getDataManager().set(player, balance.getAsLong() - amount.getAsInt());
-        getDataManager().set(target, targetBalance.getAsLong() + amount.getAsInt());
-        sendMessage(sender, true, "on-send", "player", target.getName(), "amount", amount.getAsInt());
-        sendMessage(target, true, "on-receive", "amount", amount.getAsInt());
+        dataManager.set(player, balance.getAsLong() - amount.getAsInt());
+        dataManager.set(target, targetBalance.getAsLong() + amount.getAsInt());
+        sendMessage(sender, true, "COMMAND.token.send", "player", target.getName(), "amount", amount.getAsInt());
+        sendMessage(target, true, "COMMAND.receive", "amount", amount.getAsInt());
     }
 
     @Override
-    public List<String> onTabComplete(final CommandSender sender, final org.bukkit.command.Command command, final String alias,
+    public List<String> onTabComplete(final CommandSender sender, final Command command, final String label,
         final String[] args) {
         if (args.length == 3) {
             return Arrays.asList("5", "10", "25", "50", "100", "500", "1000");

@@ -25,15 +25,22 @@
  *
  */
 
-package me.realized.tokenmanager.util.plugin;
+package me.realized.tokenmanager.util.hook;
 
-/**
- * Class created at 6/18/17 by Realized
- **/
+import org.bukkit.plugin.java.JavaPlugin;
 
-public interface Reloadable {
+public class PluginHook<P extends JavaPlugin> {
 
-    void handleLoad() throws Exception;
+    protected final P plugin;
+    
+    private final String name;
 
-    void handleUnload() throws Exception;
+    public PluginHook(final P plugin, final String name) {
+        this.plugin = plugin;
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
+    }
 }

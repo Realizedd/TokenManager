@@ -27,7 +27,6 @@
 
 package me.realized.tokenmanager.shop;
 
-import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -40,12 +39,8 @@ import me.realized.tokenmanager.util.NumberUtil;
 import me.realized.tokenmanager.util.config.AbstractConfiguration;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.InvalidConfigurationException;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.inventory.ItemStack;
-
-/**
- * Class created at 6/18/17 by Realized
- **/
 
 public class ShopConfig extends AbstractConfiguration<TokenManagerPlugin> {
 
@@ -56,10 +51,13 @@ public class ShopConfig extends AbstractConfiguration<TokenManagerPlugin> {
     }
 
     @Override
-    public void handleLoad() throws IOException, InvalidConfigurationException {
-        super.handleLoad();
+    public void handleUnload() {
+        shops.clear();
+    }
 
-        final ConfigurationSection shopsSection = getConfiguration().getConfigurationSection("shops");
+    @Override
+    protected void loadValues(final FileConfiguration configuration) {
+        final ConfigurationSection shopsSection = configuration.getConfigurationSection("shops");
 
         if (shopsSection == null) {
             return;
@@ -78,7 +76,7 @@ public class ShopConfig extends AbstractConfiguration<TokenManagerPlugin> {
                     shopSection.getBoolean("use-permission", false)
                 );
             } catch (IllegalArgumentException ex) {
-                getPlugin().getLogger().warning("Failed to initialize shop '" + name + "': " + ex.getMessage());
+                plugin.error(this, "Failed to initialize shop '" + name + "': " + ex.getMessage());
                 continue;
             }
 
@@ -90,7 +88,7 @@ public class ShopConfig extends AbstractConfiguration<TokenManagerPlugin> {
                     final OptionalInt slot = NumberUtil.parseInt(num);
 
                     if (!slot.isPresent() || slot.getAsInt() < 0 || slot.getAsInt() >= shop.getGui().getSize()) {
-                        getPlugin().getLogger().warning("Failed to load slot '" + num + "' for shop '" + name + "': '" + slot
+                        plugin.error(this, "Failed to load slot '" + num + "' for shop '" + name + "': '" + slot
                             + "' is not a valid number or is over the shop size.");
                         continue;
                     }
@@ -99,7 +97,7 @@ public class ShopConfig extends AbstractConfiguration<TokenManagerPlugin> {
                     final ItemStack displayed;
 
                     try {
-                        displayed = ItemUtil.loadFromString(slotSection.getString("displayed"), getPlugin().getLogger());
+                        displayed = ItemUtil.loadFromString(slotSection.getString("displayed"));
                     } catch (Exception ex) {
                         shop.getGui().setItem(slot.getAsInt(), ItemBuilder
                             .of(Material.REDSTONE_BLOCK)
@@ -113,8 +111,7 @@ public class ShopConfig extends AbstractConfiguration<TokenManagerPlugin> {
                             )
                             .build()
                         );
-                        getPlugin().getLogger()
-                            .warning("Failed to load displayed item for slot '" + num + "' of shop '" + name + "': " + ex.getMessage());
+                        plugin.error(this, "Failed to load displayed item for slot '" + num + "' of shop '" + name + "': " + ex.getMessage());
                         continue;
                     }
 
@@ -131,11 +128,6 @@ public class ShopConfig extends AbstractConfiguration<TokenManagerPlugin> {
 
             shops.put(name, shop);
         }
-    }
-
-    @Override
-    public void handleUnload() {
-        shops.clear();
     }
 
     public Optional<Shop> getShop(final String name) {

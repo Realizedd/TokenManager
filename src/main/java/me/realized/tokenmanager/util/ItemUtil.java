@@ -32,7 +32,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.OptionalInt;
-import java.util.logging.Logger;
 import me.realized.tokenmanager.util.compat.Potions;
 import me.realized.tokenmanager.util.compat.SpawnEggs;
 import org.bukkit.Bukkit;
@@ -116,7 +115,7 @@ public final class ItemUtil {
         EFFECTS.put(value.getName(), value);
     }
 
-    public static ItemStack loadFromString(final String line, final Logger logger) throws Exception {
+    public static ItemStack loadFromString(final String line) {
         if (line == null || line.isEmpty()) {
             throw new IllegalArgumentException("Line is empty or null!");
         }
@@ -138,7 +137,7 @@ public final class ItemUtil {
                     final String[] values = materialData[1].split("-");
                     final PotionType type;
 
-                    if ((type = EnumUtil.find(values[0], PotionType.class)) == null) {
+                    if ((type = EnumUtil.getByName(values[0], PotionType.class)) == null) {
                         throw new IllegalArgumentException(
                             "'" + values[0] + "' is not a valid PotionType. Available: " + EnumUtil.getNames(PotionType.class));
                     }
@@ -147,7 +146,7 @@ public final class ItemUtil {
                 } else if (material == Material.MONSTER_EGG) {
                     final EntityType type;
 
-                    if ((type = EnumUtil.find(materialData[1], EntityType.class)) == null) {
+                    if ((type = EnumUtil.getByName(materialData[1], EntityType.class)) == null) {
                         throw new IllegalArgumentException(
                             "'" + materialData[0] + "' is not a valid EntityType. Available: " + EnumUtil.getNames(EntityType.class));
                     }
@@ -174,19 +173,18 @@ public final class ItemUtil {
                 final String argument = args[i];
                 final String[] pair = argument.split(":", 2);
 
-                if (pair.length < 1) {
-                    logger.warning(argument + " is not a valid key:value pair, unable to apply meta.");
+                if (pair.length < 2) {
                     continue;
                 }
 
-                applyMeta(logger, result, pair[0], pair[1]);
+                applyMeta(result, pair[0], pair[1]);
             }
         }
 
         return result;
     }
 
-    private static void applyMeta(final Logger logger, final ItemStack item, final String key, final String value) {
+    private static void applyMeta(final ItemStack item, final String key, final String value) {
         final ItemMeta meta = item.getItemMeta();
 
         if (key.equalsIgnoreCase("name")) {
@@ -225,10 +223,7 @@ public final class ItemUtil {
             SkullMeta skullMeta = (SkullMeta) meta;
             skullMeta.setOwner(value);
             item.setItemMeta(skullMeta);
-            return;
         }
-
-        logger.warning("'" + key + ":" + value + "' has no effect on the loaded item.");
     }
 
     private static boolean isPre1_9() {

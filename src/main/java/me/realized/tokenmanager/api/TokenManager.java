@@ -30,16 +30,10 @@ package me.realized.tokenmanager.api;
 import java.util.Optional;
 import java.util.OptionalLong;
 import me.realized.tokenmanager.shop.Shop;
-import me.realized.tokenmanager.util.config.Configuration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 
-/**
- * The API interface for TokenManager.
- */
 public interface TokenManager {
-
-    <C extends Configuration<? extends TokenManager>> Optional<C> getConfiguration(final Class<C> clazz);
 
     Optional<Shop> getShop(final String name);
 
@@ -48,6 +42,10 @@ public interface TokenManager {
     OptionalLong getTokens(final Player player);
 
     void setTokens(final Player player, final long amount);
+
+    void info(final String msg);
+
+    void error(final String msg);
 
     boolean reload();
 }
