@@ -55,9 +55,9 @@ public class DataManager implements Reloadable, Listener {
 
     @Getter
     private List<Database.RankedData> topCache = new ArrayList<>();
+    private Integer task;
     private Integer updateInterval;
     private long lastUpdateMillis;
-    private Integer task;
 
     public DataManager(final TokenManagerPlugin plugin) {
         this.plugin = plugin;
@@ -73,9 +73,9 @@ public class DataManager implements Reloadable, Listener {
         }
     }
 
-    public void get(final String in, final Callback<OptionalLong> callback) {
+    public void get(final String key, final Callback<OptionalLong> callback) {
         if (database != null) {
-            database.get(in, callback, false);
+            database.get(key, callback, false);
         }
     }
 
@@ -118,7 +118,7 @@ public class DataManager implements Reloadable, Listener {
     @Override
     public void handleLoad() throws Exception {
         this.database = plugin.getConfiguration().isMysqlEnabled() ? new MySQLDatabase(plugin) : new SQLiteDatabase(plugin);
-        database.setup();
+        database.setupTable();
 
         // Transfer data from versions below 3.0
         final File file = new File(plugin.getDataFolder(), "data.yml");

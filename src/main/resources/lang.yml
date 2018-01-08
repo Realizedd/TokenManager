@@ -17,6 +17,7 @@ ERROR:
   balance-not-enough: '&cNot enough tokens! You need %needed% tokens more.'
   data-not-enough: '&cNot enough data found to display the top token balances.'
   on-click-cooldown: '&cYou''re clicking too fast! Try with a little delay. (%remaining%)'
+  target-is-self: '&cYou cannot send tokens to yourself.'
 
 COMMAND:
   token:

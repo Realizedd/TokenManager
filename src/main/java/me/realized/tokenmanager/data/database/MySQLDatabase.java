@@ -32,14 +32,12 @@ import com.zaxxer.hikari.HikariDataSource;
 import java.sql.Connection;
 import java.util.Arrays;
 import java.util.OptionalLong;
-import java.util.UUID;
 import lombok.Getter;
 import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.config.TMConfig;
+import me.realized.tokenmanager.util.Log;
 import me.realized.tokenmanager.util.NumberUtil;
-import me.realized.tokenmanager.util.profile.ProfileUtil;
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
@@ -60,7 +58,7 @@ public class MySQLDatabase extends Database {
     }
 
     @Override
-    public void setup() throws Exception {
+    public void setupTable() throws Exception {
         final TMConfig config = plugin.getConfiguration();
         final HikariConfig hikariConfig = new HikariConfig();
         hikariConfig
@@ -85,14 +83,13 @@ public class MySQLDatabase extends Database {
             try (Jedis jedis = jedisPool.getResource()) {
                 jedis.subscribe(listener = new JedisListener(), "tokenmanager");
             } catch (Exception ex) {
-                plugin.error("Failed to connect to the redis server! Commands modifying offline player token balance will not synchronize between servers properly.");
+                Log.error(
+                    "Failed to connect to the redis server! Commands modifying offline player token balance will not synchronize between servers properly.");
             }
         });
 
-        super.setup();
+        super.setupTable();
     }
-
-    // TODO: 7/6/17 Warn if offline token balance is modified in mysql mode and redis fails to connect.
 
     @Override
     public Connection getConnection() throws Exception {
@@ -121,42 +118,13 @@ public class MySQLDatabase extends Database {
             }
 
             Bukkit.getScheduler().runTask(plugin, () -> {
-                final Player player;
-
-                if (ProfileUtil.isUUID(args[0])) {
-                    player = Bukkit.getPlayer(UUID.fromString(args[0]));
-                } else {
-                    player = Bukkit.getPlayerExact(args[0]);
-                }
-
-                if (player == null) {
-                    return;
-                }
-
                 final OptionalLong amount = NumberUtil.parseLong(args[1]);
 
                 if (!amount.isPresent()) {
                     return;
                 }
 
-                if (args[2].equalsIgnoreCase("true")) {
-                    set(player, amount.getAsLong());
-                    return;
-                }
-
-                final OptionalLong cached;
-
-                if (!(cached = get(player)).isPresent()) {
-                    return;
-                }
-
-                set(player, cached.getAsLong() + amount.getAsLong());
-
-                if (amount.getAsLong() > 0) {
-                    plugin.getLang().sendMessage(player, true, "COMMAND.receive", "amount",  amount.getAsLong());
-                } else {
-                    plugin.getLang().sendMessage(player, true, "COMMAND.take", "amount",  Math.abs(amount.getAsLong()));
-                }
+                handleModification(args[0], amount.getAsLong(), args[2].equalsIgnoreCase("true"));
             });
         }
 

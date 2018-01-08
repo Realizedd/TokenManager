@@ -35,6 +35,7 @@ import java.util.OptionalInt;
 import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.util.ItemBuilder;
 import me.realized.tokenmanager.util.ItemUtil;
+import me.realized.tokenmanager.util.Log;
 import me.realized.tokenmanager.util.NumberUtil;
 import me.realized.tokenmanager.util.config.AbstractConfiguration;
 import org.bukkit.Material;
@@ -48,11 +49,6 @@ public class ShopConfig extends AbstractConfiguration<TokenManagerPlugin> {
 
     public ShopConfig(final TokenManagerPlugin plugin) {
         super(plugin, "shops");
-    }
-
-    @Override
-    public void handleUnload() {
-        shops.clear();
     }
 
     @Override
@@ -76,7 +72,7 @@ public class ShopConfig extends AbstractConfiguration<TokenManagerPlugin> {
                     shopSection.getBoolean("use-permission", false)
                 );
             } catch (IllegalArgumentException ex) {
-                plugin.error(this, "Failed to initialize shop '" + name + "': " + ex.getMessage());
+                Log.error(this, "Failed to initialize shop '" + name + "': " + ex.getMessage());
                 continue;
             }
 
@@ -88,7 +84,7 @@ public class ShopConfig extends AbstractConfiguration<TokenManagerPlugin> {
                     final OptionalInt slot = NumberUtil.parseInt(num);
 
                     if (!slot.isPresent() || slot.getAsInt() < 0 || slot.getAsInt() >= shop.getGui().getSize()) {
-                        plugin.error(this, "Failed to load slot '" + num + "' for shop '" + name + "': '" + slot
+                        Log.error(this, "Failed to load slot '" + num + "' for shop '" + name + "': '" + slot
                             + "' is not a valid number or is over the shop size.");
                         continue;
                     }
@@ -111,7 +107,7 @@ public class ShopConfig extends AbstractConfiguration<TokenManagerPlugin> {
                             )
                             .build()
                         );
-                        plugin.error(this, "Failed to load displayed item for slot '" + num + "' of shop '" + name + "': " + ex.getMessage());
+                        Log.error(this, "Failed to load displayed item for slot '" + num + "' of shop '" + name + "': " + ex.getMessage());
                         continue;
                     }
 
@@ -128,6 +124,11 @@ public class ShopConfig extends AbstractConfiguration<TokenManagerPlugin> {
 
             shops.put(name, shop);
         }
+    }
+
+    @Override
+    public void handleUnload() {
+        shops.clear();
     }
 
     public Optional<Shop> getShop(final String name) {

@@ -43,9 +43,8 @@ import me.realized.tokenmanager.hooks.HookManager;
 import me.realized.tokenmanager.shop.Shop;
 import me.realized.tokenmanager.shop.ShopConfig;
 import me.realized.tokenmanager.shop.ShopManager;
+import me.realized.tokenmanager.util.Log;
 import me.realized.tokenmanager.util.Reloadable;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -70,6 +69,7 @@ public class TokenManagerPlugin extends JavaPlugin implements TokenManager {
 
     @Override
     public void onEnable() {
+        Log.setSource(this);
         configuration = register(new TMConfig(this));
         lang = register(new Lang(this));
         shopConfig = register(new ShopConfig(this));
@@ -104,9 +104,9 @@ public class TokenManagerPlugin extends JavaPlugin implements TokenManager {
             try {
                 reloadable.handleLoad();
                 lastLoad = reloadables.indexOf(reloadable);
-                info("Loaded " + reloadable.getClass().getSimpleName() + ".");
+                Log.info("Loaded " + reloadable.getClass().getSimpleName() + ".");
             } catch (Exception ex) {
-                error("An error occured while loading " + reloadable.getClass().getSimpleName() + ", please contact the developer.");
+                Log.error("An error occured while loading " + reloadable.getClass().getSimpleName() + ", please contact the developer.");
                 ex.printStackTrace();
                 return false;
             }
@@ -126,9 +126,9 @@ public class TokenManagerPlugin extends JavaPlugin implements TokenManager {
                 }
 
                 reloadable.handleUnload();
-                info("Unloaded " + reloadable.getClass().getSimpleName() + ".");
+                Log.info("Unloaded " + reloadable.getClass().getSimpleName() + ".");
             } catch (Exception ex) {
-                error("An error occured while unloading " + reloadable.getClass().getSimpleName() + ", please contact the developer.");
+                Log.error("An error occured while unloading " + reloadable.getClass().getSimpleName() + ", please contact the developer.");
                 ex.printStackTrace();
                 return false;
             }
@@ -155,24 +155,6 @@ public class TokenManagerPlugin extends JavaPlugin implements TokenManager {
     @Override
     public void setTokens(final Player player, final long amount) {
         dataManager.set(player, amount);
-    }
-
-    @Override
-    public void info(final String msg) {
-        getLogger().info(msg);
-    }
-
-    public void info(final Reloadable reloadable, final String msg) {
-        info(reloadable.getClass().getSimpleName() + ": " + msg);
-    }
-
-    @Override
-    public void error(final String msg) {
-        Bukkit.getConsoleSender().sendMessage("[" + getName() + "] " + ChatColor.RED + msg);
-    }
-
-    public void error(final Reloadable reloadable, final String msg) {
-        error(reloadable.getClass().getSimpleName() + ": " + msg);
     }
 
     @Override

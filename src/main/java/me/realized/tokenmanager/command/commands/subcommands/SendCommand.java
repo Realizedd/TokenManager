@@ -55,7 +55,10 @@ public class SendCommand extends BaseCommand {
             return;
         }
 
-        // TODO: 6/14/17 Check if target is sender to prevent token duplication
+        if (target.equals(sender)) {
+            sendMessage(sender, true, "ERROR.target-is-self");
+            return;
+        }
 
         final OptionalLong targetBalance = dataManager.get(target);
 
@@ -79,11 +82,15 @@ public class SendCommand extends BaseCommand {
             return;
         }
 
-        // TODO: 2/24/17 Instead of invalid-amount, use lack of money for msg
-        if (balance.getAsLong() - amount.getAsInt() < 0) {
-            sendMessage(sender, true, "ERROR.invalid-amount", "input", args[2]);
+        final long needed;
+
+        if ((needed = balance.getAsLong() - amount.getAsInt()) < 0) {
+            sendMessage(sender, true, "ERROR.not-enough-tokens", "needed", needed);
             return;
         }
+
+        dataManager.set(player, balance.getAsLong() - amount.getAsInt());
+        sendMessage(sender, true, "COMMAND.token.send", "player", target.getName(), "amount", amount.getAsInt());
 
         final TokenReceiveEvent event = new TokenReceiveEvent(target.getUniqueId(), amount.getAsInt());
         Bukkit.getPluginManager().callEvent(event);
@@ -92,9 +99,7 @@ public class SendCommand extends BaseCommand {
             return;
         }
 
-        dataManager.set(player, balance.getAsLong() - amount.getAsInt());
         dataManager.set(target, targetBalance.getAsLong() + amount.getAsInt());
-        sendMessage(sender, true, "COMMAND.token.send", "player", target.getName(), "amount", amount.getAsInt());
         sendMessage(target, true, "COMMAND.receive", "amount", amount.getAsInt());
     }
 

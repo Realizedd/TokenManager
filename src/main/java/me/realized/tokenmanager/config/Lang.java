@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.regex.Pattern;
 import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.config.converters.LangConverter2_3;
+import me.realized.tokenmanager.util.Log;
 import me.realized.tokenmanager.util.StringUtil;
 import me.realized.tokenmanager.util.config.AbstractConfiguration;
 import org.apache.commons.lang.StringUtils;
@@ -59,11 +60,6 @@ public class Lang extends AbstractConfiguration<TokenManagerPlugin> {
         }
 
         return message;
-    }
-
-    @Override
-    public void handleUnload() {
-        messages.clear();
     }
 
     @Override
@@ -117,16 +113,20 @@ public class Lang extends AbstractConfiguration<TokenManagerPlugin> {
         });
     }
 
+    @Override
+    public void handleUnload() {
+        messages.clear();
+    }
+
     public void sendMessage(final CommandSender receiver, final boolean config, final String in, final Object... replacers) {
         if (config) {
             final String message = messages.get(in);
 
             if (message == null) {
-                plugin.error(this, "Provided key '" + in + "' has no assigned value, cannot send message");
+                Log.error(this, "Failed to send message: provided key '" + in + "' has no assigned value");
                 return;
             }
 
-            // todo: Add check for message length and send them separately if reached max chars
             receiver.sendMessage(StringUtil.color(withReplacers(message, replacers)));
         } else {
             receiver.sendMessage(StringUtil.color(withReplacers(in, replacers)));

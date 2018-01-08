@@ -51,6 +51,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.util.Callback;
+import me.realized.tokenmanager.util.Log;
 import me.realized.tokenmanager.util.profile.NameFetcher;
 import me.realized.tokenmanager.util.profile.ProfileUtil;
 import org.apache.commons.lang.StringEscapeUtils;
@@ -65,50 +66,25 @@ public abstract class Database {
 
     @Getter(value = AccessLevel.PROTECTED)
     private final boolean online;
-    private final boolean mysql;
     private final String table;
-    // TODO: 12/23/17 New ExecutorService for /token top to load names with delays?
     private final ScheduledExecutorService executor;
-    // NOTE: UUID is still usable for servers in offline mode since it only tracks players currently online.
     private final Map<UUID, Long> data = new HashMap<>();
 
     Database(final TokenManagerPlugin plugin) {
         this.plugin = plugin;
         this.online = ProfileUtil.isOnlineMode();
-        this.mysql = plugin.getConfiguration().isMysqlEnabled();
-        this.executor = Executors.newSingleThreadScheduledExecutor();
 
         Query.CREATE_TABLE.replace(s -> s.replace("{column}", online ? "uuid varchar(36)" : "name varchar(16)"));
 
         this.table = StringEscapeUtils.escapeSql(plugin.getConfiguration().getMysqlTable());
         updateQueries();
+
+        this.executor = Executors.newSingleThreadScheduledExecutor();
     }
 
     void updateQueries() {
         for (final Query query : Query.values()) {
             query.replace(s -> s.replace("{table}", table).replace("{identifier}", online ? "uuid" : "name"));
-        }
-    }
-
-    /**
-     * Checks and creates the table for the plugin if it does not exist.
-     *
-     * @throws Exception If the table was found but it does contain the needed column for the server mode, an {@link Exception} is thrown.
-     */
-    public void setup() throws Exception {
-        try (
-            Connection connection = getConnection();
-            Statement statement = connection.createStatement()
-        ) {
-            statement.execute(Query.CREATE_TABLE.get());
-
-            try (ResultSet resultSet = connection.getMetaData().getColumns(null, null, table, "name")) {
-                if (resultSet.isBeforeFirst() == online) {
-                    throw new Exception(
-                        "Server is in " + (online ? "ONLINE" : "OFFLINE") + " mode, but table '" + table + "' does not have the column '"
-                            + (online ? "uuid" : "name") + "'! Please choose a different table.");
-                }
-            }
         }
     }
 
@@ -120,6 +96,7 @@ public abstract class Database {
      */
     abstract Connection getConnection() throws Exception;
 
+
     /**
      * AutoCloseable instance to be closed on unload.
      *
@@ -127,8 +104,32 @@ public abstract class Database {
      */
     abstract Iterable<AutoCloseable> getCloseables();
 
+
     /**
-     * Get cached data of the player.
+     * Checks and creates the table for the plugin if it does not exist.
+     *
+     * @throws Exception If the table was found but it does contain the needed column for the server mode, an {@link Exception} is thrown.
+     */
+    public void setupTable() throws Exception {
+        try (
+            Connection connection = getConnection();
+            Statement statement = connection.createStatement()
+        ) {
+            statement.execute(Query.CREATE_TABLE.get());
+
+            try (ResultSet resultSet = connection.getMetaData().getColumns(null, null, table, "name")) {
+                if (resultSet.isBeforeFirst() == online) {
+                    throw new Exception(
+                        "Server is in " + (online ? "ONLINE" : "OFFLINE") + " mode, but found table '" + table + "' does not have column '"
+                            + (online ? "uuid" : "name") + "'! Please choose a different table name.");
+                }
+            }
+        }
+    }
+
+
+    /**
+     * Get cached balance of the player.
      *
      * @param player Player to get the data.
      * @return Optional with data inside if found, otherwise empty.
@@ -148,20 +149,30 @@ public abstract class Database {
      *
      * @param key UUID or the name the player.
      * @param callback Callback to call once data is retrieved.
+     * @param create true to create with default balance if not exists, false for no action
      */
-    public void get(final String key, final Callback<OptionalLong> callback, final boolean save) {
+    public void get(final String key, final Callback<OptionalLong> callback, final boolean create) {
         executor.execute(() -> {
             try {
-                callback.call(select(key, save));
+                callback.call(select(key, create));
             } catch (Exception ex) {
+                Log.error("Failed to obtain data for " + key + ": " + ex.getMessage());
                 ex.printStackTrace();
             }
         });
     }
 
+
+    /**
+     * Get the stored data of the player.
+     *
+     * @param player Player to get data.
+     * @param callback Callback to call once data is retrieved.
+     */
     public void get(final Player player, final Callback<OptionalLong> callback) {
         get(online ? player.getUniqueId().toString() : player.getName(), callback, true);
     }
+
 
     /**
      * Set the cached data value for player.
@@ -191,14 +202,51 @@ public abstract class Database {
 
                 if (this instanceof MySQLDatabase) {
                     ((MySQLDatabase) this).publish(key + ":" + (set ? updated : amount) + ":" + set);
+                } else {
+                    Bukkit.getScheduler().runTask(plugin, () -> handleModification(key, amount, set));
                 }
             } catch (Exception ex) {
-                plugin.error("Failed to save data for " + key + ": " + ex.getMessage());
+                Log.error("Failed to save data for " + key + ": " + ex.getMessage());
                 ex.printStackTrace();
                 callback.call(false);
             }
         });
     }
+
+
+    void handleModification(final String key, final long amount, final boolean set) {
+        final Player player;
+
+        if (ProfileUtil.isUUID(key)) {
+            player = Bukkit.getPlayer(UUID.fromString(key));
+        } else {
+            player = Bukkit.getPlayerExact(key);
+        }
+
+        if (player == null) {
+            return;
+        }
+
+        if (set) {
+            set(player, amount);
+            return;
+        }
+
+        final OptionalLong cached;
+
+        if (!(cached = get(player)).isPresent()) {
+            return;
+        }
+
+        set(player, cached.getAsLong() + amount);
+
+        if (amount > 0) {
+            plugin.getLang().sendMessage(player, true, "COMMAND.receive", "amount", amount);
+        } else {
+            plugin.getLang().sendMessage(player, true, "COMMAND.take", "amount", Math.abs(amount));
+        }
+    }
+
 
     /**
      * Saves the cached data associated to key and clears it from cache. Must be called synchronously!
@@ -217,16 +265,16 @@ public abstract class Database {
             try (Connection connection = getConnection()) {
                 insert(connection, online ? player.getUniqueId().toString() : player.getName(), balance.getAsLong());
             } catch (Exception ex) {
-                plugin.error("Failed to save data for " + player.getName() + ": " + ex.getMessage());
+                Log.error("Failed to save data for " + player.getName() + ": " + ex.getMessage());
                 ex.printStackTrace();
             }
         });
     }
 
     /**
-     * Saves the current cache and returns top balances of the table. Must be called within server thread!
+     * Saves the current cache and returns top balances. Must be called synchronously!
      *
-     * @param limit limitation of the rows to be returned
+     * @param limit amount of the rows to be returned
      * @param callback Callback to call once data is retrieved
      */
     public void ordered(final int limit, final Callback<List<RankedData>> callback) {
@@ -249,40 +297,42 @@ public abstract class Database {
                     statement.setInt(1, limit);
 
                     final List<UUID> uuids = new ArrayList<>();
-                    final ResultSet resultSet = statement.executeQuery();
-                    int rank = 0;
 
-                    while (resultSet.next()) {
-                        final String key = online ? resultSet.getString("uuid") : resultSet.getString("name");
+                    try (ResultSet resultSet = statement.executeQuery()) {
+                        int rank = 0;
 
-                        if (online) {
-                            uuids.add(UUID.fromString(key));
-                        }
+                        while (resultSet.next()) {
+                            final String key = online ? resultSet.getString("uuid") : resultSet.getString("name");
 
-                        result.add(new RankedData(key, ++rank, (int) resultSet.getLong("tokens")));
-                    }
-
-                    if (online) {
-                        NameFetcher.getNames(uuids, names -> {
-                            for (final RankedData data : result) {
-                                final String name = names.get(UUID.fromString(data.getKey()));
-
-                                if (name == null) {
-                                    data.setKey("&cFailed to get name!");
-                                    continue;
-                                }
-
-                                data.setKey(name);
+                            if (online) {
+                                uuids.add(UUID.fromString(key));
                             }
 
+                            result.add(new RankedData(key, ++rank, (int) resultSet.getLong("tokens")));
+                        }
+
+                        if (online) {
+                            NameFetcher.getNames(uuids, names -> {
+                                for (final RankedData data : result) {
+                                    final String name = names.get(UUID.fromString(data.getKey()));
+
+                                    if (name == null) {
+                                        data.setKey("&cFailed to get name!");
+                                        continue;
+                                    }
+
+                                    data.setKey(name);
+                                }
+
+                                callback.call(result);
+                            });
+                        } else {
                             callback.call(result);
-                        });
-                    } else {
-                        callback.call(result);
+                        }
                     }
                 }
             } catch (Exception ex) {
-                plugin.error("Failed to load top balances for /token top: " + ex.getMessage());
+                Log.error("Failed to load top balances: " + ex.getMessage());
                 ex.printStackTrace();
             }
         });
@@ -301,24 +351,20 @@ public abstract class Database {
 
             if (closeables != null) {
                 for (final AutoCloseable closeable : closeables) {
-                    if (closeable == null) {
-                        continue;
-                    }
-
-                    try {
-                        closeable.close();
-                    } catch (Exception ex) {
-                        plugin.error("Failed to close " + closeable.getClass().getSimpleName() + ": " + ex.getMessage());
-                        ex.printStackTrace();
+                    if (closeable != null) {
+                        try {
+                            closeable.close();
+                        } catch (Exception ex) {
+                            Log.error("Failed to close " + closeable.getClass().getSimpleName() + ": " + ex.getMessage());
+                            ex.printStackTrace();
+                        }
                     }
                 }
             }
         }
     }
 
-    /**
-     * Saves online player's cached data to db.
-     */
+
     private void save(final Connection connection, final Map<UUID, Long> cache, final boolean remove) throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement(Query.INSERT.get())) {
             connection.setAutoCommit(false);
@@ -337,7 +383,7 @@ public abstract class Database {
                 statement.setString(1, online ? player.getUniqueId().toString() : player.getName());
                 statement.setLong(2, balance.get());
 
-                if (mysql) {
+                if (this instanceof MySQLDatabase) {
                     statement.setLong(3, balance.get());
                 }
 
@@ -352,7 +398,22 @@ public abstract class Database {
         }
     }
 
-    private OptionalLong select(final String key, final boolean save) throws Exception {
+
+    private void insert(final Connection connection, final String key, final long value) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement(Query.INSERT.get())) {
+            statement.setString(1, key);
+            statement.setLong(2, value);
+
+            if (this instanceof MySQLDatabase) {
+                statement.setLong(3, value);
+            }
+
+            statement.execute();
+        }
+    }
+
+
+    private OptionalLong select(final String key, final boolean create) throws Exception {
         try (
             Connection connection = getConnection();
             PreparedStatement statement = connection.prepareStatement(Query.SELECT_ONE.get())
@@ -361,7 +422,7 @@ public abstract class Database {
 
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (!resultSet.isBeforeFirst()) {
-                    if (save) {
+                    if (create) {
                         final long defaultBalance = plugin.getConfiguration().getDefaultBalance();
                         insert(connection, key, defaultBalance);
                         return OptionalLong.of(defaultBalance);
@@ -376,19 +437,6 @@ public abstract class Database {
         }
     }
 
-    private void insert(final Connection connection, final String key, final long value) throws SQLException {
-        try (PreparedStatement statement = connection.prepareStatement(Query.INSERT.get())) {
-            statement.setString(1, key);
-            statement.setLong(2, value);
-
-            if (mysql) {
-                statement.setLong(3, value);
-            }
-
-            statement.execute();
-        }
-    }
-
     /**
      * Handles data conversion from 2.0 -> 3.0
      */
@@ -399,19 +447,20 @@ public abstract class Database {
             return;
         }
 
-        plugin.getLogger().info("Starting to transfer data of file('" + data.getName() + "') to the new data storage...");
+        Log.info("[!] Transferring old data from " + file.getName() + " to the new data storage...");
+        Log.info("(NOTE: If you wish to prevent this transfer from occurring, either delete or rename " + file.getName() + ")");
 
         try {
             final File renamed = Files
-                .copy(file.toPath(), new File(plugin.getDataFolder(), "data-old-" + System.nanoTime() + ".yml").toPath()).toFile();
-            plugin.getLogger().info("Old data file('" + file.getName() + "') was stored as " + renamed.getName() + ".");
+                .copy(file.toPath(), new File(plugin.getDataFolder(), "data-" + System.currentTimeMillis() + ".yml").toPath()).toFile();
+            Log.info("[!] Your old data file was renamed to " + renamed.getName() + ".");
 
             if (!file.delete()) {
-                plugin.getLogger().severe("Failed to delete '" + file.getName()
-                    + "'. Please manually rename/delete it or the data conversion will occur on every load.");
+                Log.error("[!] Failed to delete " + file.getName()
+                    + "! Please manually rename/delete it or the data conversion will occur every restart.");
             }
         } catch (IOException ex) {
-            plugin.error("Failed to convert from flatfile to sql: " + ex.getMessage());
+            Log.error("Failed to transfer data from " + file.getName() + ": " + ex.getMessage());
             ex.printStackTrace();
             return;
         }
@@ -422,21 +471,20 @@ public abstract class Database {
         ) {
             connection.setAutoCommit(false);
 
+            int invalid = 0;
             int i = 0;
             final Set<String> keys = data.getKeys(false);
 
             for (final String key : keys) {
                 if (ProfileUtil.isUUID(key) != online) {
-                    plugin.getLogger().severe(
-                        "Key '" + key + "' was not a valid " + (online ? "UUID" : "name") + ". Assigned data '" + data.getInt(key)
-                            + "' will not be transferred.");
+                    invalid++;
                     continue;
                 }
 
                 statement.setString(1, key);
                 statement.setLong(2, data.getInt(key));
 
-                if (mysql) {
+                if (this instanceof MySQLDatabase) {
                     statement.setLong(3, data.getInt(key));
                 }
 
@@ -448,7 +496,16 @@ public abstract class Database {
             }
 
             connection.commit();
-            plugin.getLogger().info("Successfully transferred data of " + i + " user(s).");
+
+            if (invalid > 0) {
+                Log.error(
+                    "[!] Could not convert data of " + invalid + " users since the keys were not a valid " + (online ? "UUID" : "name")
+                        + ". The data given was in " + (!online ? "online" : "offline")
+                        + " mode format, but the server was in " + (online ? "online" : "offline") + " mode.");
+            }
+
+            Log.info("[!] Successfully transferred data of " + i + " user(s). " + (invalid > 0 ? invalid
+                + " user data could not be transferred, please read above for more information." : ""));
         }
     }
 

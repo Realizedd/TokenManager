@@ -43,9 +43,5 @@ public interface TokenManager {
 
     void setTokens(final Player player, final long amount);
 
-    void info(final String msg);
-
-    void error(final String msg);
-
     boolean reload();
 }

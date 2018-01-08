@@ -30,11 +30,7 @@ package me.realized.tokenmanager.shop;
 import java.util.List;
 import lombok.Getter;
 
-/**
- * Class created at 6/18/17 by Realized
- **/
-
-public class Slot {
+class Slot {
 
     @Getter
     private final int slot;
@@ -49,7 +45,7 @@ public class Slot {
     @Getter
     private final boolean usePermission;
 
-    public Slot(final int slot, final int cost, final String message, final String subshop, final List<String> commands,
+    Slot(final int slot, final int cost, final String message, final String subshop, final List<String> commands,
         final boolean usePermission) {
         this.slot = slot;
         this.cost = cost;

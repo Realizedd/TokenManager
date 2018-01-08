@@ -40,18 +40,18 @@ public class SQLiteDatabase extends Database {
 
     private Connection connection;
 
-    public SQLiteDatabase(final TokenManagerPlugin plugin) throws Exception {
+    public SQLiteDatabase(final TokenManagerPlugin plugin) {
         super(plugin);
         this.base = new File(plugin.getDataFolder(), "data.db");
     }
 
     @Override
-    public void setup() throws Exception {
+    public void setupTable() throws Exception {
         if (!base.exists()) {
             base.createNewFile();
         }
 
-        super.setup();
+        super.setupTable();
     }
 
     @Override

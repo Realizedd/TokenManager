@@ -1,73 +1,68 @@
-# [*]----------------------------------[ Shop configuration tutorial ]----------------------------------[*]
-# Welcome to _shop configuring section, the most boring part!
-# Before you start creating shops, please read the instructions followed.
-# (Unless you're a genius and knows how to do things already)
-# We will look into the configuring with an example _shop I've created as default.
+# []----------------------------------[ Shop configuration tutorial ]----------------------------------[]
+# READ BEFORE CONFIGURING ON YOUR OWN!
 #shops:
-#  test: <--- This is the name of a _shop, used in places such as '/token _shop <name>'. A _shop name must be unique!
-#    title: '&6Default Shop' <--- This option is the title of the GUI displayed on the _shop open. Title must be unique too, to prevent errors with other shops.
-#    rows: 1 <--- This option is the rows of the _shop GUI. It must be set between 1 - 6.
-#    auto-close: true <--- This option decides whether the _shop GUI should be automatically closed or not on purchases.
-#    use-permission: false <--- This option decides whether the _shop GUI should have a per-permission. If set to true, players must have 'tokenmanager.use._shop.<name>' to open the _shop.
+#  test: <--- Name of the shop, used in places such as '/token shop <name>'. Must be unique!
+#    title: '&6Default Shop' <--- Title of the shop GUI displayed in-game.
+#    rows: 1 <--- Rows of the shop GUI. Available range: 1 - 6.
+#    auto-close: true <--- Decides whether the shop GUI should be automatically closed or stay open on a purchase.
+#    use-permission: false <--- 'true' to require players to have the permission 'tokenmanager.use.shop.<name of the shop>' to use the shop.
 #    items:
-#      '0': <--- This is the slot sets the displayed item's location in the GUI. In this case, the item will display on the first slot.
-#        displayed: 276 1 name:&cGod_Sword sharpness:5 fireaspect:2 lore:&bEliminate_your|&cEnemies&b! <--- This is the item that displays on the slot. Pretty similar with Essentials' item configuring, but some item meta is unsupported.
-#        cost: 10 <--- This sets the token price. Every option followed after will only execute if player have 'cost' amount of tokens.
-#        subshop: yoursubshop <--- [Optional] This decides whether the plugin should open another _shop named 'yoursubshop' on purchase. There must be a _shop existing with the given name!
-#        message: '&bTM &8» &7Thanks for your purchase, %player%! &c-10 tokens' <--- [Optional] This decides whether the plugin should send a message to the player on purchase. Use %player% placeholder to get the purchaser's name.
-#        command: <--- This is the command executed on successful purchase. Use %player% placeholder to get the purchaser's name. Set it as '[]' if you want no command to execute.
+#      '0': <--- Slot to display the item. 0 is the first slot of the GUI.
+#        displayed: 276 1 name:&cGod_Sword sharpness:5 fireaspect:2 lore:&bEliminate_your|&cEnemies&b! <--- The displayed item. Uses the same concept as Essentials' Kits to load.
+#        cost: 10 <--- Amount players need to purchase this item.
+#        subshop: yoursubshop <--- [Optional] If set, opens the subshop specified on purchase.
+#        message: '&bTM &8» &7Thanks for your purchase, %player%! &c-10 tokens' <--- [Optional] If set, this message will be sent on purchase. Placeholder: %player% (Purchaser's name)
+#        commands: <--- Commands to be executed on purchase. Placeholder: %player% (Purchaser's name)
 #        - 'give %player% 276 1 name:&cGod_Sword sharpness:5 fireaspect:2 lore:&bEliminate_your|&cEnemies&b!'
-#  yoursubshop: <--- This is another _shop created to test the sub-_shop function. It'll open when the player purchases the item above!
+#  yoursubshop: <--- This shop will be opened when the item above is purchased, since it is specified as the subshop of item 0.
 #    title: '&6Default Sub Shop'
 #    rows: 2
 #    auto-close: false
 #    use-permission: false
 #    items:
-#      '1': <--- In this case, this item will display on the second slot of the sub-_shop GUI.
+#      '1':
 #        displayed: 373:16421 1 name:&dSPlash_Potion_of_Healing
 #        cost: 5
-#        command:
+#        commands:
 #        - 'give %player% 373:16421 1 name:&dSplash_Potion_of_Healing'
-#        use-permission: true <--- NEW! Allows each slot to have their own permission. In this case,
-#                                       The permission node is: tokenmanager.use.yoursubshop-1
+#        use-permission: true <--- [Optional] 'true' to require players to have the permission 'tokenmanager.use.yoursubshop-1' to purchase this item.
 #
-# Finished reading? Great job, now create your own following those instruction!
 #
-# Helpful Links (Used in displayed item's meta):
+# Helpful Links:
 #
-# - Enchantment names: http://pastebin.com/0WktGa59
-# (- Example of adding an enchantment to your displayed item -)
-# (displayed: 276 1 sharpness:3 smite:2 unbreaking:3)
+# - Enchantment Names: http://pastebin.com/0WktGa59
+# - (Example of adding an enchantment)
+# - displayed: 276 1 sharpness:3 smite:2 unbreaking:3
 #
-# - Potion effect names: http://pastebin.com/eghUaTuJ
-# (- Example of adding a custom potion effect to your displayed potion item -)
-# (displayed: 373:8258 1 strength:2:200 speed:3:600)
+# - PotionEffect Names: http://pastebin.com/eghUaTuJ
+# - (Example of adding a custom potion effect to your displayed potion item)
+# - displayed: 373:8258 1 strength:2:200 speed:3:600)
 # (In this case, the item displayed will have Strength II (0:10) and Speed III (0:30).)
 #
-# - Item Ids: http://www.minecraftinfo.com/idlist.htm
+# - Item ID List: http://www.minecraftinfo.com/idlist.htm
 #
-# READ :
-# * In Minecraft 1.9, durability was no longer used for potions & mob spawn eggs.
-# * If your server version is 1.9.x, Please read the following!
+# NOTE:
+# * In Minecraft 1.9, potions & mob spawn eggs no longer use durability to specify type.
+# * If your server version is 1.9 or above, continue reading.
 #
-#  (1.9) - Setting mob spawn egg (zombie) as displayed item example -
+#  (1.9+) - Example of setting mob spawn egg (zombie) as a displayed item
 #
 #  displayed: MONSTER_EGG:ZOMBIE 1 name:&9Purchase_a_Zombie_Spawn_Egg!
 #
 #
-#  (1.9) - Setting potion (splash strength II) as displayed item example -
+#  (1.9+) - Example of setting potion (splash strength II) as a displayed item
 #
 #  displayed: POTION:STRENGTH-strong-splash 1 name:&cSplash_Potion_of_Strength_II
 #
 #
-#  (1.9) - Setting potion (speed I extended) as displayed item example -
+#  (1.9+) - Example of setting potion (speed I extended) as a displayed item
 #
 #  displayed: POTION:SPEED-extended 1 name:&bPotion_of_Speed_(Extended)
 #
 #
-# - 1.9 Potions: http://minecraft.gamepedia.com/Potion#Data_values
+# - 1.9+ Potions: http://minecraft.gamepedia.com/Potion#Data_values
 #
-# [*]----------------------------------------------------------------------------------------------------[*]
+# []----------------------------------------------------------------------------------------------------[]
 
 shops:
   test:
@@ -90,7 +85,7 @@ shops:
     use-permission: false
     items:
       '1':
-        # Potion won't properly display if you're using 1.9! Read the 1.9 part in the _shop config tutorial.
+        # This will not display properly if your server version is 1.9 or above! Read the tutorial above to fix this.
         displayed: 373:16421 1 name:&dSplash_Potion_of_Healing lore:&dCost:&a_5_Tokens
         cost: 5
         commands:
