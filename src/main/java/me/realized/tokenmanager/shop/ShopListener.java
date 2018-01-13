@@ -31,6 +31,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.OptionalLong;
 import java.util.UUID;
 import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.data.DataManager;
@@ -46,14 +47,14 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
-public class ShopManager implements Reloadable, Listener {
+public class ShopListener implements Reloadable, Listener {
 
     private final TokenManagerPlugin plugin;
     private final ShopConfig config;
     private final DataManager dataManager;
     private final Map<UUID, Long> cooldowns = new HashMap<>();
 
-    public ShopManager(final TokenManagerPlugin plugin) {
+    public ShopListener(final TokenManagerPlugin plugin) {
         this.plugin = plugin;
         this.config = plugin.getShopConfig();
         this.dataManager = plugin.getDataManager();
@@ -137,8 +138,14 @@ public class ShopManager implements Reloadable, Listener {
         }
 
         final int cost = data.getCost();
-        // todo: fix
-        final long balance = dataManager.get(player).orElse(0);
+        final OptionalLong cached = dataManager.get(player);
+
+        if (!cached.isPresent()) {
+            plugin.getLang().sendMessage(player, false, "&cYour data is improperly loaded, please re-log.");
+            return;
+        }
+
+        final long balance = cached.getAsLong();
 
         if (balance - cost < 0) {
             plugin.getLang().sendMessage(player, true, "ERROR.balance-not-enough", "needed", cost - balance);

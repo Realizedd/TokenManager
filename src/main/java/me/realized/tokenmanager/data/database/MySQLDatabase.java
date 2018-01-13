@@ -84,7 +84,7 @@ public class MySQLDatabase extends Database {
                 jedis.subscribe(listener = new JedisListener(), "tokenmanager");
             } catch (Exception ex) {
                 Log.error(
-                    "Failed to connect to the redis server! Commands modifying offline player token balance will not synchronize between servers properly.");
+                    "Failed to connect to the redis server! Commands modifying offline player balance will not synchronize properly.");
             }
         });
 

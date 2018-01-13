@@ -27,7 +27,6 @@
 
 package me.realized.tokenmanager.util;
 
-import java.util.OptionalInt;
 import java.util.OptionalLong;
 
 /**
@@ -94,9 +93,5 @@ public final class NumberUtil {
         }
 
         return OptionalLong.of(negative ? result : -result);
-    }
-
-    public static OptionalInt parseInt(final String s) {
-        return OptionalInt.of((int) parseLong(s).orElse(0));
     }
 }

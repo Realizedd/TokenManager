@@ -447,8 +447,7 @@ public abstract class Database {
             return;
         }
 
-        Log.info("[!] Transferring old data from " + file.getName() + " to the new data storage...");
-        Log.info("(NOTE: If you wish to prevent this transfer from occurring, either delete or rename " + file.getName() + ")");
+        Log.info("[!] Starting the transfer of the old data from " + file.getName() + " to the new data storage.");
 
         try {
             final File renamed = Files
@@ -474,6 +473,7 @@ public abstract class Database {
             int invalid = 0;
             int i = 0;
             final Set<String> keys = data.getKeys(false);
+            Log.info("[!] Inserting data of " + keys.size() + " user(s) to the new storage... (This may take a while.)");
 
             for (final String key : keys) {
                 if (ProfileUtil.isUUID(key) != online) {
@@ -482,10 +482,12 @@ public abstract class Database {
                 }
 
                 statement.setString(1, key);
-                statement.setLong(2, data.getInt(key));
+
+                final int value = data.getInt(key);
+                statement.setLong(2, value);
 
                 if (this instanceof MySQLDatabase) {
-                    statement.setLong(3, data.getInt(key));
+                    statement.setLong(3, value);
                 }
 
                 statement.addBatch();
@@ -496,6 +498,7 @@ public abstract class Database {
             }
 
             connection.commit();
+            connection.setAutoCommit(true);
 
             if (invalid > 0) {
                 Log.error(

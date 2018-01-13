@@ -42,7 +42,7 @@ import me.realized.tokenmanager.data.DataManager;
 import me.realized.tokenmanager.hooks.HookManager;
 import me.realized.tokenmanager.shop.Shop;
 import me.realized.tokenmanager.shop.ShopConfig;
-import me.realized.tokenmanager.shop.ShopManager;
+import me.realized.tokenmanager.shop.ShopListener;
 import me.realized.tokenmanager.util.Log;
 import me.realized.tokenmanager.util.Reloadable;
 import org.bukkit.entity.Player;
@@ -62,20 +62,16 @@ public class TokenManagerPlugin extends JavaPlugin implements TokenManager {
     private ShopConfig shopConfig;
     @Getter
     private DataManager dataManager;
-    @Getter
-    private ShopManager shopManager;
-    @Getter
-    private HookManager hookManager;
 
     @Override
     public void onEnable() {
         Log.setSource(this);
-        configuration = register(new TMConfig(this));
-        lang = register(new Lang(this));
-        shopConfig = register(new ShopConfig(this));
-        dataManager = register(new DataManager(this));
-        shopManager = register(new ShopManager(this));
-        hookManager = register(new HookManager(this));
+        reloadables.add(configuration = new TMConfig(this));
+        reloadables.add(lang = new Lang(this));
+        reloadables.add(shopConfig = new ShopConfig(this));
+        reloadables.add(dataManager = new DataManager(this));
+        reloadables.add(new ShopListener(this));
+        reloadables.add(new HookManager(this));
 
         if (!loadReloadables()) {
             getPluginLoader().disablePlugin(this);
@@ -89,11 +85,7 @@ public class TokenManagerPlugin extends JavaPlugin implements TokenManager {
     @Override
     public void onDisable() {
         unloadReloadables();
-    }
-
-    private <R extends Reloadable> R register(final R reloadable) {
-        reloadables.add(reloadable);
-        return reloadable;
+        Log.setSource(null);
     }
 
     /**

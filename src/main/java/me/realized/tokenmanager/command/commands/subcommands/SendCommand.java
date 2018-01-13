@@ -29,7 +29,6 @@ package me.realized.tokenmanager.command.commands.subcommands;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.OptionalInt;
 import java.util.OptionalLong;
 import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.command.BaseCommand;
@@ -67,9 +66,9 @@ public class SendCommand extends BaseCommand {
             return;
         }
 
-        final OptionalInt amount = NumberUtil.parseInt(args[2]);
+        final OptionalLong amount = NumberUtil.parseLong(args[2]);
 
-        if (!amount.isPresent() || amount.getAsInt() <= 0) {
+        if (!amount.isPresent() || amount.getAsLong() <= 0) {
             sendMessage(sender, true, "ERROR.invalid-amount", "input", args[2]);
             return;
         }
@@ -84,23 +83,23 @@ public class SendCommand extends BaseCommand {
 
         final long needed;
 
-        if ((needed = balance.getAsLong() - amount.getAsInt()) < 0) {
+        if ((needed = balance.getAsLong() - amount.getAsLong()) < 0) {
             sendMessage(sender, true, "ERROR.not-enough-tokens", "needed", needed);
             return;
         }
 
-        dataManager.set(player, balance.getAsLong() - amount.getAsInt());
-        sendMessage(sender, true, "COMMAND.token.send", "player", target.getName(), "amount", amount.getAsInt());
+        dataManager.set(player, balance.getAsLong() - amount.getAsLong());
+        sendMessage(sender, true, "COMMAND.token.send", "player", target.getName(), "amount", amount.getAsLong());
 
-        final TokenReceiveEvent event = new TokenReceiveEvent(target.getUniqueId(), amount.getAsInt());
+        final TokenReceiveEvent event = new TokenReceiveEvent(target.getUniqueId(), (int) amount.getAsLong());
         Bukkit.getPluginManager().callEvent(event);
 
         if (event.isCancelled()) {
             return;
         }
 
-        dataManager.set(target, targetBalance.getAsLong() + amount.getAsInt());
-        sendMessage(target, true, "COMMAND.receive", "amount", amount.getAsInt());
+        dataManager.set(target, targetBalance.getAsLong() + amount.getAsLong());
+        sendMessage(target, true, "COMMAND.receive", "amount", amount.getAsLong());
     }
 
     @Override

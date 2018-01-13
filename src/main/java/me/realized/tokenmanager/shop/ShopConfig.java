@@ -31,7 +31,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.OptionalInt;
+import java.util.OptionalLong;
 import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.util.ItemBuilder;
 import me.realized.tokenmanager.util.ItemUtil;
@@ -53,14 +53,14 @@ public class ShopConfig extends AbstractConfiguration<TokenManagerPlugin> {
 
     @Override
     protected void loadValues(final FileConfiguration configuration) {
-        final ConfigurationSection shopsSection = configuration.getConfigurationSection("shops");
+        final ConfigurationSection section = configuration.getConfigurationSection("shops");
 
-        if (shopsSection == null) {
+        if (section == null) {
             return;
         }
 
-        for (final String name : shopsSection.getKeys(false)) {
-            final ConfigurationSection shopSection = shopsSection.getConfigurationSection(name);
+        for (final String name : section.getKeys(false)) {
+            final ConfigurationSection shopSection = section.getConfigurationSection(name);
             final Shop shop;
 
             try {
@@ -76,26 +76,25 @@ public class ShopConfig extends AbstractConfiguration<TokenManagerPlugin> {
                 continue;
             }
 
-            final ConfigurationSection itemsSection = shopSection.getConfigurationSection("items");
+            final ConfigurationSection items = shopSection.getConfigurationSection("items");
 
-            if (itemsSection != null) {
-                for (final String num : itemsSection.getKeys(false)) {
-                    // TODO: 8/12/17 Temporary!
-                    final OptionalInt slot = NumberUtil.parseInt(num);
+            if (items != null) {
+                for (final String num : items.getKeys(false)) {
+                    final OptionalLong slot = NumberUtil.parseLong(num);
 
-                    if (!slot.isPresent() || slot.getAsInt() < 0 || slot.getAsInt() >= shop.getGui().getSize()) {
+                    if (!slot.isPresent() || slot.getAsLong() < 0 || slot.getAsLong() >= shop.getGui().getSize()) {
                         Log.error(this, "Failed to load slot '" + num + "' for shop '" + name + "': '" + slot
                             + "' is not a valid number or is over the shop size.");
                         continue;
                     }
 
-                    final ConfigurationSection slotSection = itemsSection.getConfigurationSection(num);
+                    final ConfigurationSection slotSection = items.getConfigurationSection(num);
                     final ItemStack displayed;
 
                     try {
                         displayed = ItemUtil.loadFromString(slotSection.getString("displayed"));
                     } catch (Exception ex) {
-                        shop.getGui().setItem(slot.getAsInt(), ItemBuilder
+                        shop.getGui().setItem((int) slot.getAsLong(), ItemBuilder
                             .of(Material.REDSTONE_BLOCK)
                             .name("&4&m------------------")
                             .lore(
@@ -111,8 +110,8 @@ public class ShopConfig extends AbstractConfiguration<TokenManagerPlugin> {
                         continue;
                     }
 
-                    shop.setSlot(slot.getAsInt(), displayed, new Slot(
-                        slot.getAsInt(),
+                    shop.setSlot((int) slot.getAsLong(), displayed, new Slot(
+                        (int) slot.getAsLong(),
                         slotSection.getInt("cost", 1000000),
                         slotSection.getString("message"),
                         slotSection.getString("subshop"),
@@ -122,7 +121,7 @@ public class ShopConfig extends AbstractConfiguration<TokenManagerPlugin> {
                 }
             }
 
-            shops.put(name, shop);
+            register(name, shop);
         }
     }
 
@@ -137,5 +136,9 @@ public class ShopConfig extends AbstractConfiguration<TokenManagerPlugin> {
 
     public Collection<Shop> getShops() {
         return shops.values();
+    }
+
+    public Shop register(final String name, final Shop shop) {
+        return shops.put(name, shop);
     }
 }

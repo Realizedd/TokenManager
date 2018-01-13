@@ -28,13 +28,37 @@
 package me.realized.tokenmanager.config;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.Getter;
 import me.realized.tokenmanager.TokenManagerPlugin;
-import me.realized.tokenmanager.config.converters.ConfigConverter2_3;
 import me.realized.tokenmanager.util.config.AbstractConfiguration;
+import me.realized.tokenmanager.util.config.convert.Converter;
 import org.bukkit.configuration.file.FileConfiguration;
 
 public class TMConfig extends AbstractConfiguration<TokenManagerPlugin> {
+
+    private class Converter2_3 implements Converter {
+
+        Converter2_3() {}
+
+        @Override
+        public Map<String, String> renamedKeys() {
+            final Map<String, String> keys = new HashMap<>();
+            keys.put("use-default.enabled", "shop.open-selected.enabled");
+            keys.put("use-default.shop", "shop.open-selected.shop");
+            keys.put("mysql.enabled", "data.mysql.enabled");
+            keys.put("mysql.hostname", "data.mysql.hostname");
+            keys.put("mysql.port", "data.mysql.port");
+            keys.put("mysql.username", "data.mysql.username");
+            keys.put("mysql.password", "data.mysql.password");
+            keys.put("mysql.database", "data.mysql.database");
+            keys.put("click-delay", "shop.click-delay");
+            keys.put("update-balance-top", "data.balance-top-update-interval");
+            keys.put("vault-hooks", "data.register-economy");
+            return keys;
+        }
+    }
 
     @Getter
     private int version;
@@ -78,7 +102,7 @@ public class TMConfig extends AbstractConfiguration<TokenManagerPlugin> {
     @Override
     protected void loadValues(FileConfiguration configuration) throws IOException {
         if (!configuration.isInt("config-version")) {
-            configuration = convert(new ConfigConverter2_3());
+            configuration = convert(new Converter2_3());
         } else if (configuration.getInt("config-version") < getLatestVersion()) {
             configuration = convert(null);
         }

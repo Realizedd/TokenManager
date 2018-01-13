@@ -48,7 +48,7 @@ public class Shop {
 
     private Map<Integer, Slot> slots;
 
-    Shop(final String name, final String title, final int rows, final boolean autoClose, final boolean usePermission)
+    public Shop(final String name, final String title, final int rows, final boolean autoClose, final boolean usePermission)
         throws IllegalArgumentException {
         if (name == null || name.isEmpty()) {
             throw new IllegalArgumentException("Name is null or empty.");
@@ -69,7 +69,7 @@ public class Shop {
         this.usePermission = usePermission;
     }
 
-    void setSlot(final int slot, final ItemStack displayed, final Slot data) {
+    public void setSlot(final int slot, final ItemStack displayed, final Slot data) {
         gui.setItem(slot, displayed);
 
         if (slots == null) {

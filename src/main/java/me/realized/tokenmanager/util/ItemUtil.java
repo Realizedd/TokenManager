@@ -31,7 +31,7 @@ import com.google.common.collect.Lists;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.OptionalInt;
+import java.util.OptionalLong;
 import me.realized.tokenmanager.util.compat.Potions;
 import me.realized.tokenmanager.util.compat.SpawnEggs;
 import org.bukkit.Bukkit;
@@ -155,10 +155,10 @@ public final class ItemUtil {
                 }
             }
 
-            final OptionalInt value;
+            final OptionalLong value;
 
-            if ((value = NumberUtil.parseInt(materialData[1])).isPresent()) {
-                result.setDurability((short) value.getAsInt());
+            if ((value = NumberUtil.parseLong(materialData[1])).isPresent()) {
+                result.setDurability((short) value.getAsLong());
             }
         }
 
