@@ -160,7 +160,7 @@ public class ShopListener implements Reloadable, Listener {
 
         if ((commands = data.getCommands()) != null) {
             for (final String command : commands) {
-                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command.replace("player", player.getName()));
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command.replace("%player%", player.getName()));
             }
         }
 

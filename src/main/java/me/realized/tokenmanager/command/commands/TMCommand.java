@@ -52,8 +52,6 @@ public class TMCommand extends BaseCommand {
 
     @Override
     protected void execute(final CommandSender sender, final String label, final String[] args) {
-        if (args.length == 0) {
-            sendMessage(sender, true, "COMMAND.tokenmanager.usage");
-        }
+        sendMessage(sender, true, "COMMAND.tokenmanager.usage");
     }
 }

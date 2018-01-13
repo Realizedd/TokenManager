@@ -58,7 +58,7 @@ public class TokenCommand extends BaseCommand {
         final OptionalLong balance;
 
         if (sender instanceof Player) {
-            Player player = (Player) sender;
+            final Player player = (Player) sender;
             balance = dataManager.get(player);
 
             if (!balance.isPresent()) {
@@ -69,8 +69,6 @@ public class TokenCommand extends BaseCommand {
             balance = OptionalLong.empty();
         }
 
-        if (args.length == 0) {
-            sendMessage(sender, true, "COMMAND.token.usage", "tokens", balance.orElse(0));
-        }
+        sendMessage(sender, true, "COMMAND.token.usage", "tokens", balance.orElse(0));
     }
 }

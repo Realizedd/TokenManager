@@ -102,8 +102,7 @@ public final class ItemUtil {
         registerEffect("saturation", PotionEffectType.SATURATION);
     }
 
-    private ItemUtil() {
-    }
+    private ItemUtil() {}
 
     private static void registerEnchantment(final String key, final Enchantment value) {
         ENCHANTMENTS.put(key, value);
@@ -220,7 +219,7 @@ public final class ItemUtil {
 
         if (item.getType() == Material.SKULL_ITEM && item.getDurability() == 3 && key.equalsIgnoreCase("player") || key
             .equalsIgnoreCase("owner")) {
-            SkullMeta skullMeta = (SkullMeta) meta;
+            final SkullMeta skullMeta = (SkullMeta) meta;
             skullMeta.setOwner(value);
             item.setItemMeta(skullMeta);
         }
