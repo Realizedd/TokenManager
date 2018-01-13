@@ -42,6 +42,7 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 import redis.clients.jedis.JedisPubSub;
+import redis.clients.jedis.exceptions.JedisConnectionException;
 
 public class MySQLDatabase extends Database {
 
@@ -104,6 +105,8 @@ public class MySQLDatabase extends Database {
     void publish(final String message) {
         try (Jedis jedis = jedisPool.getResource()) {
             jedis.publish("tokenmanager", message);
+        } catch (JedisConnectionException ex) {
+            Log.error("Failed to connect to the redis database: " + ex.getMessage());
         }
     }
 

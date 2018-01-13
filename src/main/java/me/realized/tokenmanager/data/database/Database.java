@@ -62,6 +62,14 @@ import org.bukkit.entity.Player;
 
 public abstract class Database {
 
+    private static final String SERVER_MODE_MISMATCH = "Server is in %s mode, but found table '%s' does not have column '%s'! Please choose a different table name.";
+    private static final String TRANSFER_START = "[!] Starting the transfer of the old data from %s to the new data storage.";
+    private static final String TRANSFER_SAVE = "[!] Your old data file was saved as %s.";
+    private static final String TRANSFER_CANNOT_DELETE = "[!] Failed to delete %s! Please manually rename/delete it or the data conversion will occur every restart.";
+    private static final String TRANSFER_INSERT = "[!] Inserting data of %s user(s) to the new storage... (This may take a while)";
+    private static final String TRANSFER_ERROR = "[!] Could not convert data of %s users since the keys were not a valid %s. The data given was in %s mode format, but the server was in %s mode.";
+    private static final String TRANSFER_COMPLETE = "[!] Successfully transferred data of %s user(s). ";
+
     protected final TokenManagerPlugin plugin;
 
     @Getter(value = AccessLevel.PROTECTED)
@@ -120,8 +128,7 @@ public abstract class Database {
             try (ResultSet resultSet = connection.getMetaData().getColumns(null, null, table, "name")) {
                 if (resultSet.isBeforeFirst() == online) {
                     throw new Exception(
-                        "Server is in " + (online ? "ONLINE" : "OFFLINE") + " mode, but found table '" + table + "' does not have column '"
-                            + (online ? "uuid" : "name") + "'! Please choose a different table name.");
+                        String.format(SERVER_MODE_MISMATCH, online ? "ONLINE" : "OFFLINE", table, online ? "uuid" : "name"));
                 }
             }
         }
@@ -198,13 +205,14 @@ public abstract class Database {
         executor.execute(() -> {
             try (Connection connection = getConnection()) {
                 insert(connection, key, updated);
-                callback.call(true);
 
                 if (this instanceof MySQLDatabase) {
                     ((MySQLDatabase) this).publish(key + ":" + (set ? updated : amount) + ":" + set);
                 } else {
                     Bukkit.getScheduler().runTask(plugin, () -> handleModification(key, amount, set));
                 }
+
+                callback.call(true);
             } catch (Exception ex) {
                 Log.error("Failed to save data for " + key + ": " + ex.getMessage());
                 ex.printStackTrace();
@@ -447,16 +455,15 @@ public abstract class Database {
             return;
         }
 
-        Log.info("[!] Starting the transfer of the old data from " + file.getName() + " to the new data storage.");
+        Log.info(String.format(TRANSFER_START, file.getName()));
 
         try {
             final File renamed = Files
                 .copy(file.toPath(), new File(plugin.getDataFolder(), "data-" + System.currentTimeMillis() + ".yml").toPath()).toFile();
-            Log.info("[!] Your old data file was renamed to " + renamed.getName() + ".");
+            Log.info(String.format(TRANSFER_SAVE, renamed.getName()));
 
             if (!file.delete()) {
-                Log.error("[!] Failed to delete " + file.getName()
-                    + "! Please manually rename/delete it or the data conversion will occur every restart.");
+                Log.error(String.format(TRANSFER_CANNOT_DELETE,  file.getName()));
             }
         } catch (IOException ex) {
             Log.error("Failed to transfer data from " + file.getName() + ": " + ex.getMessage());
@@ -473,7 +480,7 @@ public abstract class Database {
             int invalid = 0;
             int i = 0;
             final Set<String> keys = data.getKeys(false);
-            Log.info("[!] Inserting data of " + keys.size() + " user(s) to the new storage... (This may take a while.)");
+            Log.info(String.format(TRANSFER_INSERT, keys.size()));
 
             for (final String key : keys) {
                 if (ProfileUtil.isUUID(key) != online) {
@@ -501,14 +508,10 @@ public abstract class Database {
             connection.setAutoCommit(true);
 
             if (invalid > 0) {
-                Log.error(
-                    "[!] Could not convert data of " + invalid + " users since the keys were not a valid " + (online ? "UUID" : "name")
-                        + ". The data given was in " + (!online ? "online" : "offline")
-                        + " mode format, but the server was in " + (online ? "online" : "offline") + " mode.");
+                Log.error(String.format(TRANSFER_ERROR, invalid, online ? "UUID" : "name", !online ? "online" : "offline", online ? "online" : "offline"));
             }
 
-            Log.info("[!] Successfully transferred data of " + i + " user(s). " + (invalid > 0 ? invalid
-                + " user data could not be transferred, please read above for more information." : ""));
+            Log.info(String.format(TRANSFER_COMPLETE, i));
         }
     }
 

@@ -54,6 +54,10 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public abstract class AbstractConfiguration<P extends JavaPlugin> implements Reloadable {
 
+    private static final String CONVERT_START = "[!] Converting your current configuration (%s) to the new version...";
+    private static final String CONVERT_SAVE = "[!] Your old configuration was stored as %s.";
+    private static final String CONVERT_DONE = "[!] Conversion complete!";
+
     private static final Pattern KEY_PATTERN = Pattern.compile("^([ ]*)([^ \"]+)[:].*$");
     private static final Pattern COMMENT_PATTERN = Pattern.compile("^([ ]*[#].*)|[ ]*$");
 
@@ -111,7 +115,7 @@ public abstract class AbstractConfiguration<P extends JavaPlugin> implements Rel
             return configuration;
         }
 
-        plugin.getLogger().info("[!] Converting your current configuration (" + name + ") to the new version...");
+        plugin.getLogger().info(String.format(CONVERT_START, name));
 
         final Map<String, Object> oldValues = new HashMap<>();
 
@@ -136,7 +140,7 @@ public abstract class AbstractConfiguration<P extends JavaPlugin> implements Rel
 
         final String newName = name.replace(".yml", "") + "-" + System.currentTimeMillis() + ".yml";
         final File copied = Files.copy(file.toPath(), new File(plugin.getDataFolder(), newName).toPath()).toFile();
-        plugin.getLogger().info("[!] Your old configuration was stored as " + copied.getName() + ".");
+        plugin.getLogger().info(String.format(CONVERT_SAVE, copied.getName()));
         plugin.saveResource(name, true);
 
         // Loads comments of the new configuration file
@@ -214,7 +218,7 @@ public abstract class AbstractConfiguration<P extends JavaPlugin> implements Rel
                 writer.flush();
             }
 
-            plugin.getLogger().info("[!] Conversion complete!");
+            plugin.getLogger().info(CONVERT_DONE);
         }
 
         return configuration;
