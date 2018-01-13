@@ -28,7 +28,7 @@
 package me.realized.tokenmanager.shop;
 
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalLong;
@@ -45,7 +45,7 @@ import org.bukkit.inventory.ItemStack;
 
 public class ShopConfig extends AbstractConfiguration<TokenManagerPlugin> {
 
-    private final Map<String, Shop> shops = new HashMap<>();
+    private final Map<String, Shop> shops = new LinkedHashMap<>();
 
     public ShopConfig(final TokenManagerPlugin plugin) {
         super(plugin, "shops");

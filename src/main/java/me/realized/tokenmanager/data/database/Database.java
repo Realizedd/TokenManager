@@ -44,8 +44,8 @@ import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Function;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -67,7 +67,7 @@ public abstract class Database {
     @Getter(value = AccessLevel.PROTECTED)
     private final boolean online;
     private final String table;
-    private final ScheduledExecutorService executor;
+    private final ExecutorService executor;
     private final Map<UUID, Long> data = new HashMap<>();
 
     Database(final TokenManagerPlugin plugin) {
@@ -79,7 +79,7 @@ public abstract class Database {
         this.table = StringEscapeUtils.escapeSql(plugin.getConfiguration().getMysqlTable());
         updateQueries();
 
-        this.executor = Executors.newSingleThreadScheduledExecutor();
+        this.executor = Executors.newCachedThreadPool();
     }
 
     void updateQueries() {

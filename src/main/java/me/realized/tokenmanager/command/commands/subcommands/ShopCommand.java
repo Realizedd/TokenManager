@@ -84,7 +84,6 @@ public class ShopCommand extends BaseCommand {
             // Collects the names of registered shops for tab completion.
             return shopConfig.getShops().stream().map(Shop::getName)
                 .filter(name -> name.toLowerCase().startsWith(args[1].toLowerCase()))
-                .sorted(String::compareTo)
                 .collect(Collectors.toList());
         }
 
