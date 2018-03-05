@@ -55,8 +55,7 @@ final class UUIDFetcher {
         .expireAfterWrite(30, TimeUnit.MINUTES)
         .build();
 
-    private UUIDFetcher() {
-    }
+    private UUIDFetcher() {}
 
     static String getUUID(final String name) throws Exception {
         final UUID cached = NAME_TO_UUID.getIfPresent(name);

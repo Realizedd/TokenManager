@@ -31,11 +31,14 @@ import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Collections;
 import me.realized.tokenmanager.TokenManagerPlugin;
 
-public class SQLiteDatabase extends Database {
+public class SQLiteDatabase extends AbstractDatabase {
 
     private final File base;
+
+    private Connection connection;
 
     public SQLiteDatabase(final TokenManagerPlugin plugin) {
         super(plugin);
@@ -43,22 +46,26 @@ public class SQLiteDatabase extends Database {
     }
 
     @Override
-    public void setupTable() throws Exception {
+    public void setup() throws Exception {
         if (!base.exists()) {
             base.createNewFile();
         }
 
-        super.setupTable();
+        super.setup();
     }
 
     @Override
     Connection getConnection() throws SQLException, ClassNotFoundException {
+        if (connection != null && !connection.isClosed()) {
+            return connection;
+        }
+
         Class.forName("org.sqlite.JDBC");
-        return DriverManager.getConnection("jdbc:sqlite:" + base.getAbsolutePath());
+        return connection = DriverManager.getConnection("jdbc:sqlite:" + base.getAbsolutePath());
     }
 
     @Override
     Iterable<AutoCloseable> getCloseables() {
-        return null;
+        return Collections.singletonList(connection);
     }
 }

@@ -35,7 +35,6 @@ import me.realized.tokenmanager.shop.ShopConfig;
 import me.realized.tokenmanager.util.Callback;
 import me.realized.tokenmanager.util.command.AbstractCommand;
 import me.realized.tokenmanager.util.profile.ProfileUtil;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
@@ -86,8 +85,7 @@ public abstract class BaseCommand extends AbstractCommand<TokenManagerPlugin> {
             return;
         }
 
-        Bukkit.getScheduler()
-            .runTaskAsynchronously(plugin, () -> ProfileUtil.getUUID(key, uuid -> callback.call(Optional.ofNullable(uuid)),
-                error -> caller.sendMessage(ChatColor.RED + "Failed to obtain UUID of " + key + ": " + error)));
+        plugin.async(() -> ProfileUtil.getUUID(key, uuid -> callback.call(Optional.ofNullable(uuid)),
+            error -> caller.sendMessage(ChatColor.RED + "Failed to obtain UUID of " + key + ": " + error)));
     }
 }

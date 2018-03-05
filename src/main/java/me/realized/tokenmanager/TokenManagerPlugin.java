@@ -129,6 +129,18 @@ public class TokenManagerPlugin extends JavaPlugin implements TokenManager {
         return true;
     }
 
+    public void sync(final Runnable runnable) {
+        getServer().getScheduler().runTask(this, runnable);
+    }
+
+    public int sync(final Runnable runnable, final long delay, final long period) {
+        return getServer().getScheduler().runTaskTimer(this, runnable, delay, period).getTaskId();
+    }
+
+    public void async(final Runnable runnable) {
+        getServer().getScheduler().runTaskAsynchronously(this, runnable);
+    }
+
     @Override
     public Optional<Shop> getShop(final String name) {
         return shopConfig.getShop(name);

@@ -120,7 +120,6 @@ public abstract class AbstractCommand<P extends JavaPlugin> implements TabComple
         SUB_COMMAND_INVALID("&c''{1}'' is not a valid sub command. Type /{0} for help."),
         SUB_COMMAND_USAGE("&cUsage: /{0} {1}");
 
-        @Getter
         private final MessageFormat defaultMessage;
 
         MessageType(final String defaultMessage) {

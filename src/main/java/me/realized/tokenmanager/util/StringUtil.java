@@ -55,7 +55,7 @@ public final class StringUtil {
         return color(input, null);
     }
 
-    public static List<String> color(final List<String> input, Function<String, String> extra) {
+    public static List<String> color(final List<String> input, final Function<String, String> extra) {
         input.replaceAll(s -> s = color(extra != null ? extra.apply(s) : s));
         return input;
     }

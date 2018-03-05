@@ -1,7 +1,7 @@
-# []----------------------------------[ Shop configuration tutorial ]----------------------------------[]
-# READ BEFORE CONFIGURING ON YOUR OWN!
+# ----------------------------------[ shop configuration tutorial ]----------------------------------
+# READ BEFORE CONFIGURING YOUR OWN!
 #shops:
-#  test: <--- Name of the shop, used in places such as '/token shop <name>'. Must be unique!
+#  test: <--- Name of the shop, used in places such as '/token shop <name>'. Cannot have duplicates!
 #    title: '&6Default Shop' <--- Title of the shop GUI displayed in-game.
 #    rows: 1 <--- Rows of the shop GUI. Available range: 1 - 6.
 #    auto-close: true <--- Decides whether the shop GUI should be automatically closed or stay open on a purchase.

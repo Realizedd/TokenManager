@@ -34,6 +34,7 @@ import java.util.OptionalLong;
 import lombok.Getter;
 import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.data.database.Database;
+import me.realized.tokenmanager.data.database.Database.TopElement;
 import me.realized.tokenmanager.data.database.MySQLDatabase;
 import me.realized.tokenmanager.data.database.SQLiteDatabase;
 import me.realized.tokenmanager.util.Callback;
@@ -54,7 +55,7 @@ public class DataManager implements Reloadable, Listener {
     private Database database;
 
     @Getter
-    private List<Database.RankedData> topCache = new ArrayList<>();
+    private List<TopElement> topCache = new ArrayList<>();
     private Integer task;
     private Integer updateInterval;
     private long lastUpdateMillis;
@@ -106,7 +107,7 @@ public class DataManager implements Reloadable, Listener {
                 return;
             }
 
-            Bukkit.getScheduler().runTask(plugin, () -> database.set(player, balance.getAsLong()));
+            plugin.sync(() -> database.set(player, balance.getAsLong()));
         });
     }
 
@@ -118,7 +119,7 @@ public class DataManager implements Reloadable, Listener {
     @Override
     public void handleLoad() throws Exception {
         this.database = plugin.getConfiguration().isMysqlEnabled() ? new MySQLDatabase(plugin) : new SQLiteDatabase(plugin);
-        database.setupTable();
+        database.setup();
 
         // Transfer data from versions below 3.0
         final File file = new File(plugin.getDataFolder(), "data.yml");
@@ -128,11 +129,10 @@ public class DataManager implements Reloadable, Listener {
         }
 
         // Task runs sync since Database#ordered creates a copy of the data cache
-        task = Bukkit.getScheduler()
-            .runTaskTimer(plugin, () -> database.ordered(10, args -> Bukkit.getScheduler().runTask(plugin, () -> {
-                lastUpdateMillis = System.currentTimeMillis();
-                topCache = args;
-            })), 0L, 20L * 60L * getUpdateInterval()).getTaskId();
+        task = plugin.sync(() -> database.ordered(10, args -> Bukkit.getScheduler().runTask(plugin, () -> {
+            lastUpdateMillis = System.currentTimeMillis();
+            topCache = args;
+        })), 0L, 20L * 60L * getUpdateInterval());
 
         Bukkit.getPluginManager().registerEvents(this, plugin);
     }

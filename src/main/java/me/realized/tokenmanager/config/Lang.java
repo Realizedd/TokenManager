@@ -152,17 +152,21 @@ public class Lang extends AbstractConfiguration<TokenManagerPlugin> {
                 return;
             }
 
-            for (int i = 0; i < replacers.length; i += 2) {
-                if (i + 1 >= replacers.length) {
-                    break;
-                }
+            receiver.sendMessage(StringUtil.color(replace(message, replacers)));
+        } else {
+            receiver.sendMessage(StringUtil.color(replace(in, replacers)));
+        }
+    }
 
-                message = message.replace("%" + replacers[i].toString() + "%", String.valueOf(replacers[i + 1]));
+    private String replace(String message, final Object... replacers) {
+        for (int i = 0; i < replacers.length; i += 2) {
+            if (i + 1 >= replacers.length) {
+                break;
             }
 
-            receiver.sendMessage(StringUtil.color(message));
-        } else {
-            receiver.sendMessage(StringUtil.color(in));
+            message = message.replace("%" + replacers[i].toString() + "%", String.valueOf(replacers[i + 1]));
         }
+
+        return message;
     }
 }

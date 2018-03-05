@@ -37,14 +37,13 @@ import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.config.TMConfig;
 import me.realized.tokenmanager.util.Log;
 import me.realized.tokenmanager.util.NumberUtil;
-import org.bukkit.Bukkit;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 import redis.clients.jedis.JedisPubSub;
 import redis.clients.jedis.exceptions.JedisConnectionException;
 
-public class MySQLDatabase extends Database {
+public class MySQLDatabase extends AbstractDatabase {
 
     private HikariDataSource dataSource;
 
@@ -59,7 +58,7 @@ public class MySQLDatabase extends Database {
     }
 
     @Override
-    public void setupTable() throws Exception {
+    public void setup() throws Exception {
         final TMConfig config = plugin.getConfiguration();
         final HikariConfig hikariConfig = new HikariConfig();
         hikariConfig
@@ -80,7 +79,7 @@ public class MySQLDatabase extends Database {
                 config.getRedisPassword());
         }
 
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+        plugin.async(() -> {
             try (Jedis jedis = jedisPool.getResource()) {
                 jedis.subscribe(listener = new JedisListener(), "tokenmanager");
             } catch (Exception ex) {
@@ -89,7 +88,7 @@ public class MySQLDatabase extends Database {
             }
         });
 
-        super.setupTable();
+        super.setup();
     }
 
     @Override
@@ -120,7 +119,7 @@ public class MySQLDatabase extends Database {
                 return;
             }
 
-            Bukkit.getScheduler().runTask(plugin, () -> {
+            plugin.sync(() -> {
                 final OptionalLong amount = NumberUtil.parseLong(args[1]);
 
                 if (!amount.isPresent()) {
