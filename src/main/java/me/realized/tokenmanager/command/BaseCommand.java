@@ -78,14 +78,14 @@ public abstract class BaseCommand extends AbstractCommand<TokenManagerPlugin> {
         }
     }
 
-    protected void getTarget(final CommandSender caller, final String key, final Callback<Optional<String>> callback) {
+    protected void getTarget(final CommandSender caller, final String input, final Callback<Optional<String>> callback) {
         // Just return input if offline mode, since getting UUID is unnecessary.
         if (!ProfileUtil.isOnlineMode()) {
-            callback.call(Optional.of(key));
+            callback.call(Optional.of(input));
             return;
         }
 
-        plugin.async(() -> ProfileUtil.getUUID(key, uuid -> callback.call(Optional.ofNullable(uuid)),
-            error -> caller.sendMessage(ChatColor.RED + "Failed to obtain UUID of " + key + ": " + error)));
+        plugin.doAsync(() -> ProfileUtil.getUUID(input, uuid -> callback.call(Optional.ofNullable(uuid)),
+            error -> caller.sendMessage(ChatColor.RED + "Failed to obtain UUID of " + input + ": " + error)));
     }
 }

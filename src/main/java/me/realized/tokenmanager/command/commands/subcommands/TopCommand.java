@@ -50,8 +50,9 @@ public class TopCommand extends BaseCommand {
         if (top == null || top.isEmpty()) {
             sendMessage(sender, true, "ERROR.data-not-enough");
         } else {
-            for (final TopElement element : top) {
-                sendMessage(sender, true, "COMMAND.token.balance-top.display-format", "rank", element.getRank(), "name", element.getKey(), "tokens", element.getTokens());
+            for (int i = 0; i < top.size(); i++) {
+                final TopElement element = top.get(i);
+                sendMessage(sender, true, "COMMAND.token.balance-top.display-format", "rank", i + 1, "name", element.getKey(), "tokens", element.getTokens());
             }
         }
 

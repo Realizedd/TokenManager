@@ -27,7 +27,6 @@
 
 package me.realized.tokenmanager.data;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.OptionalLong;
@@ -35,8 +34,8 @@ import lombok.Getter;
 import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.data.database.Database;
 import me.realized.tokenmanager.data.database.Database.TopElement;
+import me.realized.tokenmanager.data.database.FileDatabase;
 import me.realized.tokenmanager.data.database.MySQLDatabase;
-import me.realized.tokenmanager.data.database.SQLiteDatabase;
 import me.realized.tokenmanager.util.Callback;
 import me.realized.tokenmanager.util.Reloadable;
 import me.realized.tokenmanager.util.StringUtil;
@@ -107,7 +106,7 @@ public class DataManager implements Reloadable, Listener {
                 return;
             }
 
-            plugin.sync(() -> database.set(player, balance.getAsLong()));
+            plugin.doSync(() -> database.set(player, balance.getAsLong()));
         });
     }
 
@@ -118,18 +117,11 @@ public class DataManager implements Reloadable, Listener {
 
     @Override
     public void handleLoad() throws Exception {
-        this.database = plugin.getConfiguration().isMysqlEnabled() ? new MySQLDatabase(plugin) : new SQLiteDatabase(plugin);
+        this.database = plugin.getConfiguration().isMysqlEnabled() ? new MySQLDatabase(plugin) : new FileDatabase(plugin);
         database.setup();
 
-        // Transfer data from versions below 3.0
-        final File file = new File(plugin.getDataFolder(), "data.yml");
-
-        if (file.exists()) {
-            database.transfer(file);
-        }
-
         // Task runs sync since Database#ordered creates a copy of the data cache
-        task = plugin.sync(() -> database.ordered(10, args -> Bukkit.getScheduler().runTask(plugin, () -> {
+        task = plugin.doSync(() -> database.ordered(10, args -> Bukkit.getScheduler().runTask(plugin, () -> {
             lastUpdateMillis = System.currentTimeMillis();
             topCache = args;
         })), 0L, 20L * 60L * getUpdateInterval());

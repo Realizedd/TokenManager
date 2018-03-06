@@ -1,6 +1,5 @@
 package me.realized.tokenmanager.data.database;
 
-import java.io.File;
 import java.util.List;
 import java.util.OptionalLong;
 import me.realized.tokenmanager.util.Callback;
@@ -56,11 +55,11 @@ public interface Database {
     /**
      * Updates the database with the new balance for the key.
      *
-     * @param key Key associated with the balance.
-     * @param set true to set the balance to updated value, otherwise false.
-     * @param amount The difference between the old balance and the new balance.
-     * @param updated The new balance to save.
-     * @param callback Callback to call once the operation is completed.
+     * @param key Key associated with the balance
+     * @param set true to set the balance to updated value, otherwise false
+     * @param amount The difference between the old balance and the new balance
+     * @param updated The new balance to save
+     * @param callback Callback to call once the operation is completed
      */
     void set(final String key, final boolean set, final long amount, final long updated, final Callback<Boolean> callback);
 
@@ -74,6 +73,7 @@ public interface Database {
 
     /**
      * Saves the online player data synchronously.
+     *
      * @throws Exception if insertion to the database fails
      */
     void save() throws Exception;
@@ -88,21 +88,13 @@ public interface Database {
     void ordered(final int limit, final Callback<List<TopElement>> callback);
 
 
-    /**
-     * Handles data conversion from 2.0 -> 3.0
-     * @throws Exception if transfer fails
-     */
-    void transfer(final File file) throws Exception;
-
-
     class TopElement {
 
         private String key;
-        private final int rank, tokens;
+        private final long tokens;
 
-        TopElement(final String key, final int rank, final int tokens) {
+        TopElement(final String key, final long tokens) {
             this.key = key;
-            this.rank = rank;
             this.tokens = tokens;
         }
 
@@ -114,11 +106,7 @@ public interface Database {
             this.key = key;
         }
 
-        public int getRank() {
-            return rank;
-        }
-
-        public int getTokens() {
+        public long getTokens() {
             return tokens;
         }
     }
