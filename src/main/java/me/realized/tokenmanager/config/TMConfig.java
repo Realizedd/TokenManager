@@ -38,28 +38,6 @@ import org.bukkit.configuration.file.FileConfiguration;
 
 public class TMConfig extends AbstractConfiguration<TokenManagerPlugin> {
 
-    private class Converter2_3 implements Converter {
-
-        Converter2_3() {}
-
-        @Override
-        public Map<String, String> renamedKeys() {
-            final Map<String, String> keys = new HashMap<>();
-            keys.put("use-default.enabled", "shop.open-selected.enabled");
-            keys.put("use-default.shop", "shop.open-selected.shop");
-            keys.put("mysql.enabled", "data.mysql.enabled");
-            keys.put("mysql.hostname", "data.mysql.hostname");
-            keys.put("mysql.port", "data.mysql.port");
-            keys.put("mysql.username", "data.mysql.username");
-            keys.put("mysql.password", "data.mysql.password");
-            keys.put("mysql.database", "data.mysql.database");
-            keys.put("click-delay", "shop.click-delay");
-            keys.put("update-balance-top", "data.balance-top-update-interval");
-            keys.put("vault-hooks", "data.register-economy");
-            return keys;
-        }
-    }
-
     @Getter
     private int version;
     @Getter
@@ -94,7 +72,6 @@ public class TMConfig extends AbstractConfiguration<TokenManagerPlugin> {
     private boolean registerEconomy;
     @Getter
     private int balanceTopUpdateInterval;
-
     public TMConfig(final TokenManagerPlugin plugin) {
         super(plugin, "config");
     }
@@ -124,5 +101,27 @@ public class TMConfig extends AbstractConfiguration<TokenManagerPlugin> {
         redisPassword = configuration.getString("data.mysql.redis.password", "");
         registerEconomy = configuration.getBoolean("data.register-economy", false);
         balanceTopUpdateInterval = configuration.getInt("data.balance-top-update-interval", 5);
+    }
+
+    private class Converter2_3 implements Converter {
+
+        Converter2_3() {}
+
+        @Override
+        public Map<String, String> renamedKeys() {
+            final Map<String, String> keys = new HashMap<>();
+            keys.put("use-default.enabled", "shop.open-selected.enabled");
+            keys.put("use-default.shop", "shop.open-selected.shop");
+            keys.put("mysql.enabled", "data.mysql.enabled");
+            keys.put("mysql.hostname", "data.mysql.hostname");
+            keys.put("mysql.port", "data.mysql.port");
+            keys.put("mysql.username", "data.mysql.username");
+            keys.put("mysql.password", "data.mysql.password");
+            keys.put("mysql.database", "data.mysql.database");
+            keys.put("click-delay", "shop.click-delay");
+            keys.put("update-balance-top", "data.balance-top-update-interval");
+            keys.put("vault-hooks", "data.register-economy");
+            return keys;
+        }
     }
 }

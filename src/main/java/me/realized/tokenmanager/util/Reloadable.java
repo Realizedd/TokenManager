@@ -27,10 +27,6 @@
 
 package me.realized.tokenmanager.util;
 
-/**
- * Class created at 6/18/17 by Realized
- **/
-
 public interface Reloadable {
 
     void handleLoad() throws Exception;

@@ -28,8 +28,8 @@
 package me.realized.tokenmanager.util.profile;
 
 import java.util.UUID;
+import java.util.function.Consumer;
 import java.util.regex.Pattern;
-import me.realized.tokenmanager.util.Callback;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -45,6 +45,8 @@ public final class ProfileUtil {
             USING_SPIGOT = true;
         } catch (ClassNotFoundException ignored) {}
     }
+
+    private ProfileUtil() {}
 
     public static boolean isOnlineMode() {
         final boolean online;
@@ -66,20 +68,18 @@ public final class ProfileUtil {
         return NameFetcher.getName(uuid);
     }
 
-    public static void getUUID(final String name, final Callback<String> callback, final Callback<String> errorHandler) {
+    public static void getUUID(final String name, final Consumer<String> consumer, final Consumer<String> errorHandler) {
         final Player player;
 
         if ((player = Bukkit.getPlayerExact(name)) != null) {
-            callback.call(player.getUniqueId().toString());
+            consumer.accept(player.getUniqueId().toString());
             return;
         }
 
         try {
-            callback.call(UUIDFetcher.getUUID(name));
+            consumer.accept(UUIDFetcher.getUUID(name));
         } catch (Exception ex) {
-            errorHandler.call(ex.getMessage());
+            errorHandler.accept(ex.getMessage());
         }
     }
-
-    private ProfileUtil() {}
 }

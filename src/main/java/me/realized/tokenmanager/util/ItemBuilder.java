@@ -33,10 +33,6 @@ import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-/**
- * Class created at 6/19/17 by Realized
- **/
-
 public final class ItemBuilder {
 
     private final ItemStack result;

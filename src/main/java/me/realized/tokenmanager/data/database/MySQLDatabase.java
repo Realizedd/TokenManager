@@ -46,13 +46,14 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import lombok.Getter;
 import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.config.TMConfig;
-import me.realized.tokenmanager.util.Callback;
 import me.realized.tokenmanager.util.Log;
 import me.realized.tokenmanager.util.NumberUtil;
+import me.realized.tokenmanager.util.profile.ProfileUtil;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -65,50 +66,14 @@ import redis.clients.jedis.exceptions.JedisConnectionException;
 public class MySQLDatabase extends AbstractDatabase {
 
     private static final String SERVER_MODE_MISMATCH = "Server is in %s mode, but found table '%s' does not have column '%s'! Please choose a different table name.";
-
-    private enum Query {
-
-        CREATE_TABLE("CREATE TABLE IF NOT EXISTS {table} ({column} NOT NULL, tokens bigint(255) NOT NULL, PRIMARY KEY ({identifier}));"),
-        SELECT_WITH_LIMIT("SELECT {identifier}, tokens from {table} ORDER BY tokens DESC LIMIT ?;"),
-        SELECT_ONE("SELECT tokens FROM {table} WHERE {identifier}=?;"),
-        INSERT("INSERT INTO {table} ({identifier}, tokens) VALUES (?, ?) ON DUPLICATE KEY UPDATE tokens=?;");
-
-        private String query;
-
-        Query(final String query) {
-            this.query = query;
-        }
-
-        private String get() {
-            return query;
-        }
-
-        private void replace(final Function<String, String> function) {
-            this.query = function.apply(query);
-        }
-
-        private static void update(final String table, final boolean online) {
-            for (final Query query : values()) {
-                query.replace(s -> s.replace("{table}", table).replace("{identifier}", online ? "UUID" : "NAME"));
-
-                if (query == CREATE_TABLE) {
-                    query.replace(s -> s.replace("{column}", online ? "uuid varchar(36)" : "name varchar(16)"));
-                }
-            }
-        }
-    }
-
     private final String table;
     private final ExecutorService executor;
     private final Map<UUID, Long> data = new HashMap<>();
-
     private HikariDataSource dataSource;
-
     @Getter
     private JedisPool jedisPool;
     private JedisListener listener;
     private transient boolean usingRedis;
-
     public MySQLDatabase(final TokenManagerPlugin plugin) {
         super(plugin);
         this.table = StringEscapeUtils.escapeSql(plugin.getConfiguration().getMysqlTable());
@@ -163,26 +128,21 @@ public class MySQLDatabase extends AbstractDatabase {
 
     @Override
     public OptionalLong get(final Player player) {
-        final Long value = data.get(player.getUniqueId());
-
-        if (value == null) {
-            return OptionalLong.empty();
-        }
-
-        return OptionalLong.of(value);
+        return from(data.get(player.getUniqueId()));
     }
 
     @Override
-    public void get(final Player player, final Callback<OptionalLong> callback) {
-        get(online ? player.getUniqueId().toString() : player.getName(), callback, true);
+    public void get(final Player player, final Consumer<OptionalLong> consumer, final Consumer<String> errorHandler) {
+        get(online ? player.getUniqueId().toString() : player.getName(), consumer, errorHandler, true);
     }
 
     @Override
-    public void get(final String key, final Callback<OptionalLong> callback, final boolean create) {
+    public void get(final String key, final Consumer<OptionalLong> consumer, final Consumer<String> errorHandler, final boolean create) {
         executor.execute(() -> {
             try {
-                callback.call(select(key, create));
+                consumer.accept(select(key, create));
             } catch (Exception ex) {
+                errorHandler.accept(ex.getMessage());
                 Log.error("Failed to obtain data for " + key + ": " + ex.getMessage());
                 ex.printStackTrace();
             }
@@ -195,7 +155,7 @@ public class MySQLDatabase extends AbstractDatabase {
     }
 
     @Override
-    public void set(final String key, final boolean set, final long amount, final long updated, final Callback<Boolean> callback) {
+    public void set(final String key, final boolean set, final long amount, final long updated, final Runnable action, final Consumer<String> errorHandler) {
         executor.execute(() -> {
             try (Connection connection = dataSource.getConnection()) {
                 insert(connection, key, updated);
@@ -206,11 +166,11 @@ public class MySQLDatabase extends AbstractDatabase {
                     plugin.doSync(() -> onModification(key, set ? updated : amount, set));
                 }
 
-                callback.call(true);
+                action.run();
             } catch (Exception ex) {
+                errorHandler.accept(ex.getMessage());
                 Log.error("Failed to save data for " + key + ": " + ex.getMessage());
                 ex.printStackTrace();
-                callback.call(false);
             }
         });
     }
@@ -259,11 +219,11 @@ public class MySQLDatabase extends AbstractDatabase {
     }
 
     @Override
-    public void ordered(final int limit, final Callback<List<TopElement>> callback) {
+    public void ordered(final int limit, final Consumer<List<TopElement>> consumer) {
         final List<TopElement> result = new ArrayList<>();
 
         if (limit <= 0) {
-            callback.call(result);
+            consumer.accept(result);
             return;
         }
 
@@ -291,7 +251,7 @@ public class MySQLDatabase extends AbstractDatabase {
                             result.add(new TopElement(key, (int) resultSet.getLong("tokens")));
                         }
 
-                        checkNames(uuids, result, callback);
+                        checkNames(uuids, result, consumer);
                     }
                 }
             } catch (Exception ex) {
@@ -363,10 +323,75 @@ public class MySQLDatabase extends AbstractDatabase {
         }
     }
 
+    private void onModification(final String key, final long amount, final boolean set) {
+        final Player player;
+
+        if (ProfileUtil.isUUID(key)) {
+            player = Bukkit.getPlayer(UUID.fromString(key));
+        } else {
+            player = Bukkit.getPlayerExact(key);
+        }
+
+        if (player == null) {
+            return;
+        }
+
+        if (set) {
+            set(player, amount);
+            return;
+        }
+
+        final OptionalLong cached;
+
+        if (!(cached = get(player)).isPresent()) {
+            return;
+        }
+
+        set(player, cached.getAsLong() + amount);
+
+        if (amount > 0) {
+            plugin.getLang().sendMessage(player, true, "COMMAND.receive", "amount", amount);
+        } else {
+            plugin.getLang().sendMessage(player, true, "COMMAND.take", "amount", Math.abs(amount));
+        }
+    }
+
     private void publish(final String message) {
         try (Jedis jedis = jedisPool.getResource()) {
             jedis.publish("tokenmanager", message);
         } catch (JedisConnectionException ignored) {}
+    }
+
+    private enum Query {
+
+        CREATE_TABLE("CREATE TABLE IF NOT EXISTS {table} ({column} NOT NULL, tokens bigint(255) NOT NULL, PRIMARY KEY ({identifier}));"),
+        SELECT_WITH_LIMIT("SELECT {identifier}, tokens from {table} ORDER BY tokens DESC LIMIT ?;"),
+        SELECT_ONE("SELECT tokens FROM {table} WHERE {identifier}=?;"),
+        INSERT("INSERT INTO {table} ({identifier}, tokens) VALUES (?, ?) ON DUPLICATE KEY UPDATE tokens=?;");
+
+        private String query;
+
+        Query(final String query) {
+            this.query = query;
+        }
+
+        private static void update(final String table, final boolean online) {
+            for (final Query query : values()) {
+                query.replace(s -> s.replace("{table}", table).replace("{identifier}", online ? "UUID" : "NAME"));
+
+                if (query == CREATE_TABLE) {
+                    query.replace(s -> s.replace("{column}", online ? "uuid varchar(36)" : "name varchar(16)"));
+                }
+            }
+        }
+
+        private String get() {
+            return query;
+        }
+
+        private void replace(final Function<String, String> function) {
+            this.query = function.apply(query);
+        }
     }
 
     private class JedisListener extends JedisPubSub implements AutoCloseable {

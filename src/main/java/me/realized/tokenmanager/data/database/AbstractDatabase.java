@@ -30,12 +30,10 @@ package me.realized.tokenmanager.data.database;
 import java.util.List;
 import java.util.OptionalLong;
 import java.util.UUID;
+import java.util.function.Consumer;
 import me.realized.tokenmanager.TokenManagerPlugin;
-import me.realized.tokenmanager.util.Callback;
 import me.realized.tokenmanager.util.profile.NameFetcher;
 import me.realized.tokenmanager.util.profile.ProfileUtil;
-import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
 
 public abstract class AbstractDatabase implements Database {
 
@@ -47,7 +45,11 @@ public abstract class AbstractDatabase implements Database {
         this.online = ProfileUtil.isOnlineMode();
     }
 
-    void checkNames(final List<UUID> uuids, final List<TopElement> result, final Callback<List<TopElement>> callback) {
+    OptionalLong from(final Long value) {
+        return value != null ? OptionalLong.of(value) : OptionalLong.empty();
+    }
+
+    void checkNames(final List<UUID> uuids, final List<TopElement> result, final Consumer<List<TopElement>> callback) {
         if (online) {
             NameFetcher.getNames(uuids, names -> {
                 for (final TopElement element : result) {
@@ -61,43 +63,10 @@ public abstract class AbstractDatabase implements Database {
                     element.setKey(name);
                 }
 
-                callback.call(result);
+                callback.accept(result);
             });
         } else {
-            callback.call(result);
-        }
-    }
-
-    void onModification(final String key, final long amount, final boolean set) {
-        final Player player;
-
-        if (ProfileUtil.isUUID(key)) {
-            player = Bukkit.getPlayer(UUID.fromString(key));
-        } else {
-            player = Bukkit.getPlayerExact(key);
-        }
-
-        if (player == null) {
-            return;
-        }
-
-        if (set) {
-            set(player, amount);
-            return;
-        }
-
-        final OptionalLong cached;
-
-        if (!(cached = get(player)).isPresent()) {
-            return;
-        }
-
-        set(player, cached.getAsLong() + amount);
-
-        if (amount > 0) {
-            plugin.getLang().sendMessage(player, true, "COMMAND.receive", "amount", amount);
-        } else {
-            plugin.getLang().sendMessage(player, true, "COMMAND.take", "amount", Math.abs(amount));
+            callback.accept(result);
         }
     }
 }

@@ -98,7 +98,8 @@ public class TokenManagerPlugin extends JavaPlugin implements TokenManager {
                 lastLoad = reloadables.indexOf(reloadable);
                 Log.info("Loaded " + reloadable.getClass().getSimpleName() + ".");
             } catch (Exception ex) {
-                Log.error("An error occured while loading " + reloadable.getClass().getSimpleName() + ", please contact the developer.");
+                Log.error("There was an error while loading " + reloadable.getClass().getSimpleName()
+                    + "! If you believe this is an issue from the plugin, please contact the developer.");
                 ex.printStackTrace();
                 return false;
             }
@@ -120,7 +121,8 @@ public class TokenManagerPlugin extends JavaPlugin implements TokenManager {
                 reloadable.handleUnload();
                 Log.info("Unloaded " + reloadable.getClass().getSimpleName() + ".");
             } catch (Exception ex) {
-                Log.error("An error occured while unloading " + reloadable.getClass().getSimpleName() + ", please contact the developer.");
+                Log.error("There was an error while unloading " + reloadable.getClass().getSimpleName()
+                    + "! If you believe this is an issue from the plugin, please contact the developer.");
                 ex.printStackTrace();
                 return false;
             }
@@ -133,7 +135,7 @@ public class TokenManagerPlugin extends JavaPlugin implements TokenManager {
         getServer().getScheduler().runTask(this, runnable);
     }
 
-    public int doSync(final Runnable runnable, final long delay, final long period) {
+    public int doSyncRepeat(final Runnable runnable, final long delay, final long period) {
         return getServer().getScheduler().runTaskTimer(this, runnable, delay, period).getTaskId();
     }
 

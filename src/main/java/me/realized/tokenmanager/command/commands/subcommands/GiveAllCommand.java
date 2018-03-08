@@ -44,7 +44,7 @@ public class GiveAllCommand extends BaseCommand {
 
     @Override
     protected void execute(final CommandSender sender, final String label, final String[] args) {
-        final OptionalLong amount =  NumberUtil.parseLong(args[1]);
+        final OptionalLong amount = NumberUtil.parseLong(args[1]);
 
         if (!amount.isPresent() || amount.getAsLong() <= 0) {
             sendMessage(sender, true, "ERROR.invalid-amount", "input", args[1]);

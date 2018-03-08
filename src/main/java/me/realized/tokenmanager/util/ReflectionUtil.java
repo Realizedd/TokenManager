@@ -30,10 +30,6 @@ package me.realized.tokenmanager.util;
 import java.lang.reflect.Method;
 import org.bukkit.Bukkit;
 
-/**
- * Class created at 6/17/17 by Realized
- **/
-
 public final class ReflectionUtil {
 
     private final static String VERSION;
@@ -42,8 +38,7 @@ public final class ReflectionUtil {
         VERSION = Bukkit.getServer().getClass().getName().split("\\.")[3];
     }
 
-    private ReflectionUtil() {
-    }
+    private ReflectionUtil() {}
 
     public static Class<?> getNMSClass(final String name) {
         try {

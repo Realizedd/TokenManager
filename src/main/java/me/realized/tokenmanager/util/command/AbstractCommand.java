@@ -113,20 +113,6 @@ public abstract class AbstractCommand<P extends JavaPlugin> implements TabComple
         });
     }
 
-    protected enum MessageType {
-
-        PLAYER_ONLY("&cThis command can only be executed by a player!"),
-        NO_PERMISSION("&cYou need the following permission: {0}"),
-        SUB_COMMAND_INVALID("&c''{1}'' is not a valid sub command. Type /{0} for help."),
-        SUB_COMMAND_USAGE("&cUsage: /{0} {1}");
-
-        private final MessageFormat defaultMessage;
-
-        MessageType(final String defaultMessage) {
-            this.defaultMessage = new MessageFormat(StringUtil.color(defaultMessage));
-        }
-    }
-
     protected void handleMessage(final CommandSender sender, final MessageType type, final String... args) {
         sender.sendMessage(type.defaultMessage.format(args));
     }
@@ -211,4 +197,18 @@ public abstract class AbstractCommand<P extends JavaPlugin> implements TabComple
     }
 
     protected abstract void execute(final CommandSender sender, final String label, final String[] args);
+
+    protected enum MessageType {
+
+        PLAYER_ONLY("&cThis command can only be executed by a player!"),
+        NO_PERMISSION("&cYou need the following permission: {0}"),
+        SUB_COMMAND_INVALID("&c''{1}'' is not a valid sub command. Type /{0} for help."),
+        SUB_COMMAND_USAGE("&cUsage: /{0} {1}");
+
+        private final MessageFormat defaultMessage;
+
+        MessageType(final String defaultMessage) {
+            this.defaultMessage = new MessageFormat(StringUtil.color(defaultMessage));
+        }
+    }
 }

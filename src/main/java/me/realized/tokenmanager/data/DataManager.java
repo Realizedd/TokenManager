@@ -30,16 +30,17 @@ package me.realized.tokenmanager.data;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.OptionalLong;
+import java.util.function.Consumer;
 import lombok.Getter;
 import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.data.database.Database;
 import me.realized.tokenmanager.data.database.Database.TopElement;
 import me.realized.tokenmanager.data.database.FileDatabase;
 import me.realized.tokenmanager.data.database.MySQLDatabase;
-import me.realized.tokenmanager.util.Callback;
 import me.realized.tokenmanager.util.Reloadable;
 import me.realized.tokenmanager.util.StringUtil;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -73,15 +74,15 @@ public class DataManager implements Reloadable, Listener {
         }
     }
 
-    public void get(final String key, final Callback<OptionalLong> callback) {
+    public void get(final String key, final Consumer<OptionalLong> consumer, final Consumer<String> errorHandler) {
         if (database != null) {
-            database.get(key, callback, false);
+            database.get(key, consumer, errorHandler, false);
         }
     }
 
-    public void set(final String key, final boolean set, final long amount, final long updated, final Callback<Boolean> callback) {
+    public void set(final String key, final boolean set, final long amount, final long updated, final Runnable action, final Consumer<String> errorHandler) {
         if (database != null) {
-            database.set(key, set, amount, updated, callback);
+            database.set(key, set, amount, updated, action, errorHandler);
         }
     }
 
@@ -99,6 +100,10 @@ public class DataManager implements Reloadable, Listener {
 
     @EventHandler
     public void on(final PlayerJoinEvent event) {
+        if (database == null) {
+            return;
+        }
+
         final Player player = event.getPlayer();
 
         database.get(player, balance -> {
@@ -107,11 +112,15 @@ public class DataManager implements Reloadable, Listener {
             }
 
             plugin.doSync(() -> database.set(player, balance.getAsLong()));
-        });
+        }, error -> player.sendMessage(ChatColor.RED + "Failed to load your token balance: " + error));
     }
 
     @EventHandler
     public void on(final PlayerQuitEvent event) {
+        if (database == null) {
+            return;
+        }
+
         database.save(event.getPlayer());
     }
 
@@ -120,8 +129,7 @@ public class DataManager implements Reloadable, Listener {
         this.database = plugin.getConfiguration().isMysqlEnabled() ? new MySQLDatabase(plugin) : new FileDatabase(plugin);
         database.setup();
 
-        // Task runs sync since Database#ordered creates a copy of the data cache
-        task = plugin.doSync(() -> database.ordered(10, args -> Bukkit.getScheduler().runTask(plugin, () -> {
+        task = plugin.doSyncRepeat(() -> database.ordered(10, args -> plugin.doSync(() -> {
             lastUpdateMillis = System.currentTimeMillis();
             topCache = args;
         })), 0L, 20L * 60L * getUpdateInterval());

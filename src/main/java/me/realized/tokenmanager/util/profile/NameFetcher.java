@@ -13,42 +13,11 @@ import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import me.realized.tokenmanager.util.Callback;
+import java.util.function.Consumer;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
 public final class NameFetcher {
-
-    private static class NameCollectorTask implements Runnable {
-
-        private final List<UUID> uuids;
-        private final Callback<Map<UUID, String>> callback;
-
-        private final Map<UUID, String> names = new HashMap<>();
-
-        NameCollectorTask(final List<UUID> uuids, final Callback<Map<UUID, String>> callback) {
-            this.uuids = uuids;
-            this.callback = callback;
-        }
-
-        @Override
-        public void run() {
-            if (uuids.isEmpty()) {
-                callback.call(names);
-                return;
-            }
-
-            final UUID next = uuids.remove(uuids.size() - 1);
-            final String result = ProfileUtil.getName(next);
-
-            if (result != null) {
-                names.put(next, result);
-            }
-
-            // Run with delay to prevent being blocked by Mojang
-            EXECUTOR_SERVICE.schedule(this, 200L, TimeUnit.MILLISECONDS);
-        }
-    }
 
     private static final ScheduledExecutorService EXECUTOR_SERVICE = Executors.newSingleThreadScheduledExecutor();
     private static final String URL = "https://sessionserver.mojang.com/session/minecraft/profile/";
@@ -58,11 +27,10 @@ public final class NameFetcher {
         .maximumSize(1000)
         .expireAfterWrite(30, TimeUnit.MINUTES)
         .build();
-
     private NameFetcher() {}
 
-    public static void getNames(final List<UUID> uuids, final Callback<Map<UUID, String>> callback) {
-        EXECUTOR_SERVICE.schedule(new NameCollectorTask(uuids, callback), 0L, TimeUnit.MILLISECONDS);
+    public static void getNames(final List<UUID> uuids, final Consumer<Map<UUID, String>> consumer) {
+        EXECUTOR_SERVICE.schedule(new NameCollectorTask(uuids, consumer), 0L, TimeUnit.MILLISECONDS);
     }
 
     public static String getName(final UUID uuid) {
@@ -94,5 +62,36 @@ public final class NameFetcher {
         }
 
         return null;
+    }
+
+    private static class NameCollectorTask implements Runnable {
+
+        private final List<UUID> uuids;
+        private final Consumer<Map<UUID, String>> consumer;
+
+        private final Map<UUID, String> names = new HashMap<>();
+
+        NameCollectorTask(final List<UUID> uuids, final Consumer<Map<UUID, String>> consumer) {
+            this.uuids = uuids;
+            this.consumer = consumer;
+        }
+
+        @Override
+        public void run() {
+            if (uuids.isEmpty()) {
+                consumer.accept(names);
+                return;
+            }
+
+            final UUID next = uuids.remove(uuids.size() - 1);
+            final String result = ProfileUtil.getName(next);
+
+            if (result != null) {
+                names.put(next, result);
+            }
+
+            // Run with delay to prevent being blocked by Mojang
+            EXECUTOR_SERVICE.schedule(this, 200L, TimeUnit.MILLISECONDS);
+        }
     }
 }

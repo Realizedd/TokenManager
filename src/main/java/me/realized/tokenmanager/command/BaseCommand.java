@@ -28,11 +28,11 @@
 package me.realized.tokenmanager.command;
 
 import java.util.Optional;
+import java.util.function.Consumer;
 import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.config.TMConfig;
 import me.realized.tokenmanager.data.DataManager;
 import me.realized.tokenmanager.shop.ShopConfig;
-import me.realized.tokenmanager.util.Callback;
 import me.realized.tokenmanager.util.command.AbstractCommand;
 import me.realized.tokenmanager.util.profile.ProfileUtil;
 import org.bukkit.ChatColor;
@@ -78,14 +78,14 @@ public abstract class BaseCommand extends AbstractCommand<TokenManagerPlugin> {
         }
     }
 
-    protected void getTarget(final CommandSender caller, final String input, final Callback<Optional<String>> callback) {
+    protected void getTarget(final CommandSender caller, final String input, final Consumer<Optional<String>> consumer) {
         // Just return input if offline mode, since getting UUID is unnecessary.
         if (!ProfileUtil.isOnlineMode()) {
-            callback.call(Optional.of(input));
+            consumer.accept(Optional.of(input));
             return;
         }
 
-        plugin.doAsync(() -> ProfileUtil.getUUID(input, uuid -> callback.call(Optional.ofNullable(uuid)),
+        plugin.doAsync(() -> ProfileUtil.getUUID(input, uuid -> consumer.accept(Optional.ofNullable(uuid)),
             error -> caller.sendMessage(ChatColor.RED + "Failed to obtain UUID of " + input + ": " + error)));
     }
 }

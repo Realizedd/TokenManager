@@ -29,17 +29,12 @@ package me.realized.tokenmanager.util;
 
 import java.util.OptionalLong;
 
-/**
- * Class created at 6/23/17 by Realized
- **/
-
 public final class NumberUtil {
 
-    private NumberUtil() {
-    }
+    private NumberUtil() {}
 
     /**
-     * Clone of {@link Long#parseLong(String)} but returns an empty {@link OptionalLong} instead of throwing a {@link NumberFormatException}.
+     * Copy of {@link Long#parseLong(String)} but returns an empty {@link OptionalLong} instead of throwing a {@link NumberFormatException}.
      *
      * @param s String to parse.
      * @return {@link OptionalLong} instance with parsed value inside or empty if string is invalid.

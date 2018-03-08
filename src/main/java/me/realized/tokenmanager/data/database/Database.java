@@ -2,7 +2,7 @@ package me.realized.tokenmanager.data.database;
 
 import java.util.List;
 import java.util.OptionalLong;
-import me.realized.tokenmanager.util.Callback;
+import java.util.function.Consumer;
 import org.bukkit.entity.Player;
 
 public interface Database {
@@ -28,19 +28,21 @@ public interface Database {
      * Gets the stored data of the player from the database.
      *
      * @param player Player to get the data
-     * @param callback called once data is retrieved
+     * @param consumer called once data is retrieved
+     * @param errorHandler called if the operation fails
      */
-    void get(final Player player, final Callback<OptionalLong> callback);
+    void get(final Player player, final Consumer<OptionalLong> consumer, final Consumer<String> errorHandler);
 
 
     /**
      * Gets the stored data of the player.
      *
      * @param key UUID or the name the player
-     * @param callback called once data is retrieved
+     * @param consumer called once data is retrieved
+     * @param errorHandler called if the operation fails
      * @param create true to create with default balance if not exists, false for no action
      */
-    void get(final String key, final Callback<OptionalLong> callback, final boolean create);
+    void get(final String key, final Consumer<OptionalLong> consumer, final Consumer<String> errorHandler, final boolean create);
 
 
     /**
@@ -59,9 +61,9 @@ public interface Database {
      * @param set true to set the balance to updated value, otherwise false
      * @param amount The difference between the old balance and the new balance
      * @param updated The new balance to save
-     * @param callback Callback to call once the operation is completed
+     * @param errorHandler called if the operation fails
      */
-    void set(final String key, final boolean set, final long amount, final long updated, final Callback<Boolean> callback);
+    void set(final String key, final boolean set, final long amount, final long updated, final Runnable action, final Consumer<String> errorHandler);
 
 
     /**
@@ -83,15 +85,15 @@ public interface Database {
      * Saves the balance of online players and returns top balances. Must be called synchronously!
      *
      * @param limit amount of the rows to be returned
-     * @param callback Callback to call once data is retrieved
+     * @param consumer Consumer to call once data is retrieved
      */
-    void ordered(final int limit, final Callback<List<TopElement>> callback);
+    void ordered(final int limit, final Consumer<List<TopElement>> consumer);
 
 
     class TopElement {
 
-        private String key;
         private final long tokens;
+        private String key;
 
         TopElement(final String key, final long tokens) {
             this.key = key;
