@@ -1,8 +1,8 @@
 # DO NOT EDIT THIS VALUE!
 config-version: 2
 
-# Define placeholders usable in any message listed below.
-# Example: If you write '{PREFIX} Hello!' in a message, it will display as '&bTM &8» Hello!' in game.
+# Define placeholders usable in any message below.
+# Example: Adding 'PREFIX: "[Cool]"' below and then putting '{PREFIX}' in a message will display '[Cool]' when the message is sent in game.
 STRINGS:
   PREFIX: '&bTM &8»'
   HEADER: '&8&m*]----------[*&r &9T&boken&9M&banager &8&m*]----------[*&r'

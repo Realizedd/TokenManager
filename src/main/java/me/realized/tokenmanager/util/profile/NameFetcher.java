@@ -91,7 +91,7 @@ public final class NameFetcher {
                 names.put(next, result);
             }
 
-            // Run with delay to prevent being blocked by Mojang
+            // Run with delay to not trigger the rate limit
             EXECUTOR_SERVICE.schedule(this, 200L, TimeUnit.MILLISECONDS);
         }
     }

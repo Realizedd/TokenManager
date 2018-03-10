@@ -48,8 +48,7 @@ public class Shop {
 
     private Map<Integer, Slot> slots;
 
-    public Shop(final String name, final String title, final int rows, final boolean autoClose, final boolean usePermission)
-        throws IllegalArgumentException {
+    public Shop(final String name, final String title, final int rows, final boolean autoClose, final boolean usePermission) throws IllegalArgumentException {
         if (name == null || name.isEmpty()) {
             throw new IllegalArgumentException("Name is null or empty.");
         }

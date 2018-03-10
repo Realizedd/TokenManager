@@ -110,7 +110,7 @@ public abstract class AbstractConfiguration<P extends JavaPlugin> implements Rel
     }
 
     protected FileConfiguration convert(final Converter converter) throws IOException {
-        // Do nothing since the configuration file was just generated.
+        // Do nothing since the configuration file was just generated
         if (checkFile()) {
             return configuration;
         }

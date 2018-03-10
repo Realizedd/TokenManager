@@ -4,15 +4,15 @@ version: @VERSION@
 softdepend: [MVdWPlaceholderAPI, PlaceholderAPI, Vault]
 
 author: Realized
-description: A simple sub-economy plugin for your server.
-website: https://www.spigotmc.org/resources/tokenmanager.8610/
+description: A simple economy plugin for your server.
+website: http://tokenmanager.realized.me
 
 commands:
    token:
-     description: Token management command.
+     description: Main command of TokenManager.
      aliases: [tokens]
    tm:
-     description: TokenManager's administrative commands.
+     description: Administrative command of TokenManager.
      aliases: [tokenmanager]
 
 permissions:

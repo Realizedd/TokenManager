@@ -66,7 +66,7 @@ public class BalanceCommand extends BaseCommand {
         balance = dataManager.get(target);
 
         if (!balance.isPresent()) {
-            sendMessage(sender, false, "&cFailed to load data of " + target.getName() + ".");
+            sendMessage(sender, true, "ERROR.player-not-found", "input", target.getName());
             return;
         }
 

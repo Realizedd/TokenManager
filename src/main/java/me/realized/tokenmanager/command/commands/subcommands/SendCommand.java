@@ -41,6 +41,8 @@ import org.bukkit.entity.Player;
 
 public class SendCommand extends BaseCommand {
 
+    private static final List<String> TAB_AMOUNTS = Arrays.asList("5", "10", "25", "50", "75", "100", "500", "1000");
+
     public SendCommand(final TokenManagerPlugin plugin) {
         super(plugin, "send", "send <username> <amount>", "tokenmanager.use.send", 3, true);
     }
@@ -103,10 +105,9 @@ public class SendCommand extends BaseCommand {
     }
 
     @Override
-    public List<String> onTabComplete(final CommandSender sender, final Command command, final String label,
-        final String[] args) {
+    public List<String> onTabComplete(final CommandSender sender, final Command command, final String label, final String[] args) {
         if (args.length == 3) {
-            return Arrays.asList("5", "10", "25", "50", "100", "500", "1000");
+            return TAB_AMOUNTS;
         }
 
         return null;

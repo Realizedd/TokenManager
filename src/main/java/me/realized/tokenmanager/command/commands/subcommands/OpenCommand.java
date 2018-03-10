@@ -27,11 +27,14 @@
 
 package me.realized.tokenmanager.command.commands.subcommands;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.command.BaseCommand;
 import me.realized.tokenmanager.shop.Shop;
 import org.bukkit.Bukkit;
+import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -60,5 +63,16 @@ public class OpenCommand extends BaseCommand {
 
         target.openInventory(shop.get().getGui());
         sendMessage(sender, true, "COMMAND.tokenmanager.open", "name", name, "player", target.getName());
+    }
+
+    @Override
+    public List<String> onTabComplete(final CommandSender sender, final Command command, final String alias, final String[] args) {
+        if (args.length == 3) {
+            return shopConfig.getShops().stream().map(Shop::getName)
+                .filter(name -> name.toLowerCase().startsWith(args[2].toLowerCase()))
+                .collect(Collectors.toList());
+        }
+
+        return null;
     }
 }

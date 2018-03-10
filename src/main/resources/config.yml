@@ -1,24 +1,23 @@
 # DO NOT EDIT THIS VALUE!
 config-version: 2
 
-# This value will be the default token balance of a first-time joiner.
+# The default token balance of a first-time joiner.
 default-balance: 25
 
 shop:
-
-  # When the command '/token shop' is executed, enabling this will open the specified shop neglecting any arguments followed.
+  # When the command '/token shop' is executed, enabling this option will open the specified shop below. (Even if a shop name is provided)
   open-selected:
     enabled: false
     shop: test
 
-  # Set a delay between each purchase. 0 for no delay.
+  # Set a delay between purchases. 0 for no delay.
   click-delay: 0
 
-# [WARNING: DANGER ZONE!]
+# [WARNING: DANGER ZONE]
 data:
 
   # If enabled, the plugin will use selected database as the token balance storage.
-  # Note: To transfer data from local db to remote db, use the command '/tokenmanager convert sqlite mysql'.
+  # Note: To transfer all data from data.yml to the MySQL database, use the command '/tm transfer'. (MySQL must be enabled below!)
   mysql:
     enabled: false
     hostname: '127.0.0.1'
@@ -28,23 +27,24 @@ data:
     database: 'database'
     table: 'tokenmanager'
 
-    # If mysql is enabled, a redis server will be used to handle live balance update across servers.
+    # This section is optional. Using mysql database for a single server will work just fine even if no redis server is provided.
+    # If mysql is enabled, a redis server can be used to synchronize balances as they are modified.
     redis:
       server: '127.0.0.1'
       port: '6379'
       password: ''
 
-  # WARNING!
+  # WARNING
   #
-  # 1) Enabling this will set TokenManager's economy as your server's main economy.
+  # 1. Enabling this will set TokenManager's economy as your server's main economy.
   # Your old economy data will most likely RESET, and commands related to Economy
-  # such as Essentials' /eco won't function as expected if target player is offline.
+  # such as Essentials' /eco won't function properly if target player is offline.
   #
-  # 2) If you're using Essentials Economy, make sure to reset everyone's balance
+  # 2. If you're using Essentials Economy, make sure to reset everyone's balance
   # before enabling this option! Otherwise, the old Essentials balance of the players
-  # will act as the token balance.
+  # might act as a token balance.
   #
   register-economy: false
 
-  # /token top will be updated every x minutes. Must be higher than 0!
+  # /token top will be updated every x minutes. Value must be higher than 0!
   balance-top-update-interval: 5

@@ -100,6 +100,7 @@ public class TokenManagerPlugin extends JavaPlugin implements TokenManager {
             } catch (Exception ex) {
                 Log.error("There was an error while loading " + reloadable.getClass().getSimpleName()
                     + "! If you believe this is an issue from the plugin, please contact the developer.");
+                Log.error("Cause of error: " + ex.getMessage());
                 ex.printStackTrace();
                 return false;
             }
@@ -123,6 +124,7 @@ public class TokenManagerPlugin extends JavaPlugin implements TokenManager {
             } catch (Exception ex) {
                 Log.error("There was an error while unloading " + reloadable.getClass().getSimpleName()
                     + "! If you believe this is an issue from the plugin, please contact the developer.");
+                Log.error("Cause of error: " + ex.getMessage());
                 ex.printStackTrace();
                 return false;
             }

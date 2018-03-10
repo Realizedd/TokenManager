@@ -35,15 +35,42 @@ import org.bukkit.inventory.Inventory;
 
 public interface TokenManager {
 
-    // TODO: 3/9/18 add javadoc
-
+    /**
+     * Get a shop by name.
+     *
+     * @param name Shop name
+     * @return Optional containing the shop instance if found, otherwise empty
+     */
     Optional<Shop> getShop(final String name);
 
+    /**
+     * Get a shop by inventory.
+     *
+     * @param inventory inventory to look up for matching shop instance
+     * @return Optional containing the shop instance if found, otherwise empty
+     */
     Optional<Shop> getShop(final Inventory inventory);
 
+    /**
+     * Get player's token balance.
+     *
+     * @param player Player to get token balance
+     * @return OptionalLong containing token balance if found, otherwise empty
+     */
     OptionalLong getTokens(final Player player);
 
+    /**
+     * Set player's token balance.
+     *
+     * @param player Player to set token balance
+     * @param amount Amount to replace player's token balance
+     */
     void setTokens(final Player player, final long amount);
 
+    /**
+     * Reload the modules of the plugin.
+     *
+     * @return true if reload was successful, otherwise false
+     */
     boolean reload();
 }

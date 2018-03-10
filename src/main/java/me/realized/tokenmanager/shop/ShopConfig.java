@@ -76,10 +76,10 @@ public class ShopConfig extends AbstractConfiguration<TokenManagerPlugin> {
                 continue;
             }
 
-            final ConfigurationSection items = shopSection.getConfigurationSection("items");
+            final ConfigurationSection itemsSection = shopSection.getConfigurationSection("items");
 
-            if (items != null) {
-                for (final String num : items.getKeys(false)) {
+            if (itemsSection != null) {
+                for (final String num : itemsSection.getKeys(false)) {
                     final OptionalLong slot = NumberUtil.parseLong(num);
 
                     if (!slot.isPresent() || slot.getAsLong() < 0 || slot.getAsLong() >= shop.getGui().getSize()) {
@@ -88,7 +88,7 @@ public class ShopConfig extends AbstractConfiguration<TokenManagerPlugin> {
                         continue;
                     }
 
-                    final ConfigurationSection slotSection = items.getConfigurationSection(num);
+                    final ConfigurationSection slotSection = itemsSection.getConfigurationSection(num);
                     final ItemStack displayed;
 
                     try {

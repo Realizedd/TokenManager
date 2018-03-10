@@ -79,7 +79,7 @@ public abstract class BaseCommand extends AbstractCommand<TokenManagerPlugin> {
     }
 
     protected void getTarget(final CommandSender caller, final String input, final Consumer<Optional<String>> consumer) {
-        // Just return input if offline mode, since getting UUID is unnecessary.
+        // Return input (name) if server is offline mode
         if (!ProfileUtil.isOnlineMode()) {
             consumer.accept(Optional.of(input));
             return;

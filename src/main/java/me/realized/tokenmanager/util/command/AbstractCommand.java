@@ -162,7 +162,7 @@ public abstract class AbstractCommand<P extends JavaPlugin> implements TabComple
             return true;
         });
 
-        // Use the default tab completer if no sub-commands exist.
+        // Use the default tab completer if no sub-commands exist
         if (pluginCommand.getTabCompleter() == null) {
             pluginCommand.setTabCompleter(this);
         }

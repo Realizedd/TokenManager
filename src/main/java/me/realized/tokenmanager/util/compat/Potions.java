@@ -18,8 +18,7 @@ public class Potions {
 
     static {
         final Class<?> CB_ITEMSTACK;
-        AS_NMS_COPY = ReflectionUtil
-            .getMethod(CB_ITEMSTACK = ReflectionUtil.getCBClass("inventory.CraftItemStack"), "asNMSCopy", ItemStack.class);
+        AS_NMS_COPY = ReflectionUtil.getMethod(CB_ITEMSTACK = ReflectionUtil.getCBClass("inventory.CraftItemStack"), "asNMSCopy", ItemStack.class);
         TAG_COMPOUND = ReflectionUtil.getNMSClass("NBTTagCompound");
         SET_STRING = ReflectionUtil.getMethod(TAG_COMPOUND, "setString", String.class, String.class);
         final Class<?> NMS_ITEMSTACK;

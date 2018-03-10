@@ -81,7 +81,6 @@ public class ShopCommand extends BaseCommand {
     @Override
     public List<String> onTabComplete(final CommandSender sender, final Command command, final String alias, final String[] args) {
         if (args.length == 2 && !config.isOpenSelectedEnabled()) {
-            // Collects the names of registered shops for tab completion.
             return shopConfig.getShops().stream().map(Shop::getName)
                 .filter(name -> name.toLowerCase().startsWith(args[1].toLowerCase()))
                 .collect(Collectors.toList());

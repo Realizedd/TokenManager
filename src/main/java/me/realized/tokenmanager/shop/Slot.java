@@ -45,8 +45,7 @@ public class Slot {
     @Getter
     private final boolean usePermission;
 
-    public Slot(final int slot, final int cost, final String message, final String subshop, final List<String> commands,
-        final boolean usePermission) {
+    public Slot(final int slot, final int cost, final String message, final String subshop, final List<String> commands, final boolean usePermission) {
         this.slot = slot;
         this.cost = cost;
         this.message = message;

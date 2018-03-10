@@ -73,13 +73,13 @@ public class ShopListener implements Reloadable, Listener {
 
             if (config.getShops().stream().anyMatch(shop -> shop.getGui().equals(top))) {
                 player.closeInventory();
-                player.sendMessage(StringUtil.color("&cTokenManager: Shops are automatically closed when the plugin is disabling."));
+                player.sendMessage(StringUtil.color("&cTokenManager: Shop was automatically closed since the plugin is deactivating."));
             }
         });
     }
 
     @EventHandler
-    public void on(InventoryClickEvent event) {
+    public void on(final InventoryClickEvent event) {
         final Player player = (Player) event.getWhoClicked();
         final Inventory clicked = event.getClickedInventory();
         final Inventory top = player.getOpenInventory().getTopInventory();

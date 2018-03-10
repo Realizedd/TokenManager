@@ -27,7 +27,7 @@
 
 package me.realized.tokenmanager.hooks;
 
-import me.clip.placeholderapi.external.EZPlaceholderHook;
+import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.data.DataManager;
 import me.realized.tokenmanager.util.hook.PluginHook;
@@ -40,20 +40,42 @@ public class PlaceholderHook extends PluginHook<TokenManagerPlugin> {
     public PlaceholderHook(final TokenManagerPlugin plugin) {
         super(plugin, "PlaceholderAPI");
         this.dataManager = plugin.getDataManager();
+        new TokenManagerPlaceholder().register();
+    }
 
-        new EZPlaceholderHook(plugin, "tm") {
-            @Override
-            public String onPlaceholderRequest(final Player player, final String identifier) {
-                if (!identifier.equals("tokens")) {
-                    return "";
-                }
+    private class TokenManagerPlaceholder extends PlaceholderExpansion {
 
-                if (player == null) {
-                    return "Player is required";
-                }
+        @Override
+        public String getIdentifier() {
+            return "tm";
+        }
 
-                return String.valueOf(dataManager.get(player).orElse(0));
+        @Override
+        public String getPlugin() {
+            return plugin.getName();
+        }
+
+        @Override
+        public String getAuthor() {
+            return "Realized";
+        }
+
+        @Override
+        public String getVersion() {
+            return "1.0";
+        }
+
+        @Override
+        public String onPlaceholderRequest(final Player player, final String identifier) {
+            if (!identifier.equalsIgnoreCase("tokens")) {
+                return null;
             }
-        }.hook();
+
+            if (player == null) {
+                return "Player is required";
+            }
+
+            return String.valueOf(dataManager.get(player).orElse(0));
+        }
     }
 }

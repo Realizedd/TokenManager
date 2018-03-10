@@ -1,20 +1,22 @@
 # ----------------------------------[ shop configuration tutorial ]----------------------------------
+#
 # READ BEFORE CONFIGURING YOUR OWN!
+#
 #shops:
-#  test: <--- Name of the shop, used in places such as '/token shop <name>'. Cannot have duplicates!
-#    title: '&6Default Shop' <--- Title of the shop GUI displayed in-game.
-#    rows: 1 <--- Rows of the shop GUI. Available range: 1 - 6.
-#    auto-close: true <--- Decides whether the shop GUI should be automatically closed or stay open on a purchase.
-#    use-permission: false <--- 'true' to require players to have the permission 'tokenmanager.use.shop.<name of the shop>' to use the shop.
+#  test: <--- Name of the shop. Used in commands like '/token shop <name>'. Must be unique!
+#    title: '&6Default Shop' <--- Title of the shop inventory.
+#    rows: 1 <--- Rows of the shop inventory. Must be a number between 1 - 6.
+#    auto-close: true <--- Decides whether the shop inventory should be automatically closed or stay open on a purchase.
+#    use-permission: false <--- 'true' to only allow players with the permission 'tokenmanager.use.shop.<name of the shop>' to use the shop.
 #    items:
-#      '0': <--- Slot to display the item. 0 is the first slot of the GUI.
-#        displayed: 276 1 name:&cGod_Sword sharpness:5 fireaspect:2 lore:&bEliminate_your|&cEnemies&b! <--- The displayed item. Uses the same concept as Essentials' Kits to load.
-#        cost: 10 <--- Amount players need to purchase this item.
-#        subshop: yoursubshop <--- [Optional] If set, opens the subshop specified on purchase.
-#        message: '&bTM &8» &7Thanks for your purchase, %player%! &c-10 tokens' <--- [Optional] If set, this message will be sent on purchase. Placeholder: %player% (Purchaser's name)
-#        commands: <--- Commands to be executed on purchase. Placeholder: %player% (Purchaser's name)
+#      '0': <--- Slot to display this item. 0 is the first slot of the shop inventory.
+#        displayed: 276 1 name:&cGod_Sword sharpness:5 fireaspect:2 lore:&bEliminate_your|&cEnemies&b! <--- The displayed item.
+#        cost: 10 <--- Cost of this item in tokens.
+#        subshop: yoursubshop <--- If set, opens the specified subshop on purchase.
+#        message: '&bTM &8» &7Thanks for your purchase, %player%! &c-10 tokens' <--- If set, this message will be sent on purchase.
+#        commands: <--- Commands to be executed on purchase.
 #        - 'give %player% 276 1 name:&cGod_Sword sharpness:5 fireaspect:2 lore:&bEliminate_your|&cEnemies&b!'
-#  yoursubshop: <--- This shop will be opened when the item above is purchased, since it is specified as the subshop of item 0.
+#  yoursubshop:
 #    title: '&6Default Sub Shop'
 #    rows: 2
 #    auto-close: false
@@ -25,7 +27,7 @@
 #        cost: 5
 #        commands:
 #        - 'give %player% 373:16421 1 name:&dSplash_Potion_of_Healing'
-#        use-permission: true <--- [Optional] 'true' to require players to have the permission 'tokenmanager.use.yoursubshop-1' to purchase this item.
+#        use-permission: true <--- 'true' to require players to have the permission 'tokenmanager.use.yoursubshop-1' to purchase this item.
 #
 #
 # Helpful Links:
@@ -39,11 +41,11 @@
 # - displayed: 373:8258 1 strength:2:200 speed:3:600)
 # (In this case, the item displayed will have Strength II (0:10) and Speed III (0:30).)
 #
-# - Item ID List: http://www.minecraftinfo.com/idlist.htm
+# - Item Names: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Material.html
 #
-# NOTE:
+# [IMPORTANT]
 # * In Minecraft 1.9, potions & mob spawn eggs no longer use durability to specify type.
-# * If your server version is 1.9 or above, continue reading.
+# * If your server version is 1.9+, continue reading.
 #
 #  (1.9+) - Example of setting mob spawn egg (zombie) as a displayed item
 #
@@ -62,7 +64,7 @@
 #
 # - 1.9+ Potions: http://minecraft.gamepedia.com/Potion#Data_values
 #
-# []----------------------------------------------------------------------------------------------------[]
+#-----------------------------------------------------------------------------------------
 
 shops:
   test:
@@ -85,7 +87,7 @@ shops:
     use-permission: false
     items:
       '1':
-        # This will not display properly if your server version is 1.9 or above! Read the tutorial above to fix this.
+        # This will not display properly if your server version is 1.9+! Use 'POTION:INSTANT_HEAL-strong-splash' instead of '373:16421'
         displayed: 373:16421 1 name:&dSplash_Potion_of_Healing lore:&dCost:&a_5_Tokens
         cost: 5
         commands:

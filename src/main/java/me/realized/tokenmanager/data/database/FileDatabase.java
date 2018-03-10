@@ -22,7 +22,7 @@ import org.bukkit.entity.Player;
 
 public class FileDatabase extends AbstractDatabase {
 
-    private static final String SERVER_MODE_MISMATCH = "Some player balances were skipped while loading: Server is in %s mode, but given keys are not a valid %s!";
+    private static final String SERVER_MODE_MISMATCH = "Server is in %s mode, but given keys were not a valid %s!";
 
     private final File file;
     private final Map<String, Long> data = new HashMap<>();
@@ -39,18 +39,16 @@ public class FileDatabase extends AbstractDatabase {
     }
 
     @Override
-    public void setup() {
+    public void setup() throws Exception {
         this.config = YamlConfiguration.loadConfiguration(file);
         final ConfigurationSection section = config.getConfigurationSection("Players");
 
         if (section != null) {
-            boolean warned = false;
-
             for (final String key : section.getKeys(false)) {
-                if (!warned && ProfileUtil.isUUID(key) != online) {
-                    Log.error(String.format(SERVER_MODE_MISMATCH, online ? "online" : "offline", !online ? "UUID" : "NAME"));
-                    warned = true;
-                    continue;
+                if (ProfileUtil.isUUID(key) != online) {
+                    // clear to prevent saving previously loaded data overwriting the file
+                    data.clear();
+                    throw new Exception(String.format(SERVER_MODE_MISMATCH, online ? "ONLINE" : "OFFLINE", online ? "UUID" : "NAME"));
                 }
 
                 data.put(key, section.getLong(key));
@@ -129,8 +127,14 @@ public class FileDatabase extends AbstractDatabase {
 
     @Override
     public void save() throws IOException {
+        if (data.isEmpty()) {
+            return;
+        }
+
+        Log.info("Saving data to file...");
         data.forEach((key, value) -> config.set("Players." + key, value));
         config.save(file);
+        Log.info("Save complete.");
     }
 
     @Override
@@ -150,13 +154,13 @@ public class FileDatabase extends AbstractDatabase {
             elements.sort(Comparator.comparingLong(TopElement::getTokens).reversed());
             final List<TopElement> result = elements.size() > limit ? elements.subList(0, 10) : elements;
             checkNames(result.stream().map(element -> UUID.fromString(element.getKey())).collect(Collectors.toList()), result, consumer);
-        });
 
-        try {
-            config.save(file);
-        } catch (IOException ex) {
-            Log.error("Failed to save data: " + ex.getMessage());
-            ex.printStackTrace();
-        }
+            try {
+                config.save(file);
+            } catch (IOException ex) {
+                Log.error("Failed to save data: " + ex.getMessage());
+                ex.printStackTrace();
+            }
+        });
     }
 }

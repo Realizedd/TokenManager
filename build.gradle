@@ -40,11 +40,12 @@ jar {
 }
 
 repositories {
+    mavenLocal()
     mavenCentral()
 
     maven {
         name 'Spigot'
-        url 'https://hub.spigotmc.org/nexus/content/groups/public/'
+        url 'https://hub.spigotmc.org/nexus/content/repositories/snapshots'
     }
 
     maven {
@@ -65,12 +66,13 @@ repositories {
 
 dependencies {
     provided 'org.spigotmc:spigot-api:1.12.2-R0.1-SNAPSHOT'
+    provided 'org.spigotmc:spigot:1.12.2-R0.1-SNAPSHOT'
     provided 'net.milkbowl.vault:VaultAPI:1.6'
-    provided 'me.clip:placeholderapi:2.0.8'
-    provided 'org.projectlombok:lombok:1.16.16'
+    provided 'me.clip:placeholderapi:2.8.4'
+    provided 'org.projectlombok:lombok:1.16.20'
 
     compile 'redis.clients:jedis:2.9.0'
     compile 'org.apache.commons:commons-pool2:2.4.2'
     compile 'com.zaxxer:HikariCP:2.7.8'
-    compile 'be.maximvdw:MVdWPlaceholderAPI:1.0.2-SNAPSHOT'
+    compile 'be.maximvdw:MVdWPlaceholderAPI:2.5.1-SNAPSHOT'
 }
