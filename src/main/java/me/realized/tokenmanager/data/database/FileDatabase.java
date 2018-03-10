@@ -27,6 +27,8 @@ public class FileDatabase extends AbstractDatabase {
     private final File file;
     private final Map<String, Long> data = new HashMap<>();
 
+    private FileConfiguration config;
+
     public FileDatabase(final TokenManagerPlugin plugin) throws IOException {
         super(plugin);
         this.file = new File(plugin.getDataFolder(), "data.yml");
@@ -38,7 +40,7 @@ public class FileDatabase extends AbstractDatabase {
 
     @Override
     public void setup() {
-        final FileConfiguration config = YamlConfiguration.loadConfiguration(file);
+        this.config = YamlConfiguration.loadConfiguration(file);
         final ConfigurationSection section = config.getConfigurationSection("Players");
 
         if (section != null) {
@@ -125,9 +127,11 @@ public class FileDatabase extends AbstractDatabase {
     @Override
     public void save(final Player player) {}
 
-    // TODO: 3/8/18 Safe n stuff
     @Override
-    public void save() {}
+    public void save() throws IOException {
+        data.forEach((key, value) -> config.set("Players." + key, value));
+        config.save(file);
+    }
 
     @Override
     public void ordered(final int limit, final Consumer<List<TopElement>> consumer) {
@@ -138,12 +142,21 @@ public class FileDatabase extends AbstractDatabase {
             return;
         }
 
-        data.forEach((key, value) -> elements.add(new TopElement(key, value)));
-
+        data.forEach((key, value) -> {
+            elements.add(new TopElement(key, value));
+            config.set("Players." + key, value);
+        });
         plugin.doAsync(() -> {
             elements.sort(Comparator.comparingLong(TopElement::getTokens).reversed());
             final List<TopElement> result = elements.size() > limit ? elements.subList(0, 10) : elements;
             checkNames(result.stream().map(element -> UUID.fromString(element.getKey())).collect(Collectors.toList()), result, consumer);
         });
+
+        try {
+            config.save(file);
+        } catch (IOException ex) {
+            Log.error("Failed to save data: " + ex.getMessage());
+            ex.printStackTrace();
+        }
     }
 }

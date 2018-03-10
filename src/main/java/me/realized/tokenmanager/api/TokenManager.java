@@ -35,6 +35,8 @@ import org.bukkit.inventory.Inventory;
 
 public interface TokenManager {
 
+    // TODO: 3/9/18 add javadoc
+
     Optional<Shop> getShop(final String name);
 
     Optional<Shop> getShop(final Inventory inventory);

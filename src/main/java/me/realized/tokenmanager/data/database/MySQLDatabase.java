@@ -29,6 +29,7 @@ package me.realized.tokenmanager.data.database;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import java.io.File;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -42,6 +43,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalLong;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -56,6 +58,11 @@ import me.realized.tokenmanager.util.NumberUtil;
 import me.realized.tokenmanager.util.profile.ProfileUtil;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
@@ -69,11 +76,14 @@ public class MySQLDatabase extends AbstractDatabase {
     private final String table;
     private final ExecutorService executor;
     private final Map<UUID, Long> data = new HashMap<>();
+
     private HikariDataSource dataSource;
+
     @Getter
     private JedisPool jedisPool;
     private JedisListener listener;
     private transient boolean usingRedis;
+
     public MySQLDatabase(final TokenManagerPlugin plugin) {
         super(plugin);
         this.table = StringEscapeUtils.escapeSql(plugin.getConfiguration().getMysqlTable());
@@ -96,7 +106,6 @@ public class MySQLDatabase extends AbstractDatabase {
 
         if (password.isEmpty()) {
             this.jedisPool = new JedisPool(new JedisPoolConfig(), config.getRedisServer(), config.getRedisPort(), 0);
-
         } else {
             this.jedisPool = new JedisPool(new JedisPoolConfig(), config.getRedisServer(), config.getRedisPort(), 0,
                 config.getRedisPassword());
@@ -106,9 +115,10 @@ public class MySQLDatabase extends AbstractDatabase {
             try (Jedis jedis = jedisPool.getResource()) {
                 jedis.subscribe(listener = new JedisListener(), "tokenmanager");
                 usingRedis = true;
-            } catch (JedisConnectionException ex) {
-                Log.error("Failed to connect to the redis server! Player balance synchronization issues may occur when modifying them while offline.");
+            } catch (Exception ex) {
                 usingRedis = false;
+                Log.error("Failed to connect to the redis server! Player balance synchronization issues may occur when modifying them while offline.");
+                Log.error("Cause of error: " + ex.getMessage());
             }
         });
 
@@ -256,6 +266,58 @@ public class MySQLDatabase extends AbstractDatabase {
                 }
             } catch (Exception ex) {
                 Log.error("Failed to load top balances: " + ex.getMessage());
+                ex.printStackTrace();
+            }
+        });
+    }
+
+    public void transfer(final CommandSender sender, final Consumer<String> errorHandler) {
+        executor.submit(() -> {
+            final File file = new File(plugin.getDataFolder(), "data.yml");
+
+            if (!file.exists()) {
+                sender.sendMessage(ChatColor.RED + "File not found!");
+                return;
+            }
+
+            sender.sendMessage(ChatColor.BLUE + plugin.getDescription().getFullName() + ": Loading user data from " + file.getName() + "...");
+
+            final FileConfiguration config = YamlConfiguration.loadConfiguration(file);
+            final ConfigurationSection section = config.getConfigurationSection("Players");
+
+            if (section == null) {
+                sender.sendMessage(ChatColor.RED + "Data not found!");
+                return;
+            }
+
+            sender.sendMessage(ChatColor.BLUE + plugin.getDescription().getFullName() + ": Load Complete. Starting the transfer...");
+
+            try (
+                Connection connection = dataSource.getConnection();
+                PreparedStatement statement = connection.prepareStatement(Query.INSERT.get())
+            ) {
+                connection.setAutoCommit(false);
+                int i = 0;
+                final Set<String> keys = section.getKeys(false);
+
+                for (final String key : keys) {
+                    final long value = section.getLong(key);
+                    statement.setString(1, key);
+                    statement.setLong(2, value);
+                    statement.setLong(3, value);
+                    statement.addBatch();
+
+                    if (++i % 100 == 0 || i == keys.size()) {
+                        statement.executeBatch();
+                    }
+                }
+
+                connection.commit();
+                connection.setAutoCommit(true);
+                sender.sendMessage(ChatColor.BLUE + plugin.getDescription().getFullName() + ": Transfer Complete. Total Transferred Data: " + keys.size());
+            } catch (SQLException ex) {
+                errorHandler.accept(ex.getMessage());
+                Log.error("Failed to transfer data from file: " + ex.getMessage());
                 ex.printStackTrace();
             }
         });

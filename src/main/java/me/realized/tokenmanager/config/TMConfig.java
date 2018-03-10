@@ -72,6 +72,7 @@ public class TMConfig extends AbstractConfiguration<TokenManagerPlugin> {
     private boolean registerEconomy;
     @Getter
     private int balanceTopUpdateInterval;
+
     public TMConfig(final TokenManagerPlugin plugin) {
         super(plugin, "config");
     }

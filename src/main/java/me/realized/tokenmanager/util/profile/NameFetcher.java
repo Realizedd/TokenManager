@@ -27,6 +27,7 @@ public final class NameFetcher {
         .maximumSize(1000)
         .expireAfterWrite(30, TimeUnit.MINUTES)
         .build();
+
     private NameFetcher() {}
 
     public static void getNames(final List<UUID> uuids, final Consumer<Map<UUID, String>> consumer) {

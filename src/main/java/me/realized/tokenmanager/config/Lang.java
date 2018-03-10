@@ -65,7 +65,7 @@ public class Lang extends AbstractConfiguration<TokenManagerPlugin> {
                 continue;
             }
 
-            // Fixes weird issue with getKeys that appends an extra separator when called after set
+            // Fixes a weird occurrence with FileConfiguration#getKeys that an extra separator char is prepended when called after FileConfiguration#set
             if (key.startsWith(".")) {
                 key = key.substring(1);
             }
@@ -78,7 +78,6 @@ public class Lang extends AbstractConfiguration<TokenManagerPlugin> {
 
             final String message = value instanceof List ? StringUtil.fromList((List<?>) value) : value.toString();
 
-            // Loads the STRINGS section values by their last section key.
             if (key.startsWith("STRINGS")) {
                 final String[] args = key.split(Pattern.quote("."));
                 strings.put(args[args.length - 1], message);
@@ -87,7 +86,6 @@ public class Lang extends AbstractConfiguration<TokenManagerPlugin> {
             }
         }
 
-        // Replace any STRINGS in each messages.
         messages.replaceAll((key, value) -> {
             for (final Map.Entry<String, String> entry : strings.entrySet()) {
                 final String placeholder = "{" + entry.getKey() + "}";

@@ -41,6 +41,7 @@ import me.realized.tokenmanager.util.Reloadable;
 import me.realized.tokenmanager.util.StringUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -83,6 +84,12 @@ public class DataManager implements Reloadable, Listener {
     public void set(final String key, final boolean set, final long amount, final long updated, final Runnable action, final Consumer<String> errorHandler) {
         if (database != null) {
             database.set(key, set, amount, updated, action, errorHandler);
+        }
+    }
+
+    public void transfer(final CommandSender sender, final Consumer<String> errorHandler) {
+        if (database != null && database instanceof MySQLDatabase) {
+            ((MySQLDatabase) database).transfer(sender, errorHandler);
         }
     }
 

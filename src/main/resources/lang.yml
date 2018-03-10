@@ -50,6 +50,7 @@ COMMAND:
     - '&b/tokenmanager set &9<&busername&9> <&bamount&9> &8» &7Set tokens of a player.'
     - '&b/tokenmanager open &9<&busername&9> &9<&bname&9> &8» &7Open a shop for player.'
     - '&b/tokenmanager giveall &9<&bamount&9> &8» &7Gives amount of tokens to online players.'
+    - '&b/tokenmanager transfer &8» &7Transfer all player data from data.yml to the MySQL database.'
     - '&b/tokenmanager reload &8» &7Reloads the plugin.'
     - '{FOOTER}'
 
