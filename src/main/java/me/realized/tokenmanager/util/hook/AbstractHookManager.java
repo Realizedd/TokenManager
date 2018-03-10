@@ -29,7 +29,6 @@ package me.realized.tokenmanager.util.hook;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Map;
 import me.realized.tokenmanager.util.Reloadable;
@@ -40,7 +39,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 public abstract class AbstractHookManager<P extends JavaPlugin> implements Reloadable {
 
     protected final P plugin;
-
     private final Map<Class<? extends PluginHook<P>>, PluginHook<P>> hooks = new HashMap<>();
 
     public AbstractHookManager(final P plugin) {
@@ -50,7 +48,7 @@ public abstract class AbstractHookManager<P extends JavaPlugin> implements Reloa
     protected boolean register(final String name, final Class<? extends PluginHook<P>> clazz) {
         final Plugin target = Bukkit.getPluginManager().getPlugin(name);
 
-        if (target == null || !target.isEnabled() || Modifier.isAbstract(clazz.getModifiers())) {
+        if (target == null || !target.isEnabled()) {
             return false;
         }
 
