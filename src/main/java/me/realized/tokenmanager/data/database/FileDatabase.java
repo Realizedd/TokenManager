@@ -63,14 +63,14 @@ public class FileDatabase extends AbstractDatabase {
 
     @Override
     public void get(final Player player, final Consumer<OptionalLong> consumer, final Consumer<String> errorHandler) {
-        consumer.accept(get(player));
+        get(online ? player.getUniqueId().toString() : player.getName(), consumer, errorHandler, true);
     }
 
     @Override
     public void get(final String key, final Consumer<OptionalLong> consumer, final Consumer<String> errorHandler, final boolean create) {
         final OptionalLong cached = from(data.get(key));
 
-        if (!cached.isPresent()) {
+        if (!cached.isPresent() && create) {
             final long defaultBalance = plugin.getConfiguration().getDefaultBalance();
             data.put(key, defaultBalance);
             consumer.accept(OptionalLong.of(defaultBalance));

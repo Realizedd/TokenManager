@@ -130,7 +130,7 @@ public class MySQLDatabase extends AbstractDatabase {
 
             try (ResultSet resultSet = connection.getMetaData().getColumns(null, null, table, "name")) {
                 if (resultSet.isBeforeFirst() == online) {
-                    throw new Exception(String.format(SERVER_MODE_MISMATCH, online ? "ONLINE" : "OFFLINE", table, online ? "UUID" : "NAME"));
+                    throw new Exception(String.format(SERVER_MODE_MISMATCH, online ? "ONLINE" : "OFFLINE", table, online ? "uuid" : "name"));
                 }
             }
         }
