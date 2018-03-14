@@ -44,6 +44,7 @@ public final class ReflectionUtil {
         try {
             return Class.forName("net.minecraft.server." + VERSION + "." + name);
         } catch (ClassNotFoundException ex) {
+            ex.printStackTrace();
             return null;
         }
     }
@@ -52,6 +53,7 @@ public final class ReflectionUtil {
         try {
             return Class.forName("org.bukkit.craftbukkit." + VERSION + "." + path);
         } catch (ClassNotFoundException ex) {
+            ex.printStackTrace();
             return null;
         }
     }
@@ -60,6 +62,7 @@ public final class ReflectionUtil {
         try {
             return clazz.getMethod(name, parameters);
         } catch (NoSuchMethodException ex) {
+            ex.printStackTrace();
             return null;
         }
     }

@@ -48,7 +48,7 @@ public class SpawnEggs {
         AS_NMS_COPY = ReflectionUtil.getMethod(CB_ITEMSTACK = ReflectionUtil.getCBClass("inventory.CraftItemStack"), "asNMSCopy", ItemStack.class);
         TAG_COMPOUND = ReflectionUtil.getNMSClass("NBTTagCompound");
         SET = ReflectionUtil.getMethod(TAG_COMPOUND, "set", String.class, ReflectionUtil.getNMSClass("NBTBase"));
-        SET_STRING = ReflectionUtil.getMethod(TAG_COMPOUND, "setString", String.class);
+        SET_STRING = ReflectionUtil.getMethod(TAG_COMPOUND, "setString", String.class, String.class);
         final Class<?> NMS_ITEMSTACK;
         GET_TAG = ReflectionUtil.getMethod(NMS_ITEMSTACK = ReflectionUtil.getNMSClass("ItemStack"), "getTag");
         SET_TAG = ReflectionUtil.getMethod(NMS_ITEMSTACK, "setTag", TAG_COMPOUND);

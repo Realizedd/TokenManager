@@ -113,29 +113,27 @@ public class ShopListener implements Reloadable, Listener {
             return;
         }
 
-        final long now = System.currentTimeMillis();
-        final long remaining = cooldowns.getOrDefault(player.getUniqueId(), 0L) + plugin.getConfiguration().getClickDelay() - now;
+        final int slot = event.getSlot();
+        final Slot data = target.getSlot(slot);
 
-        if (remaining > 0) {
-            plugin.getLang().sendMessage(player, true, "ERROR.on-click-cooldown", "remaining",
-                StringUtil.format(remaining / 1000 + (remaining % 1000 > 0 ? 1 : 0)));
-            return;
-        }
-
-        cooldowns.put(player.getUniqueId(), System.currentTimeMillis());
-
-        final int slot;
-        final Slot data;
-
-        if ((data = target.getSlot(slot = event.getSlot())) == null) {
+        if (data == null) {
             return;
         }
 
         if (data.isUsePermission() && !player.hasPermission("tokenmanager.use." + target.getName() + "-" + slot)) {
-            plugin.getLang()
-                .sendMessage(player, true, "ERROR.no-permission", "permission", "tokenmanager.use." + target.getName() + "-" + slot);
+            plugin.getLang().sendMessage(player, true, "ERROR.no-permission", "permission", "tokenmanager.use." + target.getName() + "-" + slot);
             return;
         }
+
+        final long now = System.currentTimeMillis();
+        final long remaining = cooldowns.getOrDefault(player.getUniqueId(), 0L) + plugin.getConfiguration().getClickDelay() - now;
+
+        if (remaining > 0) {
+            plugin.getLang().sendMessage(player, true, "ERROR.on-click-cooldown", "remaining", StringUtil.format(remaining / 1000 + (remaining % 1000 > 0 ? 1 : 0)));
+            return;
+        }
+
+        cooldowns.put(player.getUniqueId(), now);
 
         final int cost = data.getCost();
         final OptionalLong cached = dataManager.get(player);
@@ -156,25 +154,21 @@ public class ShopListener implements Reloadable, Listener {
             dataManager.set(player, balance - cost);
         }
 
-        final List<String> commands;
+        final List<String> commands = data.getCommands();
 
-        if ((commands = data.getCommands()) != null) {
+        if (commands != null) {
             for (final String command : commands) {
                 Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command.replace("%player%", player.getName()));
             }
         }
 
-        if (target.isAutoClose()) {
-            player.closeInventory();
-        }
-
         final String message, subshop;
 
-        if ((message = data.getMessage()) != null) {
+        if ((message = data.getMessage()) != null && !message.isEmpty()) {
             plugin.getLang().sendMessage(player, false, message, "player", player.getName());
         }
 
-        if ((subshop = data.getSubshop()) != null) {
+        if ((subshop = data.getSubshop()) != null && !subshop.isEmpty()) {
             Optional<Shop> shop = config.getShop(subshop);
 
             if (!shop.isPresent()) {
@@ -183,6 +177,11 @@ public class ShopListener implements Reloadable, Listener {
             }
 
             player.openInventory(shop.get().getGui());
+            return;
+        }
+
+        if (target.isAutoClose()) {
+            plugin.doSync(player::closeInventory);
         }
     }
 
