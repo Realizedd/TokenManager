@@ -47,6 +47,12 @@ public class TMConfig extends AbstractConfiguration<TokenManagerPlugin> {
     @Getter
     private String openSelectedShop;
     @Getter
+    private String confirmPurchaseTitle;
+    @Getter
+    private String confirmPurchaseConfirm;
+    @Getter
+    private String confirmPurchaseCancel;
+    @Getter
     private int clickDelay;
     @Getter
     private boolean mysqlEnabled;
@@ -62,6 +68,8 @@ public class TMConfig extends AbstractConfiguration<TokenManagerPlugin> {
     private String mysqlDatabase;
     @Getter
     private String mysqlTable;
+    @Getter
+    private boolean redisEnabled;
     @Getter
     private String redisServer;
     @Getter
@@ -89,6 +97,9 @@ public class TMConfig extends AbstractConfiguration<TokenManagerPlugin> {
         defaultBalance = configuration.getInt("default-balance", 25);
         openSelectedEnabled = configuration.getBoolean("shop.open-selected.enabled", false);
         openSelectedShop = configuration.getString("shop.open-selected.shop", "test");
+        confirmPurchaseTitle = configuration.getString("shop.confirm-purchase-gui.title", "Confirm Your Purchase");
+        confirmPurchaseConfirm = configuration.getString("shop.confirm-purchase-gui.confirm-button", "STAINED_CLAY:5 1 name:&a&lBUY lore:&7Price:_&a%price%_tokens");
+        confirmPurchaseCancel = configuration.getString("shop.confirm-purchase-gui.cancel-button", "STAINED_CLAY:14 1 name:&c&lCANCEL");
         clickDelay = configuration.getInt("shop.click-delay", 0);
         mysqlEnabled = configuration.getBoolean("data.mysql.enabled", false);
         mysqlUsername = configuration.getString("data.mysql.username", "root");
@@ -97,6 +108,7 @@ public class TMConfig extends AbstractConfiguration<TokenManagerPlugin> {
         mysqlPort = configuration.getString("data.mysql.port", "3306");
         mysqlDatabase = configuration.getString("data.mysql.database", "database");
         mysqlTable = configuration.getString("data.mysql.table", "tokenmanager");
+        redisEnabled = configuration.getBoolean("data.mysql.redis.enabled", false);
         redisServer = configuration.getString("data.mysql.redis.server", "127.0.0.1");
         redisPort = configuration.getInt("data.mysql.redis.port", 6379);
         redisPassword = configuration.getString("data.mysql.redis.password", "");

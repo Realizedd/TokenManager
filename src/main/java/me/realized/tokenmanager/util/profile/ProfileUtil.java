@@ -27,6 +27,8 @@
 
 package me.realized.tokenmanager.util.profile;
 
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
@@ -57,14 +59,8 @@ public final class ProfileUtil {
         return UUID_PATTERN.matcher(s).matches();
     }
 
-    public static String getName(final UUID uuid) {
-        final Player player;
-
-        if ((player = Bukkit.getPlayer(uuid)) != null) {
-            return player.getName();
-        }
-
-        return NameFetcher.getName(uuid);
+    public static void getNames(final List<UUID> uuids, final Consumer<Map<UUID, String>> consumer) {
+        NameFetcher.getNames(uuids, consumer);
     }
 
     public static void getUUID(final String name, final Consumer<String> consumer, final Consumer<String> errorHandler) {

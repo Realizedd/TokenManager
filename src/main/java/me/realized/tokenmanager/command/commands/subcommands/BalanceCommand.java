@@ -70,6 +70,6 @@ public class BalanceCommand extends BaseCommand {
             return;
         }
 
-        sendMessage(sender, true, "COMMAND.token.balance-others", "player", target.getName(), "tokens", balance.getAsLong());
+        sendMessage(sender, true, "COMMAND.token.balance-other", "player", target.getName(), "tokens", balance.getAsLong());
     }
 }

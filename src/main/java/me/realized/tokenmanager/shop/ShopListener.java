@@ -34,9 +34,16 @@ import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.UUID;
 import me.realized.tokenmanager.TokenManagerPlugin;
+import me.realized.tokenmanager.config.TMConfig;
 import me.realized.tokenmanager.data.DataManager;
+import me.realized.tokenmanager.util.Log;
 import me.realized.tokenmanager.util.Reloadable;
 import me.realized.tokenmanager.util.StringUtil;
+import me.realized.tokenmanager.util.inventory.GUIBuilder;
+import me.realized.tokenmanager.util.inventory.GUIBuilder.Pattern;
+import me.realized.tokenmanager.util.inventory.InventoryUtil;
+import me.realized.tokenmanager.util.inventory.ItemBuilder;
+import me.realized.tokenmanager.util.inventory.ItemUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -49,10 +56,16 @@ import org.bukkit.inventory.ItemStack;
 
 public class ShopListener implements Reloadable, Listener {
 
+    private static final int CONFIRM_PURCHASE_SLOT = 10;
+    private static final int ITEM_SLOT = 13;
+    private static final int CANCEL_PURCHASE_SLOT = 16;
+
     private final TokenManagerPlugin plugin;
     private final ShopConfig config;
     private final DataManager dataManager;
     private final Map<UUID, Long> cooldowns = new HashMap<>();
+    private final Map<UUID, ConfirmInventory> inventories = new HashMap<>();
+    private Inventory confirmGuiSample;
 
     public ShopListener(final TokenManagerPlugin plugin) {
         this.plugin = plugin;
@@ -64,6 +77,25 @@ public class ShopListener implements Reloadable, Listener {
     @Override
     public void handleLoad() {
         cooldowns.clear();
+        inventories.clear();
+
+        final TMConfig config = plugin.getConfiguration();
+
+        this.confirmGuiSample = GUIBuilder.of(StringUtil.color(config.getConfirmPurchaseTitle()), 3)
+            .pattern(
+                Pattern.of("AAABBBCCC", "AAABBBCCC", "AAABBBCCC")
+                    .specify('A', ItemBuilder.of(Material.STAINED_GLASS_PANE, 1, (short) 13).name(" ").build())
+                    .specify('B', ItemBuilder.of(Material.STAINED_GLASS_PANE, 1, (short) 7).name(" ").build())
+                    .specify('C', ItemBuilder.of(Material.STAINED_GLASS_PANE, 1, (short) 14).name(" ").build()))
+            .set(
+                CONFIRM_PURCHASE_SLOT,
+                ItemUtil.loadFromString(config.getConfirmPurchaseConfirm(), error -> Log.error(this, "Failed to load confirm-button: " + error))
+            )
+            .set(
+                CANCEL_PURCHASE_SLOT,
+                ItemUtil.loadFromString(config.getConfirmPurchaseCancel(), error -> Log.error(this, "Failed to load cancel-button: " + error))
+            )
+            .build();
     }
 
     @Override
@@ -73,7 +105,14 @@ public class ShopListener implements Reloadable, Listener {
 
             if (config.getShops().stream().anyMatch(shop -> shop.getGui().equals(top))) {
                 player.closeInventory();
-                player.sendMessage(StringUtil.color("&cTokenManager: Shop was automatically closed since the plugin is deactivating."));
+                player.sendMessage(StringUtil.color("&cShop was automatically closed since the plugin is deactivating."));
+                return;
+            }
+
+            final ConfirmInventory inventory = inventories.get(player.getUniqueId());
+
+            if (inventory != null && inventory.inventory.equals(top)) {
+                player.closeInventory();
             }
         });
     }
@@ -94,12 +133,19 @@ public class ShopListener implements Reloadable, Listener {
             return;
         }
 
+        boolean confirmGui = false;
         Shop target = null;
+        ConfirmInventory confirmInventory = inventories.get(player.getUniqueId());
 
-        for (final Shop shop : config.getShops()) {
-            if (shop.getGui().equals(top)) {
-                target = shop;
-                break;
+        if (confirmInventory != null && confirmInventory.inventory.equals(top)) {
+            target = confirmInventory.shop;
+            confirmGui = true;
+        } else {
+            for (final Shop shop : config.getShops()) {
+                if (shop.getGui().equals(top)) {
+                    target = shop;
+                    break;
+                }
             }
         }
 
@@ -114,7 +160,20 @@ public class ShopListener implements Reloadable, Listener {
         }
 
         final int slot = event.getSlot();
-        final Slot data = target.getSlot(slot);
+        final Slot data;
+
+        if (confirmGui) {
+            if (slot == CANCEL_PURCHASE_SLOT) {
+                player.openInventory(target.getGui());
+                return;
+            } else if (slot == CONFIRM_PURCHASE_SLOT) {
+                data = confirmInventory.slot;
+            } else {
+                data = null;
+            }
+        } else {
+            data = target.getSlot(slot);
+        }
 
         if (data == null) {
             return;
@@ -126,7 +185,7 @@ public class ShopListener implements Reloadable, Listener {
         }
 
         final long now = System.currentTimeMillis();
-        final long remaining = cooldowns.getOrDefault(player.getUniqueId(), 0L) + plugin.getConfiguration().getClickDelay() - now;
+        final long remaining = cooldowns.getOrDefault(player.getUniqueId(), 0L) + plugin.getConfiguration().getClickDelay() * 1000L - now;
 
         if (remaining > 0) {
             plugin.getLang().sendMessage(player, true, "ERROR.on-click-cooldown", "remaining", StringUtil.format(remaining / 1000 + (remaining % 1000 > 0 ? 1 : 0)));
@@ -150,11 +209,34 @@ public class ShopListener implements Reloadable, Listener {
             return;
         }
 
+        if (!confirmGui && (target.isConfirmPurchase() || data.isConfirmPurchase())) {
+            cooldowns.remove(player.getUniqueId());
+
+            if (confirmInventory == null) {
+                confirmInventory = new ConfirmInventory(InventoryUtil.deepCopyOf(confirmGuiSample));
+                inventories.put(player.getUniqueId(), confirmInventory);
+            }
+
+            confirmInventory.update(target, data);
+            player.openInventory(confirmInventory.inventory);
+            return;
+        }
+
         if (cost > 0) {
             dataManager.set(player, balance - cost);
         }
 
-        final List<String> commands = data.getCommands();
+        handlePurchase(player, target, data);
+    }
+
+    @EventHandler
+    public void on(final PlayerQuitEvent event) {
+        cooldowns.remove(event.getPlayer().getUniqueId());
+        inventories.remove(event.getPlayer().getUniqueId());
+    }
+
+    private void handlePurchase(final Player player, final Shop shop, final Slot slot) {
+        final List<String> commands = slot.getCommands();
 
         if (commands != null) {
             for (final String command : commands) {
@@ -164,29 +246,42 @@ public class ShopListener implements Reloadable, Listener {
 
         final String message, subshop;
 
-        if ((message = data.getMessage()) != null && !message.isEmpty()) {
+        if ((message = slot.getMessage()) != null && !message.isEmpty()) {
             plugin.getLang().sendMessage(player, false, message, "player", player.getName());
         }
 
-        if ((subshop = data.getSubshop()) != null && !subshop.isEmpty()) {
-            Optional<Shop> shop = config.getShop(subshop);
+        if ((subshop = slot.getSubshop()) != null && !subshop.isEmpty()) {
+            Optional<Shop> target = config.getShop(subshop);
 
-            if (!shop.isPresent()) {
+            if (!target.isPresent()) {
                 plugin.getLang().sendMessage(player, true, "ERROR.shop-not-found", "input", subshop);
                 return;
             }
 
-            player.openInventory(shop.get().getGui());
+            player.openInventory(target.get().getGui());
             return;
         }
 
-        if (target.isAutoClose()) {
+        if (shop.isAutoClose()) {
             plugin.doSync(player::closeInventory);
         }
     }
 
-    @EventHandler
-    public void on(final PlayerQuitEvent event) {
-        cooldowns.remove(event.getPlayer().getUniqueId());
+    private class ConfirmInventory {
+
+        private Shop shop;
+        private Slot slot;
+        private final Inventory inventory;
+
+        ConfirmInventory(final Inventory inventory) {
+            this.inventory = inventory;
+        }
+
+        private void update(final Shop target, final Slot data) {
+            shop = target;
+            slot = data;
+            inventory.setItem(CONFIRM_PURCHASE_SLOT, ItemUtil.replace(inventory.getItem(CONFIRM_PURCHASE_SLOT), "%price%", slot.getCost()));
+            inventory.setItem(ITEM_SLOT, slot.getDisplayed().clone());
+        }
     }
 }

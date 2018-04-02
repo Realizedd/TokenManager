@@ -33,11 +33,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalLong;
 import me.realized.tokenmanager.TokenManagerPlugin;
-import me.realized.tokenmanager.util.ItemBuilder;
-import me.realized.tokenmanager.util.ItemUtil;
 import me.realized.tokenmanager.util.Log;
 import me.realized.tokenmanager.util.NumberUtil;
 import me.realized.tokenmanager.util.config.AbstractConfiguration;
+import me.realized.tokenmanager.util.inventory.ItemBuilder;
+import me.realized.tokenmanager.util.inventory.ItemUtil;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -69,7 +69,8 @@ public class ShopConfig extends AbstractConfiguration<TokenManagerPlugin> {
                     shopSection.getString("title", "&cShop title was not specified."),
                     shopSection.getInt("rows", 1),
                     shopSection.getBoolean("auto-close", false),
-                    shopSection.getBoolean("use-permission", false)
+                    shopSection.getBoolean("use-permission", false),
+                    shopSection.getBoolean("confirm-purchase", false)
                 );
             } catch (IllegalArgumentException ex) {
                 Log.error(this, "Failed to initialize shop '" + name + "': " + ex.getMessage());
@@ -113,10 +114,12 @@ public class ShopConfig extends AbstractConfiguration<TokenManagerPlugin> {
                     shop.setSlot((int) slot.getAsLong(), displayed, new Slot(
                         (int) slot.getAsLong(),
                         slotSection.getInt("cost", 1000000),
+                        displayed,
                         slotSection.getString("message"),
                         slotSection.getString("subshop"),
                         slotSection.getStringList("commands"),
-                        slotSection.getBoolean("use-permission", false)
+                        slotSection.getBoolean("use-permission", false),
+                        slotSection.getBoolean("confirm-purchase", false)
                     ));
                 }
             }

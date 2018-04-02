@@ -25,13 +25,18 @@
  *
  */
 
-package me.realized.tokenmanager.util;
+package me.realized.tokenmanager.util.inventory;
 
 import com.google.common.collect.Lists;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.OptionalLong;
+import java.util.function.Consumer;
+import me.realized.tokenmanager.util.EnumUtil;
+import me.realized.tokenmanager.util.NumberUtil;
+import me.realized.tokenmanager.util.StringUtil;
 import me.realized.tokenmanager.util.compat.Potions;
 import me.realized.tokenmanager.util.compat.SpawnEggs;
 import org.bukkit.Bukkit;
@@ -114,6 +119,16 @@ public final class ItemUtil {
         EFFECTS.put(value.getName(), value);
     }
 
+    public static ItemStack replace(final ItemStack item, final String placeholder, final Object value) {
+        final ItemMeta meta = item.getItemMeta();
+        final List<String> lore = meta.getLore();
+        lore.replaceAll(line -> line.replace(placeholder, value.toString()));
+        meta.setLore(lore);
+        meta.setDisplayName(meta.getDisplayName().replace(placeholder, value.toString()));
+        item.setItemMeta(meta);
+        return item;
+    }
+
     public static ItemStack loadFromString(final String line) {
         if (line == null || line.isEmpty()) {
             throw new IllegalArgumentException("Line is empty or null!");
@@ -130,15 +145,14 @@ public final class ItemUtil {
         ItemStack result = new ItemStack(material, 1);
 
         if (materialData.length > 1) {
-            // Handle potions and spawn eggs switching to NBT in 1.9 and above
+            // Handle potions and spawn eggs switching to NBT in 1.9+
             if (!ItemUtil.isPre1_9()) {
                 if (material.name().contains("POTION")) {
                     final String[] values = materialData[1].split("-");
                     final PotionType type;
 
                     if ((type = EnumUtil.getByName(values[0], PotionType.class)) == null) {
-                        throw new IllegalArgumentException(
-                            "'" + values[0] + "' is not a valid PotionType. Available: " + EnumUtil.getNames(PotionType.class));
+                        throw new IllegalArgumentException("'" + values[0] + "' is not a valid PotionType. Available: " + EnumUtil.getNames(PotionType.class));
                     }
 
                     result = new Potions(type, Arrays.asList(values)).toItemStack();
@@ -146,8 +160,7 @@ public final class ItemUtil {
                     final EntityType type;
 
                     if ((type = EnumUtil.getByName(materialData[1], EntityType.class)) == null) {
-                        throw new IllegalArgumentException(
-                            "'" + materialData[0] + "' is not a valid EntityType. Available: " + EnumUtil.getNames(EntityType.class));
+                        throw new IllegalArgumentException("'" + materialData[0] + "' is not a valid EntityType. Available: " + EnumUtil.getNames(EntityType.class));
                     }
 
                     result = new SpawnEggs(type).toItemStack();
@@ -183,6 +196,30 @@ public final class ItemUtil {
         return result;
     }
 
+
+    public static ItemStack loadFromString(final String line, final Consumer<String> errorHandler) {
+        ItemStack result;
+
+        try {
+            result = loadFromString(line);
+        } catch (Exception ex) {
+            result = ItemBuilder
+                .of(Material.REDSTONE_BLOCK)
+                .name("&4&m------------------")
+                .lore(
+                    "&cThere was an error",
+                    "&cwhile loading this",
+                    "&citem, please contact",
+                    "&can administrator.",
+                    "&4&m------------------"
+                )
+                .build();
+            errorHandler.accept(ex.getMessage());
+        }
+
+        return result;
+    }
+
     private static void applyMeta(final ItemStack item, final String key, final String value) {
         final ItemMeta meta = item.getItemMeta();
 
@@ -194,6 +231,17 @@ public final class ItemUtil {
 
         if (key.equalsIgnoreCase("lore")) {
             meta.setLore(StringUtil.color(Lists.newArrayList(value.split("\\|")), s -> s.replace("_", " ")));
+            item.setItemMeta(meta);
+            return;
+        }
+
+        if (key.equalsIgnoreCase("unbreakable") && value.equalsIgnoreCase("true")) {
+            if (isPre1_12()) {
+                meta.spigot().setUnbreakable(true);
+            } else {
+                meta.setUnbreakable(true);
+            }
+
             item.setItemMeta(meta);
             return;
         }
@@ -226,6 +274,14 @@ public final class ItemUtil {
     }
 
     private static boolean isPre1_9() {
-        return Bukkit.getVersion().contains("1.7") || Bukkit.getVersion().contains("1.8");
+        return getVersion().contains("1.7") || getVersion().contains("1.8");
+    }
+
+    private static boolean isPre1_12() {
+        return isPre1_9() || getVersion().contains("1.9") || getVersion().contains("1.10") || getVersion().contains("1.11");
+    }
+
+    private static String getVersion() {
+        return Bukkit.getVersion();
     }
 }

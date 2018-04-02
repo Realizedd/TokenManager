@@ -45,9 +45,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import lombok.Getter;
 import me.realized.tokenmanager.util.Reloadable;
 import me.realized.tokenmanager.util.config.convert.Converter;
+import org.bukkit.configuration.MemorySection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -63,7 +63,6 @@ public abstract class AbstractConfiguration<P extends JavaPlugin> implements Rel
 
     protected final P plugin;
 
-    @Getter
     private final String name;
     private final File file;
 
@@ -77,7 +76,10 @@ public abstract class AbstractConfiguration<P extends JavaPlugin> implements Rel
 
     @Override
     public void handleLoad() throws IOException {
-        checkFile();
+        if (!file.exists()) {
+            plugin.saveResource(name, true);
+        }
+
         loadValues(configuration = YamlConfiguration.loadConfiguration(file));
     }
 
@@ -88,10 +90,10 @@ public abstract class AbstractConfiguration<P extends JavaPlugin> implements Rel
 
     protected int getLatestVersion() {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(plugin.getClass().getResourceAsStream("/" + name)))) {
-            final FileConfiguration config = YamlConfiguration.loadConfiguration(reader);
+            final FileConfiguration configuration = YamlConfiguration.loadConfiguration(reader);
 
-            if (config.isInt("config-version")) {
-                return config.getInt("config-version");
+            if (configuration.isInt("config-version")) {
+                return configuration.getInt("config-version");
             }
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -100,21 +102,7 @@ public abstract class AbstractConfiguration<P extends JavaPlugin> implements Rel
         return -1;
     }
 
-    private boolean checkFile() {
-        if (!file.exists()) {
-            plugin.saveResource(name, true);
-            return true;
-        }
-
-        return false;
-    }
-
     protected FileConfiguration convert(final Converter converter) throws IOException {
-        // Do nothing since the configuration file was just generated
-        if (checkFile()) {
-            return configuration;
-        }
-
         plugin.getLogger().info(String.format(CONVERT_START, name));
 
         final Map<String, Object> oldValues = new HashMap<>();
@@ -124,7 +112,13 @@ public abstract class AbstractConfiguration<P extends JavaPlugin> implements Rel
                 continue;
             }
 
-            oldValues.put(key, configuration.get(key));
+            final Object value = configuration.get(key);
+
+            if (value instanceof MemorySection) {
+                continue;
+            }
+
+            oldValues.put(key, value);
         }
 
         if (converter != null) {

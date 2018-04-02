@@ -31,8 +31,8 @@ import java.util.List;
 import java.util.OptionalLong;
 import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import me.realized.tokenmanager.TokenManagerPlugin;
-import me.realized.tokenmanager.util.profile.NameFetcher;
 import me.realized.tokenmanager.util.profile.ProfileUtil;
 
 public abstract class AbstractDatabase implements Database {
@@ -49,11 +49,11 @@ public abstract class AbstractDatabase implements Database {
         return value != null ? OptionalLong.of(value) : OptionalLong.empty();
     }
 
-    void checkNames(final List<UUID> uuids, final List<TopElement> result, final Consumer<List<TopElement>> callback) {
+    void replaceNames(final List<TopElement> list, final Consumer<List<TopElement>> callback) {
         if (online) {
-            NameFetcher.getNames(uuids, names -> {
-                for (final TopElement element : result) {
-                    final String name = names.get(UUID.fromString(element.getKey()));
+            ProfileUtil.getNames(list.stream().map(element -> UUID.fromString(element.getKey())).collect(Collectors.toList()), result -> {
+                for (final TopElement element : list) {
+                    final String name = result.get(UUID.fromString(element.getKey()));
 
                     if (name == null) {
                         element.setKey("&cFailed to get name!");
@@ -63,10 +63,10 @@ public abstract class AbstractDatabase implements Database {
                     element.setKey(name);
                 }
 
-                callback.accept(result);
+                callback.accept(list);
             });
         } else {
-            callback.accept(result);
+            callback.accept(list);
         }
     }
 }

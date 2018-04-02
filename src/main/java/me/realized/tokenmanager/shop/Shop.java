@@ -45,10 +45,12 @@ public class Shop {
     private final boolean autoClose;
     @Getter
     private final boolean usePermission;
+    @Getter
+    private final boolean confirmPurchase;
 
     private Map<Integer, Slot> slots;
 
-    public Shop(final String name, final String title, final int rows, final boolean autoClose, final boolean usePermission) throws IllegalArgumentException {
+    public Shop(final String name, final String title, final int rows, final boolean autoClose, final boolean usePermission, final boolean confirmPurchase) throws IllegalArgumentException {
         if (name == null || name.isEmpty()) {
             throw new IllegalArgumentException("Name is null or empty.");
         }
@@ -66,6 +68,7 @@ public class Shop {
         this.gui = Bukkit.createInventory(null, rows * 9, StringUtil.color(title));
         this.autoClose = autoClose;
         this.usePermission = usePermission;
+        this.confirmPurchase = confirmPurchase;
     }
 
     public void setSlot(final int slot, final ItemStack displayed, final Slot data) {

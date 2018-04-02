@@ -29,6 +29,7 @@ package me.realized.tokenmanager.shop;
 
 import java.util.List;
 import lombok.Getter;
+import org.bukkit.inventory.ItemStack;
 
 public class Slot {
 
@@ -37,6 +38,8 @@ public class Slot {
     @Getter
     private final int cost;
     @Getter
+    private final ItemStack displayed;
+    @Getter
     private final String message;
     @Getter
     private final String subshop;
@@ -44,13 +47,17 @@ public class Slot {
     private final List<String> commands;
     @Getter
     private final boolean usePermission;
+    @Getter
+    private final boolean confirmPurchase;
 
-    public Slot(final int slot, final int cost, final String message, final String subshop, final List<String> commands, final boolean usePermission) {
+    public Slot(final int slot, final int cost, final ItemStack displayed, final String message, final String subshop, final List<String> commands, final boolean usePermission, final boolean confirmPurchase) {
         this.slot = slot;
         this.cost = cost;
+        this.displayed = displayed;
         this.message = message;
         this.subshop = subshop;
         this.commands = commands;
         this.usePermission = usePermission;
+        this.confirmPurchase = confirmPurchase;
     }
 }

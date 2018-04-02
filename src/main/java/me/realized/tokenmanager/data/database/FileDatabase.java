@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.OptionalLong;
 import java.util.UUID;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.util.Log;
 import me.realized.tokenmanager.util.profile.ProfileUtil;
@@ -153,7 +152,7 @@ public class FileDatabase extends AbstractDatabase {
         plugin.doAsync(() -> {
             elements.sort(Comparator.comparingLong(TopElement::getTokens).reversed());
             final List<TopElement> result = elements.size() > limit ? elements.subList(0, 10) : elements;
-            checkNames(result.stream().map(element -> UUID.fromString(element.getKey())).collect(Collectors.toList()), result, consumer);
+            replaceNames(result, consumer);
 
             try {
                 config.save(file);

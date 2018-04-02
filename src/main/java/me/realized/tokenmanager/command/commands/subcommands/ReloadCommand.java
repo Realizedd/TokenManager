@@ -27,6 +27,7 @@
 
 package me.realized.tokenmanager.command.commands.subcommands;
 
+import java.io.IOException;
 import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.command.BaseCommand;
 import org.bukkit.command.CommandSender;
@@ -39,6 +40,18 @@ public class ReloadCommand extends BaseCommand {
 
     @Override
     protected void execute(final CommandSender sender, final String label, final String[] args) {
+        if (args.length > getLength() && args[1].equalsIgnoreCase("lang")) {
+            plugin.getLang().handleUnload();
+            try {
+                plugin.getLang().handleLoad();
+                sendMessage(sender, false, "&a[" + plugin.getDescription().getFullName() + "] lang.yml was reloaded.");
+            } catch (IOException ex) {
+                ex.printStackTrace();
+                sendMessage(sender, false, "&cAn error occured while reloading lang.yml! Please check the console for more information.");
+            }
+            return;
+        }
+
         if (plugin.reload()) {
             sendMessage(sender, false, "&a[" + plugin.getDescription().getFullName() + "] Reload complete.");
         } else {

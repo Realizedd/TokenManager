@@ -102,31 +102,34 @@ public class MySQLDatabase extends AbstractDatabase {
 
         this.dataSource = new HikariDataSource(hikariConfig);
 
-        final String password = config.getRedisPassword();
 
-        if (password.isEmpty()) {
-            this.jedisPool = new JedisPool(new JedisPoolConfig(), config.getRedisServer(), config.getRedisPort(), 0);
-        } else {
-            this.jedisPool = new JedisPool(new JedisPoolConfig(), config.getRedisServer(), config.getRedisPort(), 0,
-                config.getRedisPassword());
-        }
+        if (config.isRedisEnabled()) {
+            final String password = config.getRedisPassword();
 
-        plugin.doAsync(() -> {
-            try (Jedis jedis = jedisPool.getResource()) {
-                jedis.subscribe(listener = new JedisListener(), "tokenmanager");
-                usingRedis = true;
-            } catch (Exception ex) {
-                usingRedis = false;
-                Log.error("Failed to connect to the redis server! Player balance synchronization issues may occur when modifying them while offline.");
-                Log.error("Cause of error: " + ex.getMessage());
+            if (password.isEmpty()) {
+                this.jedisPool = new JedisPool(new JedisPoolConfig(), config.getRedisServer(), config.getRedisPort(), 0);
+            } else {
+                this.jedisPool = new JedisPool(new JedisPoolConfig(), config.getRedisServer(), config.getRedisPort(), 0,
+                    config.getRedisPassword());
             }
-        });
+
+            plugin.doAsync(() -> {
+                try (Jedis jedis = jedisPool.getResource()) {
+                    jedis.subscribe(listener = new JedisListener(), "tokenmanager");
+                    usingRedis = true;
+                } catch (Exception ex) {
+                    usingRedis = false;
+                    Log.error("Failed to connect to the redis server! Player balance synchronization issues may occur when modifying them while offline.");
+                    Log.error("Cause of error: " + ex.getMessage());
+                }
+            });
+        }
 
         try (
             Connection connection = dataSource.getConnection();
             Statement statement = connection.createStatement()
         ) {
-            statement.execute(Query.CREATE_TABLE.get());
+            statement.execute(Query.CREATE_TABLE.query);
 
             try (ResultSet resultSet = connection.getMetaData().getColumns(null, null, table, "name")) {
                 if (resultSet.isBeforeFirst() == online) {
@@ -168,7 +171,7 @@ public class MySQLDatabase extends AbstractDatabase {
     public void set(final String key, final boolean set, final long amount, final long updated, final Runnable action, final Consumer<String> errorHandler) {
         executor.execute(() -> {
             try (Connection connection = dataSource.getConnection()) {
-                insert(connection, key, updated);
+                update(connection, key, updated);
 
                 if (usingRedis) {
                     publish(key + ":" + (set ? updated : amount) + ":" + set);
@@ -196,7 +199,7 @@ public class MySQLDatabase extends AbstractDatabase {
         data.remove(player.getUniqueId());
         executor.execute(() -> {
             try (Connection connection = dataSource.getConnection()) {
-                insert(connection, online ? player.getUniqueId().toString() : player.getName(), balance.getAsLong());
+                update(connection, online ? player.getUniqueId().toString() : player.getName(), balance.getAsLong());
             } catch (Exception ex) {
                 Log.error("Failed to save data for " + player.getName() + ": " + ex.getMessage());
                 ex.printStackTrace();
@@ -245,23 +248,16 @@ public class MySQLDatabase extends AbstractDatabase {
                 insertCache(connection, copy, false);
                 connection.setAutoCommit(true);
 
-                try (PreparedStatement statement = connection.prepareStatement(Query.SELECT_WITH_LIMIT.get())) {
+                try (PreparedStatement statement = connection.prepareStatement(Query.SELECT_WITH_LIMIT.query)) {
                     statement.setInt(1, limit);
-
-                    final List<UUID> uuids = new ArrayList<>();
 
                     try (ResultSet resultSet = statement.executeQuery()) {
                         while (resultSet.next()) {
                             final String key = online ? resultSet.getString("uuid") : resultSet.getString("name");
-
-                            if (online) {
-                                uuids.add(UUID.fromString(key));
-                            }
-
                             result.add(new TopElement(key, (int) resultSet.getLong("tokens")));
                         }
 
-                        checkNames(uuids, result, consumer);
+                        replaceNames(result, consumer);
                     }
                 }
             } catch (Exception ex) {
@@ -294,7 +290,7 @@ public class MySQLDatabase extends AbstractDatabase {
 
             try (
                 Connection connection = dataSource.getConnection();
-                PreparedStatement statement = connection.prepareStatement(Query.INSERT.get())
+                PreparedStatement statement = connection.prepareStatement(Query.INSERT_OR_UPDATE.query)
             ) {
                 connection.setAutoCommit(false);
                 int i = 0;
@@ -324,32 +320,37 @@ public class MySQLDatabase extends AbstractDatabase {
     }
 
     private void insert(final Connection connection, final String key, final long value) throws SQLException {
-        try (PreparedStatement statement = connection.prepareStatement(Query.INSERT.get())) {
+        try (PreparedStatement statement = connection.prepareStatement(Query.INSERT.query)) {
             statement.setString(1, key);
             statement.setLong(2, value);
-            statement.setLong(3, value);
+            statement.execute();
+        }
+    }
+
+    private void update(final Connection connection, final String key, final long value) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement(Query.UPDATE.query)) {
+            statement.setLong(1, value);
+            statement.setString(2, key);
             statement.execute();
         }
     }
 
     private void insertCache(final Connection connection, final Map<UUID, Long> cache, final boolean remove) throws SQLException {
-        try (PreparedStatement statement = connection.prepareStatement(Query.INSERT.get())) {
+        try (PreparedStatement statement = connection.prepareStatement(Query.UPDATE.query)) {
             connection.setAutoCommit(false);
 
             int i = 0;
             final Collection<? extends Player> players = Bukkit.getOnlinePlayers();
 
             for (final Player player : players) {
-                final Optional<Long> balance = Optional
-                    .ofNullable(remove ? cache.remove(player.getUniqueId()) : cache.get(player.getUniqueId()));
+                final Optional<Long> balance = Optional.ofNullable(remove ? cache.remove(player.getUniqueId()) : cache.get(player.getUniqueId()));
 
                 if (!balance.isPresent()) {
                     continue;
                 }
 
-                statement.setString(1, online ? player.getUniqueId().toString() : player.getName());
-                statement.setLong(2, balance.get());
-                statement.setLong(3, balance.get());
+                statement.setLong(1, balance.get());
+                statement.setString(2, online ? player.getUniqueId().toString() : player.getName());
                 statement.addBatch();
 
                 if (++i % 100 == 0 || i == players.size()) {
@@ -364,7 +365,7 @@ public class MySQLDatabase extends AbstractDatabase {
     private OptionalLong select(final String key, final boolean create) throws Exception {
         try (
             Connection connection = dataSource.getConnection();
-            PreparedStatement statement = connection.prepareStatement(Query.SELECT_ONE.get())
+            PreparedStatement statement = connection.prepareStatement(Query.SELECT_ONE.query)
         ) {
             statement.setString(1, key);
 
@@ -426,10 +427,12 @@ public class MySQLDatabase extends AbstractDatabase {
 
     private enum Query {
 
-        CREATE_TABLE("CREATE TABLE IF NOT EXISTS {table} ({column} NOT NULL, tokens bigint(255) NOT NULL, PRIMARY KEY ({identifier}));"),
-        SELECT_WITH_LIMIT("SELECT {identifier}, tokens from {table} ORDER BY tokens DESC LIMIT ?;"),
+        CREATE_TABLE("CREATE TABLE IF NOT EXISTS {table} (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, {column} NOT NULL UNIQUE, tokens BIGINT(255) NOT NULL);"),
+        SELECT_WITH_LIMIT("SELECT {identifier}, tokens FROM {table} ORDER BY tokens DESC LIMIT ?;"),
         SELECT_ONE("SELECT tokens FROM {table} WHERE {identifier}=?;"),
-        INSERT("INSERT INTO {table} ({identifier}, tokens) VALUES (?, ?) ON DUPLICATE KEY UPDATE tokens=?;");
+        INSERT("INSERT INTO {table} ({identifier}, tokens) VALUES (?, ?);"),
+        UPDATE("UPDATE {table} SET tokens=? WHERE {identifier}=?;"),
+        INSERT_OR_UPDATE("INSERT INTO {table} ({identifier}, tokens) VALUES (?, ?) ON DUPLICATE KEY UPDATE tokens=?;");
 
         private String query;
 
@@ -437,22 +440,18 @@ public class MySQLDatabase extends AbstractDatabase {
             this.query = query;
         }
 
-        private static void update(final String table, final boolean online) {
-            for (final Query query : values()) {
-                query.replace(s -> s.replace("{table}", table).replace("{identifier}", online ? "UUID" : "NAME"));
-
-                if (query == CREATE_TABLE) {
-                    query.replace(s -> s.replace("{column}", online ? "uuid varchar(36)" : "name varchar(16)"));
-                }
-            }
-        }
-
-        private String get() {
-            return query;
-        }
-
         private void replace(final Function<String, String> function) {
             this.query = function.apply(query);
+        }
+
+        private static void update(final String table, final boolean online) {
+            for (final Query query : values()) {
+                query.replace(s -> s.replace("{table}", table).replace("{identifier}", online ? "uuid" : "name"));
+
+                if (query == CREATE_TABLE) {
+                    query.replace(s -> s.replace("{column}", online ? "uuid VARCHAR(36)" : "name VARCHAR(16)"));
+                }
+            }
         }
     }
 
