@@ -31,7 +31,7 @@ public final class Log {
         }
     }
 
-    public static void error(final Reloadable reloadable, final String s) {
-        error(reloadable.getClass().getSimpleName() + ": " + s);
+    public static void error(final Loadable loadable, final String s) {
+        error(loadable.getClass().getSimpleName() + ": " + s);
     }
 }

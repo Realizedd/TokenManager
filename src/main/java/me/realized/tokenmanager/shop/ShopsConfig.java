@@ -28,26 +28,42 @@
 package me.realized.tokenmanager.shop;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalLong;
+import java.util.UUID;
+import lombok.Getter;
 import me.realized.tokenmanager.TokenManagerPlugin;
+import me.realized.tokenmanager.config.Config;
 import me.realized.tokenmanager.util.Log;
 import me.realized.tokenmanager.util.NumberUtil;
+import me.realized.tokenmanager.util.Reloadable;
+import me.realized.tokenmanager.util.StringUtil;
 import me.realized.tokenmanager.util.config.AbstractConfiguration;
+import me.realized.tokenmanager.util.inventory.GUIBuilder;
+import me.realized.tokenmanager.util.inventory.GUIBuilder.Pattern;
 import me.realized.tokenmanager.util.inventory.ItemBuilder;
 import me.realized.tokenmanager.util.inventory.ItemUtil;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
-public class ShopConfig extends AbstractConfiguration<TokenManagerPlugin> {
+public class ShopsConfig extends AbstractConfiguration<TokenManagerPlugin> implements Reloadable {
 
     private final Map<String, Shop> shops = new LinkedHashMap<>();
 
-    public ShopConfig(final TokenManagerPlugin plugin) {
+    @Getter
+    private final Map<UUID, ConfirmInventory> inventories = new HashMap<>();
+
+    @Getter
+    private Inventory confirmGuiSample;
+
+    public ShopsConfig(final TokenManagerPlugin plugin) {
         super(plugin, "shops");
     }
 
@@ -126,10 +142,44 @@ public class ShopConfig extends AbstractConfiguration<TokenManagerPlugin> {
 
             register(name, shop);
         }
+
+        final Config config = plugin.getConfiguration();
+
+        this.confirmGuiSample = GUIBuilder.of(StringUtil.color(config.getConfirmPurchaseTitle()), 3)
+            .pattern(
+                Pattern.of("AAABBBCCC", "AAABBBCCC", "AAABBBCCC")
+                    .specify('A', ItemBuilder.of(Material.STAINED_GLASS_PANE, 1, (short) 13).name(" ").build())
+                    .specify('B', ItemBuilder.of(Material.STAINED_GLASS_PANE, 1, (short) 7).name(" ").build())
+                    .specify('C', ItemBuilder.of(Material.STAINED_GLASS_PANE, 1, (short) 14).name(" ").build()))
+            .set(
+                ConfirmInventory.CONFIRM_PURCHASE_SLOT,
+                ItemUtil.loadFromString(config.getConfirmPurchaseConfirm(), error -> Log.error(this, "Failed to load confirm-button: " + error))
+            )
+            .set(
+                ConfirmInventory.CANCEL_PURCHASE_SLOT,
+                ItemUtil.loadFromString(config.getConfirmPurchaseCancel(), error -> Log.error(this, "Failed to load cancel-button: " + error))
+            )
+            .build();
     }
 
     @Override
     public void handleUnload() {
+        Bukkit.getOnlinePlayers().forEach(player -> {
+            final Inventory top = player.getOpenInventory().getTopInventory();
+
+            if (getShops().stream().anyMatch(shop -> shop.getGui().equals(top))) {
+                player.closeInventory();
+                player.sendMessage(StringUtil.color("&cShop was automatically closed since the plugin is deactivating."));
+                return;
+            }
+
+            final ConfirmInventory inventory = inventories.get(player.getUniqueId());
+
+            if (inventory != null && inventory.getInventory().equals(top)) {
+                player.closeInventory();
+            }
+        });
+
         shops.clear();
     }
 

@@ -45,14 +45,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import me.realized.tokenmanager.util.Reloadable;
+import me.realized.tokenmanager.util.Loadable;
 import me.realized.tokenmanager.util.config.convert.Converter;
 import org.bukkit.configuration.MemorySection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
-public abstract class AbstractConfiguration<P extends JavaPlugin> implements Reloadable {
+public abstract class AbstractConfiguration<P extends JavaPlugin> implements Loadable {
 
     private static final String CONVERT_START = "[!] Converting your current configuration (%s) to the new version...";
     private static final String CONVERT_SAVE = "[!] Your old configuration was stored as %s.";

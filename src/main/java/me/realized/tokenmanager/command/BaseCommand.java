@@ -30,9 +30,9 @@ package me.realized.tokenmanager.command;
 import java.util.Optional;
 import java.util.function.Consumer;
 import me.realized.tokenmanager.TokenManagerPlugin;
-import me.realized.tokenmanager.config.TMConfig;
+import me.realized.tokenmanager.config.Config;
 import me.realized.tokenmanager.data.DataManager;
-import me.realized.tokenmanager.shop.ShopConfig;
+import me.realized.tokenmanager.shop.ShopsConfig;
 import me.realized.tokenmanager.util.command.AbstractCommand;
 import me.realized.tokenmanager.util.profile.ProfileUtil;
 import org.bukkit.ChatColor;
@@ -40,8 +40,8 @@ import org.bukkit.command.CommandSender;
 
 public abstract class BaseCommand extends AbstractCommand<TokenManagerPlugin> {
 
-    protected final TMConfig config;
-    protected final ShopConfig shopConfig;
+    protected final Config config;
+    protected final ShopsConfig shopConfig;
     protected final DataManager dataManager;
 
     public BaseCommand(final TokenManagerPlugin plugin, final String name, final String permission, final boolean playerOnly) {

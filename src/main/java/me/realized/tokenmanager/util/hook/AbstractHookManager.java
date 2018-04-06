@@ -31,12 +31,12 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
-import me.realized.tokenmanager.util.Reloadable;
+import me.realized.tokenmanager.util.Loadable;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
-public abstract class AbstractHookManager<P extends JavaPlugin> implements Reloadable {
+public abstract class AbstractHookManager<P extends JavaPlugin> implements Loadable {
 
     protected final P plugin;
     private final Map<Class<? extends PluginHook<P>>, PluginHook<P>> hooks = new HashMap<>();

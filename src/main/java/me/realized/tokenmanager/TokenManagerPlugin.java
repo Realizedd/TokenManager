@@ -32,17 +32,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.OptionalLong;
+import java.util.stream.Collectors;
 import lombok.Getter;
 import me.realized.tokenmanager.api.TokenManager;
 import me.realized.tokenmanager.command.commands.TMCommand;
 import me.realized.tokenmanager.command.commands.TokenCommand;
+import me.realized.tokenmanager.config.Config;
 import me.realized.tokenmanager.config.Lang;
-import me.realized.tokenmanager.config.TMConfig;
 import me.realized.tokenmanager.data.DataManager;
 import me.realized.tokenmanager.hooks.HookManager;
 import me.realized.tokenmanager.shop.Shop;
-import me.realized.tokenmanager.shop.ShopConfig;
 import me.realized.tokenmanager.shop.ShopListener;
+import me.realized.tokenmanager.shop.ShopsConfig;
+import me.realized.tokenmanager.util.Loadable;
 import me.realized.tokenmanager.util.Log;
 import me.realized.tokenmanager.util.Reloadable;
 import org.bukkit.entity.Player;
@@ -51,29 +53,29 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class TokenManagerPlugin extends JavaPlugin implements TokenManager {
 
-    private final List<Reloadable> reloadables = new ArrayList<>();
+    private final List<Loadable> loadables = new ArrayList<>();
     private int lastLoad;
 
     @Getter
-    private TMConfig configuration;
+    private Config configuration;
     @Getter
     private Lang lang;
     @Getter
-    private ShopConfig shopConfig;
+    private ShopsConfig shopConfig;
     @Getter
     private DataManager dataManager;
 
     @Override
     public void onEnable() {
         Log.setSource(this);
-        reloadables.add(configuration = new TMConfig(this));
-        reloadables.add(lang = new Lang(this));
-        reloadables.add(shopConfig = new ShopConfig(this));
-        reloadables.add(dataManager = new DataManager(this));
-        reloadables.add(new ShopListener(this));
-        reloadables.add(new HookManager(this));
+        loadables.add(configuration = new Config(this));
+        loadables.add(lang = new Lang(this));
+        loadables.add(shopConfig = new ShopsConfig(this));
+        loadables.add(dataManager = new DataManager(this));
+        loadables.add(new ShopListener(this));
+        loadables.add(new HookManager(this));
 
-        if (!loadReloadables()) {
+        if (!load()) {
             getPluginLoader().disablePlugin(this);
             return;
         }
@@ -84,21 +86,21 @@ public class TokenManagerPlugin extends JavaPlugin implements TokenManager {
 
     @Override
     public void onDisable() {
-        unloadReloadables();
+        unload();
         Log.setSource(null);
     }
 
     /**
      * @return true if load was successful, otherwise false
      */
-    private boolean loadReloadables() {
-        for (final Reloadable reloadable : reloadables) {
+    private boolean load() {
+        for (final Loadable loadable : loadables) {
             try {
-                reloadable.handleLoad();
-                lastLoad = reloadables.indexOf(reloadable);
-                Log.info("Loaded " + reloadable.getClass().getSimpleName() + ".");
+                loadable.handleLoad();
+                lastLoad = loadables.indexOf(loadable);
+                Log.info("Loaded " + loadable.getClass().getSimpleName() + ".");
             } catch (Exception ex) {
-                Log.error("There was an error while loading " + reloadable.getClass().getSimpleName()
+                Log.error("There was an error while loading " + loadable.getClass().getSimpleName()
                     + "! If you believe this is an issue from the plugin, please contact the developer.");
                 Log.error("Cause of error: " + ex.getMessage());
                 ex.printStackTrace();
@@ -112,17 +114,17 @@ public class TokenManagerPlugin extends JavaPlugin implements TokenManager {
     /**
      * @return true if unload was successful, otherwise false
      */
-    private boolean unloadReloadables() {
-        for (final Reloadable reloadable : Lists.reverse(reloadables)) {
+    private boolean unload() {
+        for (final Loadable loadable : Lists.reverse(loadables)) {
             try {
-                if (reloadables.indexOf(reloadable) > lastLoad) {
+                if (loadables.indexOf(loadable) > lastLoad) {
                     continue;
                 }
 
-                reloadable.handleUnload();
-                Log.info("Unloaded " + reloadable.getClass().getSimpleName() + ".");
+                loadable.handleUnload();
+                Log.info("Unloaded " + loadable.getClass().getSimpleName() + ".");
             } catch (Exception ex) {
-                Log.error("There was an error while unloading " + reloadable.getClass().getSimpleName()
+                Log.error("There was an error while unloading " + loadable.getClass().getSimpleName()
                     + "! If you believe this is an issue from the plugin, please contact the developer.");
                 Log.error("Cause of error: " + ex.getMessage());
                 ex.printStackTrace();
@@ -167,11 +169,41 @@ public class TokenManagerPlugin extends JavaPlugin implements TokenManager {
 
     @Override
     public boolean reload() {
-        if (!(unloadReloadables() && loadReloadables())) {
+        if (!(unload() && load())) {
             getPluginLoader().disablePlugin(this);
             return false;
         }
 
         return true;
+    }
+
+    public Optional<Loadable> find(final String name) {
+        return loadables.stream().filter(loadable -> loadable.getClass().getSimpleName().equalsIgnoreCase(name)).findFirst();
+    }
+
+    public List<String> getReloadables() {
+        return loadables.stream()
+            .filter(loadable -> loadable instanceof Reloadable)
+            .map(loadable -> loadable.getClass().getSimpleName())
+            .collect(Collectors.toList());
+    }
+
+    public boolean tryReload(final Loadable loadable) {
+        final String name = loadable.getClass().getSimpleName();
+        boolean unloaded = false;
+        try {
+            loadable.handleUnload();
+            unloaded = true;
+            Log.info("UnLoaded " + name + ".");
+            loadable.handleLoad();
+            Log.info("Loaded " + name + ".");
+            return true;
+        } catch (Exception ex) {
+            Log.error("There was an error while " + (unloaded ? "loading " : "unloading ") + name
+                + "! If you believe this is an issue from the plugin, please contact the developer.");
+            Log.error("Cause of error: " + ex.getMessage());
+            ex.printStackTrace();
+            return false;
+        }
     }
 }

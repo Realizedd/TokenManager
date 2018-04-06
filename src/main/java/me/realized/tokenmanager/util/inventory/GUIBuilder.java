@@ -72,6 +72,10 @@ public final class GUIBuilder {
             this.rows = Arrays.asList(rows);
         }
 
+        public static Pattern of(final String... rows) {
+            return new Pattern(rows);
+        }
+
         public Pattern specify(final char key, final ItemStack item) {
             keys.put(key, item);
             return this;
@@ -89,10 +93,6 @@ public final class GUIBuilder {
                     inventory.setItem(row * 9 + i, keys.get(pattern.charAt(i)).clone());
                 }
             }
-        }
-
-        public static Pattern of(final String... rows) {
-            return new Pattern(rows);
         }
     }
 }

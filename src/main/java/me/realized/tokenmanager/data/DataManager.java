@@ -37,7 +37,7 @@ import me.realized.tokenmanager.data.database.Database;
 import me.realized.tokenmanager.data.database.Database.TopElement;
 import me.realized.tokenmanager.data.database.FileDatabase;
 import me.realized.tokenmanager.data.database.MySQLDatabase;
-import me.realized.tokenmanager.util.Reloadable;
+import me.realized.tokenmanager.util.Loadable;
 import me.realized.tokenmanager.util.StringUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -49,7 +49,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.scheduler.BukkitScheduler;
 
-public class DataManager implements Reloadable, Listener {
+public class DataManager implements Loadable, Listener {
 
     private final TokenManagerPlugin plugin;
 

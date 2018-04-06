@@ -36,7 +36,7 @@ import me.realized.tokenmanager.util.config.AbstractConfiguration;
 import me.realized.tokenmanager.util.config.convert.Converter;
 import org.bukkit.configuration.file.FileConfiguration;
 
-public class TMConfig extends AbstractConfiguration<TokenManagerPlugin> {
+public class Config extends AbstractConfiguration<TokenManagerPlugin> {
 
     @Getter
     private int version;
@@ -81,7 +81,7 @@ public class TMConfig extends AbstractConfiguration<TokenManagerPlugin> {
     @Getter
     private int balanceTopUpdateInterval;
 
-    public TMConfig(final TokenManagerPlugin plugin) {
+    public Config(final TokenManagerPlugin plugin) {
         super(plugin, "config");
     }
 

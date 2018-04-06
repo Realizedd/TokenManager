@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.regex.Pattern;
 import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.util.Log;
+import me.realized.tokenmanager.util.Reloadable;
 import me.realized.tokenmanager.util.StringUtil;
 import me.realized.tokenmanager.util.config.AbstractConfiguration;
 import me.realized.tokenmanager.util.config.convert.Converter;
@@ -42,7 +43,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.MemorySection;
 import org.bukkit.configuration.file.FileConfiguration;
 
-public class Lang extends AbstractConfiguration<TokenManagerPlugin> {
+public class Lang extends AbstractConfiguration<TokenManagerPlugin> implements Reloadable {
 
     private final Map<String, String> messages = new HashMap<>();
 

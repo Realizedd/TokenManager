@@ -52,7 +52,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import lombok.Getter;
 import me.realized.tokenmanager.TokenManagerPlugin;
-import me.realized.tokenmanager.config.TMConfig;
+import me.realized.tokenmanager.config.Config;
 import me.realized.tokenmanager.util.Log;
 import me.realized.tokenmanager.util.NumberUtil;
 import me.realized.tokenmanager.util.profile.ProfileUtil;
@@ -93,7 +93,7 @@ public class MySQLDatabase extends AbstractDatabase {
 
     @Override
     public void setup() throws Exception {
-        final TMConfig config = plugin.getConfiguration();
+        final Config config = plugin.getConfiguration();
         final HikariConfig hikariConfig = new HikariConfig();
         hikariConfig.setJdbcUrl("jdbc:mysql://" + config.getMysqlHostname() + ":" + config.getMysqlPort() + "/" + config.getMysqlDatabase());
         hikariConfig.setDriverClassName("com.mysql.jdbc.Driver");
@@ -101,7 +101,6 @@ public class MySQLDatabase extends AbstractDatabase {
         hikariConfig.setPassword(config.getMysqlPassword());
 
         this.dataSource = new HikariDataSource(hikariConfig);
-
 
         if (config.isRedisEnabled()) {
             final String password = config.getRedisPassword();
@@ -440,10 +439,6 @@ public class MySQLDatabase extends AbstractDatabase {
             this.query = query;
         }
 
-        private void replace(final Function<String, String> function) {
-            this.query = function.apply(query);
-        }
-
         private static void update(final String table, final boolean online) {
             for (final Query query : values()) {
                 query.replace(s -> s.replace("{table}", table).replace("{identifier}", online ? "uuid" : "name"));
@@ -452,6 +447,10 @@ public class MySQLDatabase extends AbstractDatabase {
                     query.replace(s -> s.replace("{column}", online ? "uuid VARCHAR(36)" : "name VARCHAR(16)"));
                 }
             }
+        }
+
+        private void replace(final Function<String, String> function) {
+            this.query = function.apply(query);
         }
     }
 

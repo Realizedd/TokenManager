@@ -69,19 +69,8 @@ public final class NameFetcher {
 
     private static class NameCollectorTask implements Runnable {
 
-        private class Key {
-
-            private final UUID uuid;
-            private int attempts;
-
-            Key(final UUID uuid) {
-                this.uuid = uuid;
-            }
-        }
-
         private final List<Key> keys = new ArrayList<>();
         private final Consumer<Map<UUID, String>> consumer;
-
         private final Map<UUID, String> names = new HashMap<>();
 
         NameCollectorTask(final List<UUID> uuids, final Consumer<Map<UUID, String>> consumer) {
@@ -120,6 +109,16 @@ public final class NameFetcher {
 
             // Run with delay to not trigger the rate limit
             EXECUTOR_SERVICE.schedule(this, 250L, TimeUnit.MILLISECONDS);
+        }
+
+        private class Key {
+
+            private final UUID uuid;
+            private int attempts;
+
+            Key(final UUID uuid) {
+                this.uuid = uuid;
+            }
         }
     }
 }
