@@ -97,11 +97,17 @@ public class ShopsConfig extends AbstractConfiguration<TokenManagerPlugin> imple
 
             if (itemsSection != null) {
                 for (final String num : itemsSection.getKeys(false)) {
-                    final OptionalLong slot = NumberUtil.parseLong(num);
+                    final OptionalLong target = NumberUtil.parseLong(num);
 
-                    if (!slot.isPresent() || slot.getAsLong() < 0 || slot.getAsLong() >= shop.getGui().getSize()) {
-                        Log.error(this, "Failed to load slot '" + num + "' for shop '" + name + "': '" + slot
-                            + "' is not a valid number or is over the shop size.");
+                    if (!target.isPresent()) {
+                        Log.error(this, "Failed to load slot '" + num + "' of shop '" + name + "': '" + num + "' is not a valid number.");
+                        continue;
+                    }
+
+                    final long slot = target.getAsLong();
+
+                    if (slot < 0 || slot >= shop.getGui().getSize()) {
+                        Log.error(this, "Failed to load slot '" + num + "' of shop '" + name + "': '" + slot + "' is over the shop size.");
                         continue;
                     }
 
@@ -111,7 +117,7 @@ public class ShopsConfig extends AbstractConfiguration<TokenManagerPlugin> imple
                     try {
                         displayed = ItemUtil.loadFromString(slotSection.getString("displayed"));
                     } catch (Exception ex) {
-                        shop.getGui().setItem((int) slot.getAsLong(), ItemBuilder
+                        shop.getGui().setItem((int) slot, ItemBuilder
                             .of(Material.REDSTONE_BLOCK)
                             .name("&4&m------------------")
                             .lore(
@@ -127,8 +133,8 @@ public class ShopsConfig extends AbstractConfiguration<TokenManagerPlugin> imple
                         continue;
                     }
 
-                    shop.setSlot((int) slot.getAsLong(), displayed, new Slot(
-                        (int) slot.getAsLong(),
+                    shop.setSlot((int) slot, displayed, new Slot(
+                        (int) slot,
                         slotSection.getInt("cost", 1000000),
                         displayed,
                         slotSection.getString("message"),

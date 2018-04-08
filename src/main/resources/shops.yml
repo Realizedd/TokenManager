@@ -1,51 +1,25 @@
-# ----------------------------------[ shop configuration tutorial ]----------------------------------
+#-----------------------------------------------------------------------------------------
 #
-# READ BEFORE CONFIGURING YOUR OWN!
+# Helpful Information:
 #
-#shops:
-#  test: <--- Name of the shop. Used in commands like '/token shop <name>'. Must be unique!
-#    title: '&6Default Shop' <--- Title of the shop inventory.
-#    rows: 1 <--- Rows of the shop inventory. Must be a number between 1 - 6.
-#    auto-close: true <--- Decides whether the shop inventory should be automatically closed or stay open on a purchase.
-#    use-permission: false <--- 'true' to only allow players with the permission 'tokenmanager.use.shop.<name of the shop>' to use the shop.
-#    items:
-#      '0': <--- Slot to display this item. 0 is the first slot of the shop inventory.
-#        displayed: 276 1 name:&cGod_Sword sharpness:5 fireaspect:2 lore:&bEliminate_your|&cEnemies&b! <--- The displayed item.
-#        cost: 10 <--- Cost of this item in tokens.
-#        subshop: yoursubshop <--- If set, opens the specified subshop on purchase.
-#        message: '&bTM &8» &7Thanks for your purchase, %player%! &c-10 tokens' <--- If set, this message will be sent on purchase.
-#        commands: <--- Commands to be executed on purchase.
-#        - 'give %player% 276 1 name:&cGod_Sword sharpness:5 fireaspect:2 lore:&bEliminate_your|&cEnemies&b!'
-#  yoursubshop:
-#    title: '&6Default Sub Shop'
-#    rows: 2
-#    auto-close: false
-#    use-permission: false
-#    items:
-#      '1':
-#        displayed: 373:16421 1 name:&dSPlash_Potion_of_Healing
-#        cost: 5
-#        commands:
-#        - 'give %player% 373:16421 1 name:&dSplash_Potion_of_Healing'
-#        use-permission: true <--- 'true' to require players to have the permission 'tokenmanager.use.yoursubshop-1' to purchase this item.
+# - Item names: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Material.html
 #
 #
-# Helpful Links:
+# - Enchantment names: http://pastebin.com/0WktGa59
 #
-# - Enchantment Names: http://pastebin.com/0WktGa59
 # - (Example of adding an enchantment)
 # - displayed: 276 1 sharpness:3 smite:2 unbreaking:3
 #
-# - PotionEffect Names: http://pastebin.com/eghUaTuJ
-# - (Example of adding a custom potion effect to your displayed potion item)
-# - displayed: 373:8258 1 strength:2:200 speed:3:600)
-# (In this case, the item displayed will have Strength II (0:10) and Speed III (0:30).)
 #
-# - Item Names: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Material.html
+# - PotionEffect names: http://pastebin.com/eghUaTuJ
+#
+# - (Example of adding a custom potion effect to your displayed potion item)
+# - displayed: 373:8258 1 strength:2:200 speed:3:600
+# [In this case, the item displayed will have Strength II (0:10) and Speed III (0:30).]
+#
 #
 # [IMPORTANT]
-# * In Minecraft 1.9, potions & mob spawn eggs no longer use durability to specify type.
-# * If your server version is 1.9+, continue reading.
+# In Minecraft 1.9, potions & mob spawn eggs no longer use durability to specify the type.
 #
 #  (1.9+) - Example of setting mob spawn egg (zombie) as a displayed item
 #
@@ -67,28 +41,71 @@
 #-----------------------------------------------------------------------------------------
 
 shops:
-  test:
-    title: '&6Default Shop'
-    rows: 1
-    auto-close: true
-    use-permission: false
+  example: # Name of your shop
+    title: '&6Example Shop Title' # Title of the inventory gui displayed in-game
+    rows: 1 # Rows of your shop inventory, must be a number between 1 - 6
+    auto-close: true # 'true' to close the shop inventory when a player purchases an item
+    items:
+      '0': # Slot of the item, 0 is the first slot of the inventory gui
+        displayed: DIAMOND_SWORD 1 sharpness:5 fireaspect:2 name:&cExample_Sword lore:&bExample_Line_1|&eExample_Line_2|&aPrice:&a_10_Tokens
+        cost: 10 # Cost of this item
+        message: '&bTM &8» &7Thanks for your purchase, %player%! &c-10 tokens' # Message to be sent on purchase, %player% for purchaser's name
+        commands: # Commands to execute on purchase, %player% for purchaser's name
+        - 'give %player% DIAMOND_SWORD 1 sharpness:5 fireaspect:2 name:&cExample_Sword lore:&bExample_Line_1|&eExample_Line_2|&aPrice:_10_Tokens'
+      '1':
+        displayed: STONE 32 name:&3Stone_(x32) lore:&aPrice:_5_Tokens
+        cost: 5
+        message: '&bTM &8» &7Thanks for your purchase, %player%! &c-5 tokens'
+        commands:
+        - 'give %player% STONE 32'
+      '2':
+        displayed: DIAMOND 4 name:&bDiamond_(x4) lore:&aPrice:_50_Tokens|&c&lREQUIRES_PERMISSION!
+        cost: 50
+        use-permission: true # 'true' to require players to have the permission 'tokenmanager.use.example-2' to purchase this item
+        message: '&bTM &8» &7Thanks for your purchase, %player%! &c-50 tokens'
+        commands:
+        - 'give %player% DIAMOND 4'
+      '3':
+        displayed: WATER_BUCKET 1 name:&9Water_Bucket lore:&aPrice:_15_Tokens
+        cost: 15
+        confirm-purchase: true # 'true' to open a confirm purchase gui to make sure player intended to purchase this item
+        message: '&bTM &8» &7Thanks for your purchase, %player%! &c-15 tokens'
+        commands:
+        - 'give %player% WATER_BUCKET 1'
+      '4':
+        displayed: CHEST 1 name:&6examplesubshop lore:&7Opens_&6examplesubshop&7.
+        cost: 0
+        subshop: examplesubshop # Name of a subshop to open when this item is clicked on
+      '5':
+        displayed: CHEST 1 name:&dexamplesubshop2 lore:&7Opens_&dexamplesubshop2&7.
+        cost: 0
+        subshop: examplesubshop2
+  examplesubshop:
+    title: '&6Example Subshop Title'
+    rows: 2
     items:
       '0':
-        displayed: 276 1 name:&cGod_Sword sharpness:5 fireaspect:2 lore:&bEliminate_your|&cEnemies&b!|&dCost:&a_10_Tokens
-        cost: 10
-        subshop: yoursubshop
-        message: '&bTM &8» &7Thanks for your purchase, %player%! &c-10 tokens'
-        commands:
-        - 'give %player% 276 1 name:&cGod_Sword sharpness:5 fireaspect:2 lore:&bEliminate_your|&cEnemies&b!'
-  yoursubshop:
-    title: '&6Default Sub Shop'
-    rows: 2
-    auto-close: false
-    use-permission: false
-    items:
-      '1':
         # This will not display properly if your server version is 1.9+! Use 'POTION:INSTANT_HEAL-strong-splash' instead of '373:16421'
         displayed: 373:16421 1 name:&dSplash_Potion_of_Healing lore:&dCost:&a_5_Tokens
         cost: 5
         commands:
         - 'give %player% 373:16421 1 name:&dSplash_Potion_of_Healing'
+      '17':
+        displayed: REDSTONE_BLOCK 1 name:&cGo_Back
+        cost: 0
+        subshop: example
+  examplesubshop2:
+    title: '&6Example Subshop 2 Title'
+    rows: 1
+    use-permission: true # 'true' to require players to have the permission 'tokenmanager.use.examplesubshop2' to purchase this item
+    confirm-purchase: true # 'true' to open a confirm purchase gui for every item in this shop inventory with a cost over 0
+    items:
+      '0':
+        displayed: BEACON 1 name:&5Beacon lore:&dCost:&a_1000_Tokens
+        cost: 1000
+        commands:
+        - 'give %player% BEACON 1'
+      '8':
+        displayed: REDSTONE_BLOCK 1 name:&cGo_Back
+        cost: 0
+        subshop: example

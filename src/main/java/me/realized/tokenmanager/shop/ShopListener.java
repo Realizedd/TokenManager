@@ -164,21 +164,21 @@ public class ShopListener implements Loadable, Listener {
             return;
         }
 
-        if (!confirmGui && (target.isConfirmPurchase() || data.isConfirmPurchase())) {
-            cooldowns.remove(player.getUniqueId());
-
-            if (confirmInventory == null) {
-                confirmInventory = new ConfirmInventory(InventoryUtil.deepCopyOf(config.getConfirmGuiSample()));
-                config.getInventories().put(player.getUniqueId(), confirmInventory);
-            }
-
-            confirmInventory.update(target, data);
-            player.openInventory(confirmInventory.getInventory());
-            return;
-        }
-
         if (cost > 0) {
             dataManager.set(player, balance - cost);
+
+            if (!confirmGui && (target.isConfirmPurchase() || data.isConfirmPurchase())) {
+                cooldowns.remove(player.getUniqueId());
+
+                if (confirmInventory == null) {
+                    confirmInventory = new ConfirmInventory(InventoryUtil.deepCopyOf(config.getConfirmGuiSample()));
+                    config.getInventories().put(player.getUniqueId(), confirmInventory);
+                }
+
+                confirmInventory.update(target, data);
+                player.openInventory(confirmInventory.getInventory());
+                return;
+            }
         }
 
         handlePurchase(player, target, data, close);
@@ -206,14 +206,21 @@ public class ShopListener implements Loadable, Listener {
         }
 
         if ((subshop = slot.getSubshop()) != null && !subshop.isEmpty()) {
-            Optional<Shop> target = config.getShop(subshop);
+            final Optional<Shop> result = config.getShop(subshop);
 
-            if (!target.isPresent()) {
+            if (!result.isPresent()) {
                 plugin.getLang().sendMessage(player, true, "ERROR.shop-not-found", "input", subshop);
                 return;
             }
 
-            player.openInventory(target.get().getGui());
+            final Shop target = result.get();
+
+            if (target.isUsePermission() && !player.hasPermission("tokenmanager.use.shop." + target.getName())) {
+                plugin.getLang().sendMessage(player, true, "ERROR.no-permission", "permission", "tokenmanager.use.shop." + target.getName());
+                return;
+            }
+
+            player.openInventory(target.getGui());
             return;
         }
 

@@ -90,11 +90,7 @@ public abstract class AbstractConfiguration<P extends JavaPlugin> implements Loa
 
     protected int getLatestVersion() {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(plugin.getClass().getResourceAsStream("/" + name)))) {
-            final FileConfiguration configuration = YamlConfiguration.loadConfiguration(reader);
-
-            if (configuration.isInt("config-version")) {
-                return configuration.getInt("config-version");
-            }
+            return YamlConfiguration.loadConfiguration(reader).getInt("config-version", -1);
         } catch (IOException ex) {
             ex.printStackTrace();
         }

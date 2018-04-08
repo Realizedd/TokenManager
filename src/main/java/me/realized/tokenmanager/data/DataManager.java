@@ -51,6 +51,9 @@ import org.bukkit.scheduler.BukkitScheduler;
 
 public class DataManager implements Loadable, Listener {
 
+    // Time to wait before loading userdata. An attempt to solve synchronization issues
+    private static final long LOGIN_WAIT_DURATION = 30L;
+
     private final TokenManagerPlugin plugin;
 
     private Database database;
@@ -113,13 +116,13 @@ public class DataManager implements Loadable, Listener {
 
         final Player player = event.getPlayer();
 
-        database.get(player, balance -> {
+        plugin.doSyncAfter(() -> database.get(player, balance -> {
             if (!balance.isPresent()) {
                 return;
             }
 
             plugin.doSync(() -> database.set(player, balance.getAsLong()));
-        }, error -> player.sendMessage(ChatColor.RED + "Failed to load your token balance: " + error));
+        }, error -> player.sendMessage(ChatColor.RED + "Failed to load your token balance: " + error)), LOGIN_WAIT_DURATION);
     }
 
     @EventHandler

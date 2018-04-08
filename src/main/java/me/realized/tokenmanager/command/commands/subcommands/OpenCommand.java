@@ -41,7 +41,7 @@ import org.bukkit.entity.Player;
 public class OpenCommand extends BaseCommand {
 
     public OpenCommand(final TokenManagerPlugin plugin) {
-        super(plugin, "open", "open <username> <shop>", null, 3, true, "show");
+        super(plugin, "open", "open <username> <shop>", null, 3, false, "show");
     }
 
     @Override

@@ -1,5 +1,10 @@
 # DO NOT EDIT THIS VALUE!
-config-version: 3
+config-version: 4
+
+# Allows you to force set the plugin's mode to online/offline/automatic.
+# If you run a cracked server but the plugin detects it as online and saves UUID instead of name, set the value below to 'false'.
+# Available modes: true, false, auto (default)
+online-mode: auto
 
 # The default token balance of a first-time joiner.
 default-balance: 25
@@ -22,8 +27,7 @@ shop:
 
 # [WARNING: DANGER ZONE]
 data:
-
-  # If enabled, the plugin will use selected database as the token balance storage.
+  # If enabled, the plugin will use selected MySQL database as the token balance storage.
   # Note: To transfer all data from data.yml to the MySQL database, use the command '/tm transfer'. (MySQL must be enabled below!)
   mysql:
     enabled: false

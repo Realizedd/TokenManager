@@ -41,6 +41,8 @@ public class Config extends AbstractConfiguration<TokenManagerPlugin> {
     @Getter
     private int version;
     @Getter
+    private String onlineMode;
+    @Getter
     private int defaultBalance;
     @Getter
     private boolean openSelectedEnabled;
@@ -94,6 +96,7 @@ public class Config extends AbstractConfiguration<TokenManagerPlugin> {
         }
 
         version = configuration.getInt("config-version");
+        onlineMode = configuration.getString("online-mode", "auto");
         defaultBalance = configuration.getInt("default-balance", 25);
         openSelectedEnabled = configuration.getBoolean("shop.open-selected.enabled", false);
         openSelectedShop = configuration.getString("shop.open-selected.shop", "test");

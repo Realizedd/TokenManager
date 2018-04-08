@@ -42,7 +42,9 @@ public abstract class AbstractDatabase implements Database {
 
     AbstractDatabase(final TokenManagerPlugin plugin) {
         this.plugin = plugin;
-        this.online = ProfileUtil.isOnlineMode();
+
+        final String mode = plugin.getConfiguration().getOnlineMode();
+        this.online = mode.equals("auto") ? ProfileUtil.isOnlineMode() : mode.equals("true");
     }
 
     OptionalLong from(final Long value) {

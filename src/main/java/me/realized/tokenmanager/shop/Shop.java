@@ -56,6 +56,10 @@ public class Shop {
             throw new IllegalArgumentException("Name is null or empty.");
         }
 
+        if (name.contains("-")) {
+            throw new IllegalArgumentException("Shop name cannot contain a dash. (This is implemented to prevent errors with shop slot permissions)");
+        }
+
         this.name = name;
 
         if (title.length() > 32) {

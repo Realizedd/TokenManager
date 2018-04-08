@@ -139,6 +139,10 @@ public class TokenManagerPlugin extends JavaPlugin implements TokenManager {
         getServer().getScheduler().runTask(this, runnable);
     }
 
+    public void doSyncAfter(final Runnable runnable, final long delay) {
+        getServer().getScheduler().runTaskLater(this, runnable, delay);
+    }
+
     public int doSyncRepeat(final Runnable runnable, final long delay, final long period) {
         return getServer().getScheduler().runTaskTimer(this, runnable, delay, period).getTaskId();
     }
@@ -177,18 +181,7 @@ public class TokenManagerPlugin extends JavaPlugin implements TokenManager {
         return true;
     }
 
-    public Optional<Loadable> find(final String name) {
-        return loadables.stream().filter(loadable -> loadable.getClass().getSimpleName().equalsIgnoreCase(name)).findFirst();
-    }
-
-    public List<String> getReloadables() {
-        return loadables.stream()
-            .filter(loadable -> loadable instanceof Reloadable)
-            .map(loadable -> loadable.getClass().getSimpleName())
-            .collect(Collectors.toList());
-    }
-
-    public boolean tryReload(final Loadable loadable) {
+    public boolean reload(final Loadable loadable) {
         final String name = loadable.getClass().getSimpleName();
         boolean unloaded = false;
         try {
@@ -205,5 +198,16 @@ public class TokenManagerPlugin extends JavaPlugin implements TokenManager {
             ex.printStackTrace();
             return false;
         }
+    }
+
+    public Optional<Loadable> find(final String name) {
+        return loadables.stream().filter(loadable -> loadable.getClass().getSimpleName().equalsIgnoreCase(name)).findFirst();
+    }
+
+    public List<String> getReloadables() {
+        return loadables.stream()
+            .filter(loadable -> loadable instanceof Reloadable)
+            .map(loadable -> loadable.getClass().getSimpleName())
+            .collect(Collectors.toList());
     }
 }

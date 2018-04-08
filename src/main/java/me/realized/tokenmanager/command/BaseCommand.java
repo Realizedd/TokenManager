@@ -44,6 +44,8 @@ public abstract class BaseCommand extends AbstractCommand<TokenManagerPlugin> {
     protected final ShopsConfig shopConfig;
     protected final DataManager dataManager;
 
+    private final boolean online;
+
     public BaseCommand(final TokenManagerPlugin plugin, final String name, final String permission, final boolean playerOnly) {
         this(plugin, name, null, permission, 0, playerOnly);
     }
@@ -54,6 +56,9 @@ public abstract class BaseCommand extends AbstractCommand<TokenManagerPlugin> {
         this.config = plugin.getConfiguration();
         this.dataManager = plugin.getDataManager();
         this.shopConfig = plugin.getShopConfig();
+
+        final String mode = config.getOnlineMode();
+        this.online = mode.equals("auto") ? ProfileUtil.isOnlineMode() : mode.equals("true");
     }
 
     protected void sendMessage(final CommandSender receiver, final boolean config, final String in, final Object... replacers) {
@@ -80,7 +85,7 @@ public abstract class BaseCommand extends AbstractCommand<TokenManagerPlugin> {
 
     protected void getTarget(final CommandSender caller, final String input, final Consumer<Optional<String>> consumer) {
         // Return input (name) if server is offline mode
-        if (!ProfileUtil.isOnlineMode()) {
+        if (!online) {
             consumer.accept(Optional.of(input));
             return;
         }

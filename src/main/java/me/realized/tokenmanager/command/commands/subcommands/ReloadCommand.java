@@ -56,7 +56,7 @@ public class ReloadCommand extends BaseCommand {
 
             final String name = loadable.getClass().getSimpleName();
 
-            if (plugin.tryReload(loadable)) {
+            if (plugin.reload(loadable)) {
                 sendMessage(sender, false, "&a[" + plugin.getDescription().getFullName() + "] Successfully reloaded " + name + ".");
             } else {
                 sendMessage(sender, false, "&cAn error occured while reloading " + name + "! Please check the console for more information.");
