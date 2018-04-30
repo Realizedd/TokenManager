@@ -32,6 +32,7 @@ import be.maximvdw.placeholderapi.PlaceholderReplaceEvent;
 import be.maximvdw.placeholderapi.PlaceholderReplacer;
 import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.data.DataManager;
+import me.realized.tokenmanager.util.NumberUtil;
 import me.realized.tokenmanager.util.hook.PluginHook;
 import org.bukkit.entity.Player;
 
@@ -43,6 +44,7 @@ public class MVdWPlaceholderHook extends PluginHook<TokenManagerPlugin> implemen
         super(plugin, "MVdWPlaceholderAPI");
         this.dataManager = plugin.getDataManager();
         PlaceholderAPI.registerPlaceholder(plugin, "tm_tokens", this);
+        PlaceholderAPI.registerPlaceholder(plugin, "tm_tokens_formatted", this);
     }
 
     @Override
@@ -53,6 +55,7 @@ public class MVdWPlaceholderHook extends PluginHook<TokenManagerPlugin> implemen
             return "Player is required";
         }
 
-        return String.valueOf(dataManager.get(player).orElse(0));
+        final long balance = dataManager.get(player).orElse(0);
+        return event.getPlaceholder().equals("tm_tokens") ? String.valueOf(balance) : NumberUtil.withSuffix(balance);
     }
 }

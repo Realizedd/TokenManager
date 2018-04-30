@@ -61,6 +61,11 @@ public class SendCommand extends BaseCommand {
             return;
         }
 
+        if (config.isAltPrevention() && target.getAddress().getHostName().equals(((Player) sender).getAddress().getHostName())) {
+            sendMessage(sender, true, "ERROR.target-has-same-ip");
+            return;
+        }
+
         final OptionalLong targetBalance = dataManager.get(target);
 
         if (!targetBalance.isPresent()) {
@@ -86,7 +91,7 @@ public class SendCommand extends BaseCommand {
         final long needed;
 
         if ((needed = balance.getAsLong() - amount.getAsLong()) < 0) {
-            sendMessage(sender, true, "ERROR.not-enough-tokens", "needed", needed);
+            sendMessage(sender, true, "ERROR.balance-not-enough", "needed", needed);
             return;
         }
 

@@ -5,7 +5,7 @@ softdepend: [MVdWPlaceholderAPI, PlaceholderAPI, Vault]
 
 author: Realized
 description: A simple economy plugin for your server.
-website: http://tokenmanager.realized.me
+website: https://www.spigotmc.org/resources/tokenmanager.8610/
 
 commands:
    token:

@@ -53,6 +53,9 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class TokenManagerPlugin extends JavaPlugin implements TokenManager {
 
+    @Getter
+    private static TokenManagerPlugin instance;
+
     private final List<Loadable> loadables = new ArrayList<>();
     private int lastLoad;
 
@@ -67,6 +70,7 @@ public class TokenManagerPlugin extends JavaPlugin implements TokenManager {
 
     @Override
     public void onEnable() {
+        instance = this;
         Log.setSource(this);
         loadables.add(configuration = new Config(this));
         loadables.add(lang = new Lang(this));
@@ -86,6 +90,7 @@ public class TokenManagerPlugin extends JavaPlugin implements TokenManager {
 
     @Override
     public void onDisable() {
+        instance = null;
         unload();
         Log.setSource(null);
     }

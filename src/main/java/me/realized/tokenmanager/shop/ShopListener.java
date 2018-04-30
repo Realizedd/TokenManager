@@ -165,8 +165,6 @@ public class ShopListener implements Loadable, Listener {
         }
 
         if (cost > 0) {
-            dataManager.set(player, balance - cost);
-
             if (!confirmGui && (target.isConfirmPurchase() || data.isConfirmPurchase())) {
                 cooldowns.remove(player.getUniqueId());
 
@@ -179,6 +177,8 @@ public class ShopListener implements Loadable, Listener {
                 player.openInventory(confirmInventory.getInventory());
                 return;
             }
+
+            dataManager.set(player, balance - cost);
         }
 
         handlePurchase(player, target, data, close);

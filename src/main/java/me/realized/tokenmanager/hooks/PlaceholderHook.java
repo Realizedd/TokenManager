@@ -30,6 +30,7 @@ package me.realized.tokenmanager.hooks;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.data.DataManager;
+import me.realized.tokenmanager.util.NumberUtil;
 import me.realized.tokenmanager.util.hook.PluginHook;
 import org.bukkit.entity.Player;
 
@@ -67,15 +68,12 @@ public class PlaceholderHook extends PluginHook<TokenManagerPlugin> {
 
         @Override
         public String onPlaceholderRequest(final Player player, final String identifier) {
-            if (!identifier.equalsIgnoreCase("tokens")) {
-                return null;
-            }
-
             if (player == null) {
                 return "Player is required";
             }
 
-            return String.valueOf(dataManager.get(player).orElse(0));
+            final long balance = dataManager.get(player).orElse(0);
+            return identifier.equals("tokens") ? String.valueOf(balance) : NumberUtil.withSuffix(balance);
         }
     }
 }

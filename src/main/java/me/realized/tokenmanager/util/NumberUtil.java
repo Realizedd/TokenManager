@@ -89,4 +89,14 @@ public final class NumberUtil {
 
         return OptionalLong.of(negative ? result : -result);
     }
+
+    // Source: https://stackoverflow.com/questions/9769554/how-to-convert-number-into-k-thousands-m-million-and-b-billion-suffix-in-jsp
+    public static String withSuffix(final long count) {
+        if (count < 1000) {
+            return "" + count;
+        }
+
+        final int exp = (int) (Math.log(count) / Math.log(1000));
+        return String.format("%.1f%c", count / Math.pow(1000, exp), "kMBTQ".charAt(exp - 1));
+    }
 }

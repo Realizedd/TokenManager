@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.regex.Pattern;
 import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.util.Log;
+import me.realized.tokenmanager.util.NumberUtil;
 import me.realized.tokenmanager.util.Reloadable;
 import me.realized.tokenmanager.util.StringUtil;
 import me.realized.tokenmanager.util.config.AbstractConfiguration;
@@ -126,7 +127,14 @@ public class Lang extends AbstractConfiguration<TokenManagerPlugin> implements R
                 break;
             }
 
-            message = message.replace("%" + replacers[i].toString() + "%", String.valueOf(replacers[i + 1]));
+            final String key = String.valueOf(replacers[i]);
+            final Object value = replacers[i + 1];
+
+            if (value instanceof Long) {
+                message = message.replace("%" + key + "_formatted%", NumberUtil.withSuffix((Long) value));
+            }
+
+            message = message.replace("%" + key + "%", String.valueOf(value));
         }
 
         return message;

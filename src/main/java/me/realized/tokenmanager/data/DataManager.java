@@ -66,6 +66,48 @@ public class DataManager implements Loadable, Listener {
 
     public DataManager(final TokenManagerPlugin plugin) {
         this.plugin = plugin;
+        Bukkit.getPluginManager().registerEvents(this, plugin);
+    }
+
+    @Override
+    public void handleLoad() throws Exception {
+        this.database = plugin.getConfiguration().isMysqlEnabled() ? new MySQLDatabase(plugin) : new FileDatabase(plugin);
+        database.setup();
+
+        task = plugin.doSyncRepeat(() -> database.ordered(10, args -> plugin.doSync(() -> {
+            lastUpdateMillis = System.currentTimeMillis();
+            topCache = args;
+        })), 0L, 20L * 60L * getUpdateInterval());
+
+        for (final Player player : Bukkit.getOnlinePlayers()) {
+            database.get(player, balance -> {
+                if (!balance.isPresent()) {
+                    return;
+                }
+
+                plugin.doSync(() -> {
+                    if (!player.isOnline()) {
+                        return;
+                    }
+
+                    database.set(player, balance.getAsLong());
+                });
+            }, error -> player.sendMessage(ChatColor.RED + "Failed to load your token balance: " + error));
+        }
+    }
+
+    @Override
+    public void handleUnload() throws Exception {
+        if (task != null) {
+            final BukkitScheduler scheduler = Bukkit.getScheduler();
+
+            if (scheduler.isCurrentlyRunning(task) || scheduler.isQueued(task)) {
+                scheduler.cancelTask(task);
+            }
+        }
+
+        database.save();
+        database = null;
     }
 
     public OptionalLong get(final Player player) {
@@ -132,32 +174,5 @@ public class DataManager implements Loadable, Listener {
         }
 
         database.save(event.getPlayer());
-    }
-
-    @Override
-    public void handleLoad() throws Exception {
-        this.database = plugin.getConfiguration().isMysqlEnabled() ? new MySQLDatabase(plugin) : new FileDatabase(plugin);
-        database.setup();
-
-        task = plugin.doSyncRepeat(() -> database.ordered(10, args -> plugin.doSync(() -> {
-            lastUpdateMillis = System.currentTimeMillis();
-            topCache = args;
-        })), 0L, 20L * 60L * getUpdateInterval());
-
-        Bukkit.getPluginManager().registerEvents(this, plugin);
-    }
-
-    @Override
-    public void handleUnload() throws Exception {
-        if (task != null) {
-            final BukkitScheduler scheduler = Bukkit.getScheduler();
-
-            if (scheduler.isCurrentlyRunning(task) || scheduler.isQueued(task)) {
-                scheduler.cancelTask(task);
-            }
-        }
-
-        database.save();
-        database = null;
     }
 }

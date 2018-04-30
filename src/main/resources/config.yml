@@ -1,10 +1,13 @@
 # DO NOT EDIT THIS VALUE!
-config-version: 4
+config-version: 5
 
 # Allows you to force set the plugin's mode to online/offline/automatic.
 # If you run a cracked server but the plugin detects it as online and saves UUID instead of name, set the value below to 'false'.
 # Available modes: true, false, auto (default)
 online-mode: auto
+
+# Prevents players from sending token to a player who has the same ip address as the sender.
+alt-prevention: false
 
 # The default token balance of a first-time joiner.
 default-balance: 25

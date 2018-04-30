@@ -1,5 +1,5 @@
 # DO NOT EDIT THIS VALUE!
-config-version: 2
+config-version: 3
 
 # Define placeholders usable in any message below.
 # Example: Adding 'PREFIX: "[Cool]"' below and then putting '{PREFIX}' in a message will display '[Cool]' when the message is sent in game.
@@ -18,6 +18,7 @@ ERROR:
   data-not-enough: '&cNot enough data found to display the top token balances.'
   on-click-cooldown: '&cYou''re clicking too fast! Try with a little delay. (%remaining%)'
   target-is-self: '&cYou cannot send tokens to yourself.'
+  target-has-same-ip: '&cYou cannot send tokens to this player. (alt prevention)'
 
 COMMAND:
   token:
