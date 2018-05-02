@@ -135,6 +135,7 @@ public class ShopListener implements Loadable, Listener {
         }
 
         if (data.isUsePermission() && !player.hasPermission("tokenmanager.use." + target.getName() + "-" + slot)) {
+            plugin.doSync(player::closeInventory);
             plugin.getLang().sendMessage(player, true, "ERROR.no-permission", "permission", "tokenmanager.use." + target.getName() + "-" + slot);
             return;
         }
@@ -143,6 +144,7 @@ public class ShopListener implements Loadable, Listener {
         final long remaining = cooldowns.getOrDefault(player.getUniqueId(), 0L) + plugin.getConfiguration().getClickDelay() * 1000L - now;
 
         if (remaining > 0) {
+            plugin.doSync(player::closeInventory);
             plugin.getLang().sendMessage(player, true, "ERROR.on-click-cooldown", "remaining", StringUtil.format(remaining / 1000 + (remaining % 1000 > 0 ? 1 : 0)));
             return;
         }
@@ -153,6 +155,7 @@ public class ShopListener implements Loadable, Listener {
         final OptionalLong cached = dataManager.get(player);
 
         if (!cached.isPresent()) {
+            plugin.doSync(player::closeInventory);
             plugin.getLang().sendMessage(player, false, "&cYour data is improperly loaded, please re-log.");
             return;
         }
@@ -160,6 +163,7 @@ public class ShopListener implements Loadable, Listener {
         final long balance = cached.getAsLong();
 
         if (balance - cost < 0) {
+            plugin.doSync(player::closeInventory);
             plugin.getLang().sendMessage(player, true, "ERROR.balance-not-enough", "needed", cost - balance);
             return;
         }

@@ -43,6 +43,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.EntityType;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
@@ -120,11 +121,22 @@ public final class ItemUtil {
     }
 
     public static ItemStack replace(final ItemStack item, final String placeholder, final Object value) {
+        if (!item.hasItemMeta()) {
+            return item;
+        }
+
         final ItemMeta meta = item.getItemMeta();
-        final List<String> lore = meta.getLore();
-        lore.replaceAll(line -> line.replace(placeholder, value.toString()));
-        meta.setLore(lore);
-        meta.setDisplayName(meta.getDisplayName().replace(placeholder, value.toString()));
+
+        if (meta.hasLore()) {
+            final List<String> lore = meta.getLore();
+            lore.replaceAll(line -> line.replace(placeholder, value.toString()));
+            meta.setLore(lore);
+        }
+
+        if (meta.hasDisplayName()) {
+            meta.setDisplayName(meta.getDisplayName().replace(placeholder, value.toString()));
+        }
+
         item.setItemMeta(meta);
         return item;
     }
@@ -246,6 +258,25 @@ public final class ItemUtil {
             return;
         }
 
+        if (key.equalsIgnoreCase("flags")) {
+            if (!isPre1_8()) {
+                final List<String> flags = Arrays.asList(value.split(","));
+
+                for (final String flag : flags) {
+                    final ItemFlag itemFlag = EnumUtil.getByName(flag, ItemFlag.class);
+
+                    if (itemFlag == null) {
+                        continue;
+                    }
+
+                    meta.addItemFlags(itemFlag);
+                }
+            }
+
+            item.setItemMeta(meta);
+            return;
+        }
+
         final Enchantment enchantment = ENCHANTMENTS.get(key);
 
         if (enchantment != null) {
@@ -273,8 +304,12 @@ public final class ItemUtil {
         }
     }
 
+    private static boolean isPre1_8() {
+        return Bukkit.getVersion().contains("1.7");
+    }
+
     private static boolean isPre1_9() {
-        return getVersion().contains("1.7") || getVersion().contains("1.8");
+        return isPre1_8() || getVersion().contains("1.8");
     }
 
     private static boolean isPre1_12() {
