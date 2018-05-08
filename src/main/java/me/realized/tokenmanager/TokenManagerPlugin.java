@@ -97,7 +97,7 @@ public class TokenManagerPlugin extends JavaPlugin implements TokenManager {
         }
 
         final SpigetUpdate updateChecker = new SpigetUpdate(this, RESOURCE_ID);
-        updateChecker.setVersionComparator(VersionComparator.EQUAL);
+        updateChecker.setVersionComparator(VersionComparator.SEM_VER_SNAPSHOT);
         updateChecker.checkForUpdate(new UpdateCallback() {
             @Override
             public void updateAvailable(final String newVersion, final String downloadUrl, final boolean hasDirectDownload) {
