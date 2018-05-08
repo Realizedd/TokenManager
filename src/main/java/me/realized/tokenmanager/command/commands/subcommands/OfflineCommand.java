@@ -1,5 +1,6 @@
 package me.realized.tokenmanager.command.commands.subcommands;
 
+import java.util.Arrays;
 import java.util.OptionalLong;
 import java.util.function.BiFunction;
 import me.realized.tokenmanager.TokenManagerPlugin;
@@ -19,7 +20,7 @@ public class OfflineCommand extends BaseCommand {
 
     @Override
     protected void execute(final CommandSender sender, final String label, final String[] args) {
-        getTarget(sender, args[1], key -> {
+        getTarget(sender, args[1], Arrays.asList(args).contains("-o"), key -> {
             // Case: Not a valid minecraft account
             if (!key.isPresent()) {
                 sendMessage(sender, true, "ERROR.player-not-found", "input", args[1]);

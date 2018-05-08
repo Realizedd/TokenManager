@@ -1,5 +1,8 @@
 # DO NOT EDIT THIS VALUE!
-config-version: 5
+config-version: 6
+
+# If enabled, a notification and the download link will be printed on console whenever an update is available.
+check-for-updates: true
 
 # Allows you to force set the plugin's mode to online/offline/automatic.
 # If you run a cracked server but the plugin detects it as online and saves UUID instead of name, set the value below to 'false'.

@@ -50,8 +50,13 @@ import me.realized.tokenmanager.util.Reloadable;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.inventivetalent.update.spiget.SpigetUpdate;
+import org.inventivetalent.update.spiget.UpdateCallback;
+import org.inventivetalent.update.spiget.comparator.VersionComparator;
 
 public class TokenManagerPlugin extends JavaPlugin implements TokenManager {
+
+    private static final int RESOURCE_ID = 8610;
 
     @Getter
     private static TokenManagerPlugin instance;
@@ -86,6 +91,28 @@ public class TokenManagerPlugin extends JavaPlugin implements TokenManager {
 
         new TMCommand(this).register();
         new TokenCommand(this).register();
+
+        if (!configuration.isCheckForUpdates()) {
+            return;
+        }
+
+        final SpigetUpdate updateChecker = new SpigetUpdate(this, RESOURCE_ID);
+        updateChecker.setVersionComparator(VersionComparator.EQUAL);
+        updateChecker.checkForUpdate(new UpdateCallback() {
+            @Override
+            public void updateAvailable(final String newVersion, final String downloadUrl, final boolean hasDirectDownload) {
+                Log.info("===============================================");
+                Log.info("An update for " + getName() + " is available!");
+                Log.info("Download " + getName() + " v" + newVersion + " here:");
+                Log.info(downloadUrl);
+                Log.info("===============================================");
+            }
+
+            @Override
+            public void upToDate() {
+                Log.info("No updates were available. You are on the latest version!");
+            }
+        });
     }
 
     @Override

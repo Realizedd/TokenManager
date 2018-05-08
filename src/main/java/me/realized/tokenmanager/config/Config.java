@@ -41,6 +41,8 @@ public class Config extends AbstractConfiguration<TokenManagerPlugin> {
     @Getter
     private int version;
     @Getter
+    private boolean checkForUpdates;
+    @Getter
     private String onlineMode;
     @Getter
     private boolean altPrevention;
@@ -98,6 +100,7 @@ public class Config extends AbstractConfiguration<TokenManagerPlugin> {
         }
 
         version = configuration.getInt("config-version");
+        checkForUpdates = configuration.getBoolean("check-for-updates", true);
         onlineMode = configuration.getString("online-mode", "auto");
         altPrevention = configuration.getBoolean("alt-prevention", false);
         defaultBalance = configuration.getInt("default-balance", 25);
