@@ -126,9 +126,9 @@ public class DataManager implements Loadable, Listener {
         }
     }
 
-    public void set(final String key, final boolean set, final long amount, final long updated, final Runnable action, final Consumer<String> errorHandler) {
+    public void set(final String key, final boolean silent, final boolean set, final long amount, final long updated, final Runnable action, final Consumer<String> errorHandler) {
         if (database != null) {
-            database.set(key, set, amount, updated, action, errorHandler);
+            database.set(key, silent, set, amount, updated, action, errorHandler);
         }
     }
 

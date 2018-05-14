@@ -27,15 +27,12 @@
 
 package me.realized.tokenmanager.command;
 
-import java.util.Optional;
-import java.util.function.Consumer;
 import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.config.Config;
 import me.realized.tokenmanager.data.DataManager;
 import me.realized.tokenmanager.shop.ShopsConfig;
 import me.realized.tokenmanager.util.command.AbstractCommand;
 import me.realized.tokenmanager.util.profile.ProfileUtil;
-import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
 public abstract class BaseCommand extends AbstractCommand<TokenManagerPlugin> {
@@ -43,8 +40,7 @@ public abstract class BaseCommand extends AbstractCommand<TokenManagerPlugin> {
     protected final Config config;
     protected final ShopsConfig shopConfig;
     protected final DataManager dataManager;
-
-    private final boolean online;
+    protected final boolean online;
 
     public BaseCommand(final TokenManagerPlugin plugin, final String name, final String permission, final boolean playerOnly) {
         this(plugin, name, null, permission, 0, playerOnly);
@@ -81,16 +77,5 @@ public abstract class BaseCommand extends AbstractCommand<TokenManagerPlugin> {
                 sendMessage(sender, true, "COMMAND.sub-command-usage", "command", args[0], "usage", args[1]);
                 break;
         }
-    }
-
-    protected void getTarget(final CommandSender caller, final String input, final boolean onlineOnly, final Consumer<Optional<String>> consumer) {
-        // Return input (name) if server is offline mode
-        if (!online) {
-            consumer.accept(Optional.of(input));
-            return;
-        }
-
-        plugin.doAsync(() -> ProfileUtil.getUUID(input, onlineOnly, uuid -> consumer.accept(Optional.ofNullable(uuid)),
-            error -> caller.sendMessage(ChatColor.RED + "Failed to obtain UUID of " + input + ": " + error)));
     }
 }

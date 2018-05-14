@@ -61,7 +61,7 @@ public class GiveAllCommand extends BaseCommand {
             }
 
             dataManager.set(player, balance.getAsLong() + amount.getAsLong());
-            sendMessage(player, true, "COMMAND.receive", "amount", amount.getAsLong());
+            sendMessage(player, true, "COMMAND.add", "amount", amount.getAsLong());
         }
 
         sendMessage(sender, true, "COMMAND.tokenmanager.giveall", "players", online.size(), "amount", amount.getAsLong());

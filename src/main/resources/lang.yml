@@ -1,5 +1,5 @@
 # DO NOT EDIT THIS VALUE!
-config-version: 3
+config-version: 4
 
 # Define placeholders usable in any message below.
 # Example: Adding 'PREFIX: "[Cool]"' below and then putting '{PREFIX}' in a message will display '[Cool]' when the message is sent in game.
@@ -33,6 +33,7 @@ COMMAND:
     - '{FOOTER}'
 
     send: '{PREFIX} &7Sent &b%amount% tokens &7to %player%.'
+    receive: '{PREFIX} &7Received &b%amount% tokens &7from %player%.'
     balance: '{PREFIX} &7Your token balance is &b%tokens% token(s)&7.'
     balance-other: '{PREFIX} &7%player%''s token balance is &b%tokens% token(s)&7.'
     balance-top:
@@ -62,5 +63,5 @@ COMMAND:
     open: '{PREFIX} &7Opened shop &b%name% &7for %player%.'
 
   sub-command-usage: '{PREFIX} &7Usage of this sub command is ''&b/%command% %usage%&7''.'
-  receive: '{PREFIX} &b%amount% tokens &7has been added to your balance.'
-  take: '{PREFIX} &b%amount% tokens &7has been removed from your balance.'
+  add: '{PREFIX} &b%amount% tokens &7has been added to your balance.'
+  remove: '{PREFIX} &b%amount% tokens &7has been removed from your balance.'

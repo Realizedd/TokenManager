@@ -165,8 +165,8 @@ public class Lang extends AbstractConfiguration<TokenManagerPlugin> implements R
             keys.put("balance", "COMMAND.token.balance");
             keys.put("balance-others", "COMMAND.token.balance-other");
             keys.put("on-send", "COMMAND.token.send");
-            keys.put("on-receive", "COMMAND.receive");
-            keys.put("on-take", "COMMAND.take");
+            keys.put("on-receive", "COMMAND.add");
+            keys.put("on-take", "COMMAND.remove");
             keys.put("on-add", "COMMAND.tokenmanager.add");
             keys.put("on-remove", "COMMAND.tokenmanager.remove");
             keys.put("on-set", "COMMAND.tokenmanager.set");

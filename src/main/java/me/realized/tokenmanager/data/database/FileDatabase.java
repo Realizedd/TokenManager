@@ -85,7 +85,8 @@ public class FileDatabase extends AbstractDatabase {
     }
 
     @Override
-    public void set(final String key, final boolean set, final long amount, final long updated, final Runnable action, final Consumer<String> errorHandler) {
+    public void set(final String key, final boolean silent, final boolean set, final long amount, final long updated, final Runnable action,
+        final Consumer<String> errorHandler) {
         plugin.doSync(() -> {
             if (set) {
                 data.put(key, amount);
@@ -108,17 +109,22 @@ public class FileDatabase extends AbstractDatabase {
                 player = Bukkit.getPlayerExact(key);
             }
 
-            if (player == null) {
+            if (player == null || silent) {
                 return;
             }
 
             if (amount > 0) {
-                plugin.getLang().sendMessage(player, true, "COMMAND.receive", "amount", amount);
+                plugin.getLang().sendMessage(player, true, "COMMAND.add", "amount", amount);
             } else {
-                plugin.getLang().sendMessage(player, true, "COMMAND.take", "amount", Math.abs(amount));
+                plugin.getLang().sendMessage(player, true, "COMMAND.remove", "amount", Math.abs(amount));
             }
         });
         action.run();
+    }
+
+    @Override
+    public void set(final String key, final boolean set, final long amount, final long updated, final Runnable action, final Consumer<String> errorHandler) {
+        set(key, false, set, amount, updated, action, errorHandler);
     }
 
     @Override

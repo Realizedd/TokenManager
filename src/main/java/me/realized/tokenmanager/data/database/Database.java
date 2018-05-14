@@ -53,15 +53,23 @@ public interface Database {
      */
     void set(final Player player, final long value);
 
-
     /**
      * Updates the database with the new balance for the key.
      *
      * @param key Key associated with the balance
+     * @param silent true to prevent sending a message to the target after task completion
      * @param set true to set the balance to updated value, otherwise false
      * @param amount The difference between the old balance and the new balance
      * @param updated The new balance to save
      * @param errorHandler called if the operation fails
+     */
+    void set(final String key, final boolean silent, final boolean set, final long amount, final long updated, final Runnable action, final Consumer<String> errorHandler);
+
+
+    /**
+     * Works the same as {@link #set(String, boolean, boolean, long, long, Runnable, Consumer)} with silent defaulting to false.
+     *
+     * @see Database#set(String, boolean, boolean, long, long, Runnable, Consumer)
      */
     void set(final String key, final boolean set, final long amount, final long updated, final Runnable action, final Consumer<String> errorHandler);
 

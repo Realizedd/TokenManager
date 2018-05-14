@@ -63,16 +63,11 @@ public final class ProfileUtil {
         NameFetcher.getNames(uuids, consumer);
     }
 
-    public static void getUUID(final String name, final boolean onlineOnly, final Consumer<String> consumer, final Consumer<String> errorHandler) {
+    public static void getUUID(final String name, final Consumer<String> consumer, final Consumer<String> errorHandler) {
         final Player player;
 
         if ((player = Bukkit.getPlayerExact(name)) != null) {
             consumer.accept(player.getUniqueId().toString());
-            return;
-        }
-
-        if (onlineOnly) {
-            consumer.accept(null);
             return;
         }
 

@@ -108,8 +108,7 @@ public class MySQLDatabase extends AbstractDatabase {
             if (password.isEmpty()) {
                 this.jedisPool = new JedisPool(new JedisPoolConfig(), config.getRedisServer(), config.getRedisPort(), 0);
             } else {
-                this.jedisPool = new JedisPool(new JedisPoolConfig(), config.getRedisServer(), config.getRedisPort(), 0,
-                    config.getRedisPassword());
+                this.jedisPool = new JedisPool(new JedisPoolConfig(), config.getRedisServer(), config.getRedisPort(), 0, password);
             }
 
             plugin.doAsync(() -> {
@@ -167,15 +166,16 @@ public class MySQLDatabase extends AbstractDatabase {
     }
 
     @Override
-    public void set(final String key, final boolean set, final long amount, final long updated, final Runnable action, final Consumer<String> errorHandler) {
+    public void set(final String key, final boolean silent, final boolean set, final long amount, final long updated, final Runnable action,
+        final Consumer<String> errorHandler) {
         executor.execute(() -> {
             try (Connection connection = dataSource.getConnection()) {
                 update(connection, key, updated);
 
                 if (usingRedis) {
-                    publish(key + ":" + (set ? updated : amount) + ":" + set);
+                    publish(key + ":" + (set ? updated : amount) + ":" + set + ":" + silent);
                 } else {
-                    plugin.doSync(() -> onModification(key, set ? updated : amount, set));
+                    plugin.doSync(() -> onModification(key, set ? updated : amount, set, silent));
                 }
 
                 action.run();
@@ -185,6 +185,11 @@ public class MySQLDatabase extends AbstractDatabase {
                 ex.printStackTrace();
             }
         });
+    }
+
+    @Override
+    public void set(final String key, final boolean set, final long amount, final long updated, final Runnable action, final Consumer<String> errorHandler) {
+        set(key, false, set, amount, updated, action, errorHandler);
     }
 
     @Override
@@ -385,7 +390,7 @@ public class MySQLDatabase extends AbstractDatabase {
         }
     }
 
-    private void onModification(final String key, final long amount, final boolean set) {
+    private void onModification(final String key, final long amount, final boolean set, final boolean silent) {
         final Player player;
 
         if (ProfileUtil.isUUID(key)) {
@@ -411,10 +416,14 @@ public class MySQLDatabase extends AbstractDatabase {
 
         set(player, cached.getAsLong() + amount);
 
+        if (silent) {
+            return;
+        }
+
         if (amount > 0) {
-            plugin.getLang().sendMessage(player, true, "COMMAND.receive", "amount", amount);
+            plugin.getLang().sendMessage(player, true, "COMMAND.add", "amount", amount);
         } else {
-            plugin.getLang().sendMessage(player, true, "COMMAND.take", "amount", Math.abs(amount));
+            plugin.getLang().sendMessage(player, true, "COMMAND.remove", "amount", Math.abs(amount));
         }
     }
 
@@ -460,7 +469,7 @@ public class MySQLDatabase extends AbstractDatabase {
         public void onMessage(final String channel, final String message) {
             final String[] args = message.split(":");
 
-            if (args.length < 3) {
+            if (args.length < 4) {
                 return;
             }
 
@@ -471,7 +480,7 @@ public class MySQLDatabase extends AbstractDatabase {
                     return;
                 }
 
-                onModification(args[0], amount.getAsLong(), args[2].equalsIgnoreCase("true"));
+                onModification(args[0], amount.getAsLong(), args[2].equals("true"), args[3].equals("true"));
             });
         }
 

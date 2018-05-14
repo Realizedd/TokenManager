@@ -91,7 +91,7 @@ public class SendCommand extends BaseCommand {
         final long needed;
 
         if ((needed = balance.getAsLong() - amount.getAsLong()) < 0) {
-            sendMessage(sender, true, "ERROR.balance-not-enough", "needed", needed);
+            sendMessage(sender, true, "ERROR.balance-not-enough", "needed", Math.abs(needed));
             return;
         }
 
@@ -106,7 +106,7 @@ public class SendCommand extends BaseCommand {
         }
 
         dataManager.set(target, targetBalance.getAsLong() + amount.getAsLong());
-        sendMessage(target, true, "COMMAND.receive", "amount", amount.getAsLong());
+        sendMessage(target, true, "COMMAND.token.receive", "player", sender.getName(), "amount", amount.getAsLong());
     }
 
     @Override
