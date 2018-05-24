@@ -1,9 +1,23 @@
 import org.apache.tools.ant.filters.ReplaceTokens
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.4'
+    }
+}
 
 group 'me.realized'
-version '3.0.8-SNAPSHOT'
+version '3.0.9-SNAPSHOT'
 
 apply plugin: 'java'
+apply plugin: 'com.github.johnrengelman.shadow'
+
+project.tasks.assemble.dependsOn project.tasks.shadowJar
+jar.enabled = false
 
 compileJava.options.encoding = 'UTF-8'
 
@@ -11,7 +25,10 @@ sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 jar {
-    manifest.attributes provider: 'gradle'
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+shadowJar {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
@@ -22,21 +39,20 @@ processResources {
     }
 }
 
-configurations {
-    provided
-    compile.extendsFrom provided
+artifacts {
+    archives jar
 }
 
-jar {
-    from {
-        (configurations.runtime - configurations.provided).collect {
-            it.isDirectory() ? it : zipTree(it)
-        }
-    } {
-        exclude "META-INF/*.SF"
-        exclude "META-INF/*.DSA"
-        exclude "META-INF/*.RSA"
-    }
+clean.doFirst {
+    delete "$rootDir/out/"
+}
+
+tasks.withType(ShadowJar) {
+    destinationDir = file("$rootDir/out/")
+}
+
+tasks.withType(Jar) {
+    destinationDir = file("$rootDir/out/")
 }
 
 repositories {
@@ -70,15 +86,31 @@ repositories {
 }
 
 dependencies {
-    provided 'org.spigotmc:spigot-api:1.12.2-R0.1-SNAPSHOT'
-    provided 'org.spigotmc:spigot:1.12.2-R0.1-SNAPSHOT'
-    provided 'net.milkbowl.vault:VaultAPI:1.6'
-    provided 'me.clip:placeholderapi:2.8.4'
-    provided 'org.projectlombok:lombok:1.16.20'
+    compile 'org.spigotmc:spigot-api:1.12.2-R0.1-SNAPSHOT'
+    compile 'org.spigotmc:spigot:1.12.2-R0.1-SNAPSHOT'
+    compile 'net.milkbowl.vault:VaultAPI:1.6'
+    compile 'me.clip:placeholderapi:2.8.4'
+    compile 'org.projectlombok:lombok:1.16.20'
 
     compile 'redis.clients:jedis:2.9.0'
     compile 'org.apache.commons:commons-pool2:2.4.2'
     compile 'com.zaxxer:HikariCP:2.7.8'
     compile 'be.maximvdw:MVdWPlaceholderAPI:2.5.1-SNAPSHOT'
     compile 'org.inventivetalent.spiget-update:bukkit:1.4.0'
+}
+
+shadowJar {
+    baseName = 'TokenManager'
+    classifier = null
+
+    dependencies {
+        include(dependency('redis.clients:.*'))
+        include(dependency('org.apache.commons:.*'))
+        include(dependency('com.zaxxer:.*'))
+        include(dependency('org.slf4j:.*'))
+        include(dependency('be.maximvdw:.*'))
+        include(dependency('org.inventivetalent.spiget-update:.*'))
+    }
+
+    relocate 'org.inventivetalent.update.spiget', 'me.realized.tokenmanager.shaded.org.inventivetalent.update.spiget'
 }

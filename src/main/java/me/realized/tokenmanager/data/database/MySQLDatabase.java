@@ -112,9 +112,10 @@ public class MySQLDatabase extends AbstractDatabase {
             }
 
             plugin.doAsync(() -> {
+                usingRedis = true;
+
                 try (Jedis jedis = jedisPool.getResource()) {
                     jedis.subscribe(listener = new JedisListener(), "tokenmanager");
-                    usingRedis = true;
                 } catch (Exception ex) {
                     usingRedis = false;
                     Log.error("Failed to connect to the redis server! Player balance synchronization issues may occur when modifying them while offline.");
@@ -171,7 +172,6 @@ public class MySQLDatabase extends AbstractDatabase {
         executor.execute(() -> {
             try (Connection connection = dataSource.getConnection()) {
                 update(connection, key, updated);
-
                 if (usingRedis) {
                     publish(key + ":" + (set ? updated : amount) + ":" + set + ":" + silent);
                 } else {
@@ -469,7 +469,7 @@ public class MySQLDatabase extends AbstractDatabase {
         public void onMessage(final String channel, final String message) {
             final String[] args = message.split(":");
 
-            if (args.length < 4) {
+            if (args.length < 3) {
                 return;
             }
 
@@ -480,7 +480,7 @@ public class MySQLDatabase extends AbstractDatabase {
                     return;
                 }
 
-                onModification(args[0], amount.getAsLong(), args[2].equals("true"), args[3].equals("true"));
+                onModification(args[0], amount.getAsLong(), args[2].equals("true"), args.length > 3 && args[3].equals("true"));
             });
         }
 
