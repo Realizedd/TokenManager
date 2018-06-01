@@ -119,7 +119,10 @@ public class FileDatabase extends AbstractDatabase {
                 plugin.getLang().sendMessage(player, true, "COMMAND.remove", "amount", Math.abs(amount));
             }
         });
-        action.run();
+
+        if (action != null) {
+            action.run();
+        }
     }
 
     @Override

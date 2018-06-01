@@ -73,9 +73,9 @@ public class SendCommand extends BaseCommand {
             return;
         }
 
-        final OptionalLong amount = NumberUtil.parseLong(args[2]);
+        final long amount = NumberUtil.parseLong(args[2]).orElse(0);
 
-        if (!amount.isPresent() || amount.getAsLong() <= 0) {
+        if (amount <= 0 || (config.getSendMin() > -1 && amount < config.getSendMin()) || (config.getSendMax() > -1 && amount > config.getSendMax())) {
             sendMessage(sender, true, "ERROR.invalid-amount", "input", args[2]);
             return;
         }
@@ -90,23 +90,23 @@ public class SendCommand extends BaseCommand {
 
         final long needed;
 
-        if ((needed = balance.getAsLong() - amount.getAsLong()) < 0) {
+        if ((needed = balance.getAsLong() - amount) < 0) {
             sendMessage(sender, true, "ERROR.balance-not-enough", "needed", Math.abs(needed));
             return;
         }
 
-        dataManager.set(player, balance.getAsLong() - amount.getAsLong());
-        sendMessage(sender, true, "COMMAND.token.send", "player", target.getName(), "amount", amount.getAsLong());
+        dataManager.set(player, balance.getAsLong() - amount);
+        sendMessage(sender, true, "COMMAND.token.send", "player", target.getName(), "amount", amount);
 
-        final TokenReceiveEvent event = new TokenReceiveEvent(target.getUniqueId(), (int) amount.getAsLong());
+        final TokenReceiveEvent event = new TokenReceiveEvent(target.getUniqueId(), (int) amount);
         Bukkit.getPluginManager().callEvent(event);
 
         if (event.isCancelled()) {
             return;
         }
 
-        dataManager.set(target, targetBalance.getAsLong() + amount.getAsLong());
-        sendMessage(target, true, "COMMAND.token.receive", "player", sender.getName(), "amount", amount.getAsLong());
+        dataManager.set(target, targetBalance.getAsLong() + amount);
+        sendMessage(target, true, "COMMAND.token.receive", "player", sender.getName(), "amount", amount);
     }
 
     @Override

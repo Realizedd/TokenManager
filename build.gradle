@@ -11,7 +11,7 @@ buildscript {
 }
 
 group 'me.realized'
-version '3.0.9-SNAPSHOT'
+version '3.1.0'
 
 apply plugin: 'java'
 apply plugin: 'com.github.johnrengelman.shadow'
@@ -83,6 +83,11 @@ repositories {
         name 'inventive-repo'
         url 'https://repo.inventivetalent.org/content/groups/public/'
     }
+
+    maven {
+        name 'bstats-repo'
+        url 'http://repo.bstats.org/content/repositories/releases/'
+    }
 }
 
 dependencies {
@@ -97,6 +102,7 @@ dependencies {
     compile 'com.zaxxer:HikariCP:2.7.8'
     compile 'be.maximvdw:MVdWPlaceholderAPI:2.5.1-SNAPSHOT'
     compile 'org.inventivetalent.spiget-update:bukkit:1.4.0'
+    compile 'org.bstats:bstats-bukkit:1.2'
 }
 
 shadowJar {
@@ -110,7 +116,9 @@ shadowJar {
         include(dependency('org.slf4j:.*'))
         include(dependency('be.maximvdw:.*'))
         include(dependency('org.inventivetalent.spiget-update:.*'))
+        include(dependency('org.bstats:.*'))
     }
 
     relocate 'org.inventivetalent.update.spiget', 'me.realized.tokenmanager.shaded.org.inventivetalent.update.spiget'
+    relocate 'org.bstats', 'me.realized.tokenmanager.shaded.org.bstats'
 }

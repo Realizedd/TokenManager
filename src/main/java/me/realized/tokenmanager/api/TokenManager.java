@@ -29,6 +29,7 @@ package me.realized.tokenmanager.api;
 
 import java.util.Optional;
 import java.util.OptionalLong;
+import java.util.UUID;
 import me.realized.tokenmanager.shop.Shop;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
@@ -52,7 +53,7 @@ public interface TokenManager {
     Optional<Shop> getShop(final Inventory inventory);
 
     /**
-     * Get player's token balance.
+     * Get online player's token balance.
      *
      * @param player Player to get token balance
      * @return OptionalLong containing token balance if found, otherwise empty
@@ -60,12 +61,55 @@ public interface TokenManager {
     OptionalLong getTokens(final Player player);
 
     /**
-     * Set player's token balance.
+     * Set online player's token balance.
      *
      * @param player Player to set token balance
      * @param amount Amount to replace player's token balance
      */
     void setTokens(final Player player, final long amount);
+
+    /**
+     * Set player's token balance.
+     * @since v3.1.0
+     *
+     * @param key {@link UUID#toString()} if server is in online mode, otherwise name of the player
+     * @param amount Amount to replace player's token balance
+     */
+    void setTokens(final String key, final long amount);
+
+    /**
+     * Add tokens to player's token balance.
+     * @since v3.1.0
+     *
+     * @param key {@link UUID#toString()} if server is in online mode, otherwise name of the player
+     * @param amount Amount to add to player's token balance
+     * @param silent true to prevent sending message if target player is online
+     */
+    void addTokens(final String key, final long amount, final boolean silent);
+
+    /**
+     * Works the same as {@link #addTokens(String, long, boolean)} with silent defaulting to false.
+     *
+     * @see #addTokens(String, long, boolean)
+     */
+    void addTokens(final String key, final long amount);
+
+    /**
+     * Remove tokens from player's token balance.
+     * @since v3.1.0
+     *
+     * @param key {@link UUID#toString()} if server is in online mode, otherwise name of the player
+     * @param amount Amount to remove from player's token balance
+     * @param silent true to prevent sending message if target player is online
+     */
+    void removeTokens(final String key, final long amount, final boolean silent);
+
+    /**
+     * Works the same as {@link #removeTokens(String, long, boolean)} with silent defaulting to false.
+     *
+     * @see #removeTokens(String, long, boolean)
+     */
+    void removeTokens(final String key, final long amount);
 
     /**
      * Reload the modules of the plugin.

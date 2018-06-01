@@ -1,5 +1,5 @@
 # DO NOT EDIT THIS VALUE!
-config-version: 6
+config-version: 7
 
 # If enabled, a notification and the download link will be printed on console whenever an update is available.
 check-for-updates: true
@@ -14,6 +14,11 @@ alt-prevention: false
 
 # The default token balance of a first-time joiner.
 default-balance: 25
+
+# Sets a min/max limit on the amount specified in /token send command. To disable, set the value to -1.
+send-amount-limit:
+  min: 1
+  max: -1
 
 shop:
   # When the command '/token shop' is executed, enabling this option will open the specified shop below. (Even if a shop name is provided)

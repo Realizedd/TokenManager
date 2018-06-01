@@ -47,6 +47,7 @@ import me.realized.tokenmanager.shop.ShopsConfig;
 import me.realized.tokenmanager.util.Loadable;
 import me.realized.tokenmanager.util.Log;
 import me.realized.tokenmanager.util.Reloadable;
+import org.bstats.bukkit.Metrics;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -91,6 +92,8 @@ public class TokenManagerPlugin extends JavaPlugin implements TokenManager {
 
         new TMCommand(this).register();
         new TokenCommand(this).register();
+
+        new Metrics(this);
 
         if (!configuration.isCheckForUpdates()) {
             return;
@@ -201,6 +204,43 @@ public class TokenManagerPlugin extends JavaPlugin implements TokenManager {
     @Override
     public void setTokens(final Player player, final long amount) {
         dataManager.set(player, amount);
+    }
+
+    @Override
+    public void setTokens(final String key, final long amount) {
+        dataManager.set(key, true, true, amount, amount, null, Log::error);
+    }
+
+    @Override
+    public void addTokens(final String key, final long amount, final boolean silent) {
+        dataManager.get(key, balance -> {
+            if (!balance.isPresent()) {
+                return;
+            }
+
+            dataManager.set(key, silent, false, amount, balance.getAsLong() + amount, null, Log::error);
+        }, Log::error);
+    }
+
+    @Override
+    public void addTokens(final String key, final long amount) {
+        addTokens(key, amount, false);
+    }
+
+    @Override
+    public void removeTokens(final String key, final long amount, final boolean silent) {
+        dataManager.get(key, balance -> {
+            if (!balance.isPresent()) {
+                return;
+            }
+
+            dataManager.set(key, silent, false, -amount, balance.getAsLong() - amount, null, Log::error);
+        }, Log::error);
+    }
+
+    @Override
+    public void removeTokens(final String key, final long amount) {
+        removeTokens(key, amount, false);
     }
 
     @Override

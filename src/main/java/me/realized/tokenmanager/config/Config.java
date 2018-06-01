@@ -49,6 +49,10 @@ public class Config extends AbstractConfiguration<TokenManagerPlugin> {
     @Getter
     private int defaultBalance;
     @Getter
+    private long sendMin;
+    @Getter
+    private long sendMax;
+    @Getter
     private boolean openSelectedEnabled;
     @Getter
     private String openSelectedShop;
@@ -104,6 +108,8 @@ public class Config extends AbstractConfiguration<TokenManagerPlugin> {
         onlineMode = configuration.getString("online-mode", "auto");
         altPrevention = configuration.getBoolean("alt-prevention", false);
         defaultBalance = configuration.getInt("default-balance", 25);
+        sendMin = configuration.getInt("send-amount-limit.min", 1);
+        sendMax = configuration.getInt("send-amount-limit.max", -1);
         openSelectedEnabled = configuration.getBoolean("shop.open-selected.enabled", false);
         openSelectedShop = configuration.getString("shop.open-selected.shop", "test");
         confirmPurchaseTitle = configuration.getString("shop.confirm-purchase-gui.title", "Confirm Your Purchase");

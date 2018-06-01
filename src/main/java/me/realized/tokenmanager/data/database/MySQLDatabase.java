@@ -178,7 +178,9 @@ public class MySQLDatabase extends AbstractDatabase {
                     plugin.doSync(() -> onModification(key, set ? updated : amount, set, silent));
                 }
 
-                action.run();
+                if (action != null) {
+                    action.run();
+                }
             } catch (Exception ex) {
                 errorHandler.accept(ex.getMessage());
                 Log.error("Failed to save data for " + key + ": " + ex.getMessage());
