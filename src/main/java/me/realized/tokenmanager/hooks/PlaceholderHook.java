@@ -41,10 +41,10 @@ public class PlaceholderHook extends PluginHook<TokenManagerPlugin> {
     public PlaceholderHook(final TokenManagerPlugin plugin) {
         super(plugin, "PlaceholderAPI");
         this.dataManager = plugin.getDataManager();
-        new TokenManagerPlaceholder().register();
+        new Placeholders().register();
     }
 
-    private class TokenManagerPlaceholder extends PlaceholderExpansion {
+    public class Placeholders extends PlaceholderExpansion {
 
         @Override
         public String getIdentifier() {

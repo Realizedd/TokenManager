@@ -36,26 +36,31 @@ import me.realized.tokenmanager.util.NumberUtil;
 import me.realized.tokenmanager.util.hook.PluginHook;
 import org.bukkit.entity.Player;
 
-public class MVdWPlaceholderHook extends PluginHook<TokenManagerPlugin> implements PlaceholderReplacer {
+public class MVdWPlaceholderHook extends PluginHook<TokenManagerPlugin> {
 
     private final DataManager dataManager;
 
     public MVdWPlaceholderHook(final TokenManagerPlugin plugin) {
         super(plugin, "MVdWPlaceholderAPI");
         this.dataManager = plugin.getDataManager();
-        PlaceholderAPI.registerPlaceholder(plugin, "tm_tokens", this);
-        PlaceholderAPI.registerPlaceholder(plugin, "tm_tokens_formatted", this);
+
+        final Placeholders placeholders = new Placeholders();
+        PlaceholderAPI.registerPlaceholder(plugin, "tm_tokens", placeholders);
+        PlaceholderAPI.registerPlaceholder(plugin, "tm_tokens_formatted", placeholders);
     }
 
-    @Override
-    public String onPlaceholderReplace(PlaceholderReplaceEvent event) {
-        final Player player = event.getPlayer();
+    public class Placeholders implements PlaceholderReplacer {
 
-        if (player == null) {
-            return "Player is required";
+        @Override
+        public String onPlaceholderReplace(PlaceholderReplaceEvent event) {
+            final Player player = event.getPlayer();
+
+            if (player == null) {
+                return "Player is required";
+            }
+
+            final long balance = dataManager.get(player).orElse(0);
+            return event.getPlaceholder().equals("tm_tokens") ? String.valueOf(balance) : NumberUtil.withSuffix(balance);
         }
-
-        final long balance = dataManager.get(player).orElse(0);
-        return event.getPlaceholder().equals("tm_tokens") ? String.valueOf(balance) : NumberUtil.withSuffix(balance);
     }
 }
