@@ -117,6 +117,9 @@ shadowJar {
         include(dependency('org.inventivetalent.spiget-update:.*'))
         include(dependency('org.bstats:.*'))
     }
-    relocate 'org.inventivetalent.update.spiget', project.group.toString() + '.shaded.update.spiget'
-    relocate 'org.bstats', project.group.toString() + '.shaded.bstats'
+
+    def group = project.group.toString() + "." + project.name.toLowerCase() + ".shaded."
+
+    relocate 'org.inventivetalent.update.spiget', group + 'update.spiget'
+    relocate 'org.bstats', group + 'bstats'
 }
