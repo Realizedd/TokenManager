@@ -296,8 +296,10 @@ public class TokenManagerPlugin extends JavaPlugin implements TokenManager, List
 
     @EventHandler
     public void on(final PlayerJoinEvent event) {
-        if (updateAvailable) {
-            event.getPlayer().sendMessage(StringUtil.color(String.format(ADMIN_UPDATE_MESSAGE, downloadLink)));
+        final Player player = event.getPlayer();
+
+        if (updateAvailable && (player.isOp() || player.hasPermission("tokenmanager.admin"))) {
+            player.sendMessage(StringUtil.color(String.format(ADMIN_UPDATE_MESSAGE, downloadLink)));
         }
     }
 }

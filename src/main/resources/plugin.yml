@@ -19,10 +19,7 @@ permissions:
   tokenmanager.*:
     description: Grants access to all TokenManager permissions.
     children:
-      tokenmanager.use: true
-      tokenmanager.use.send: true
-      tokenmanager.use.top: true
-      tokenmanager.use.shop: true
+      tokenmanager.use.*: true
       tokenmanager.admin: true
   tokenmanager.use.*:
     description: Grants access to all sub commands of /token.
@@ -31,4 +28,5 @@ permissions:
       tokenmanager.use.send: true
       tokenmanager.use.top: true
       tokenmanager.use.shop: true
+      tokenmanager.use.balance.others: true
 
