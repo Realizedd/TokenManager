@@ -47,17 +47,22 @@ import me.realized.tokenmanager.shop.ShopsConfig;
 import me.realized.tokenmanager.util.Loadable;
 import me.realized.tokenmanager.util.Log;
 import me.realized.tokenmanager.util.Reloadable;
+import me.realized.tokenmanager.util.StringUtil;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.inventivetalent.update.spiget.SpigetUpdate;
 import org.inventivetalent.update.spiget.UpdateCallback;
 import org.inventivetalent.update.spiget.comparator.VersionComparator;
 
-public class TokenManagerPlugin extends JavaPlugin implements TokenManager {
+public class TokenManagerPlugin extends JavaPlugin implements TokenManager, Listener {
 
     private static final int RESOURCE_ID = 8610;
+    private static final String ADMIN_UPDATE_MESSAGE = "&9[TM] &bThere is an update available for TokenManager. Download at &7%s";
 
     @Getter
     private static TokenManagerPlugin instance;
@@ -73,6 +78,9 @@ public class TokenManagerPlugin extends JavaPlugin implements TokenManager {
     private ShopsConfig shopConfig;
     @Getter
     private DataManager dataManager;
+
+    private volatile boolean updateAvailable;
+    private volatile String downloadLink;
 
     @Override
     public void onEnable() {
@@ -104,6 +112,8 @@ public class TokenManagerPlugin extends JavaPlugin implements TokenManager {
         updateChecker.checkForUpdate(new UpdateCallback() {
             @Override
             public void updateAvailable(final String newVersion, final String downloadUrl, final boolean hasDirectDownload) {
+                updateAvailable = true;
+                downloadLink = downloadUrl;
                 Log.info("===============================================");
                 Log.info("An update for " + getName() + " is available!");
                 Log.info("Download " + getName() + " v" + newVersion + " here:");
@@ -116,6 +126,7 @@ public class TokenManagerPlugin extends JavaPlugin implements TokenManager {
                 Log.info("No updates were available. You are on the latest version!");
             }
         });
+        getServer().getPluginManager().registerEvents(this, this);
     }
 
     @Override
@@ -281,5 +292,12 @@ public class TokenManagerPlugin extends JavaPlugin implements TokenManager {
             .filter(loadable -> loadable instanceof Reloadable)
             .map(loadable -> loadable.getClass().getSimpleName())
             .collect(Collectors.toList());
+    }
+
+    @EventHandler
+    public void on(final PlayerJoinEvent event) {
+        if (updateAvailable) {
+            event.getPlayer().sendMessage(StringUtil.color(String.format(ADMIN_UPDATE_MESSAGE, downloadLink)));
+        }
     }
 }

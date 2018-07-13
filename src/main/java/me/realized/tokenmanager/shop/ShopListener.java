@@ -39,14 +39,12 @@ import me.realized.tokenmanager.util.Loadable;
 import me.realized.tokenmanager.util.StringUtil;
 import me.realized.tokenmanager.util.inventory.InventoryUtil;
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
 
 public class ShopListener implements Loadable, Listener {
 
@@ -77,12 +75,6 @@ public class ShopListener implements Loadable, Listener {
         final Inventory top = player.getOpenInventory().getTopInventory();
 
         if (clicked == null || top == null) {
-            return;
-        }
-
-        final ItemStack item = event.getCurrentItem();
-
-        if (item == null || item.getType() == Material.AIR) {
             return;
         }
 

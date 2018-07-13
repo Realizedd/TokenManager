@@ -11,7 +11,7 @@ buildscript {
 }
 
 group 'me.realized'
-version '3.1.1'
+version '3.1.2'
 
 apply plugin: 'java'
 apply plugin: 'com.github.johnrengelman.shadow'
@@ -88,6 +88,11 @@ repositories {
         name 'bstats-repo'
         url 'http://repo.bstats.org/content/repositories/releases/'
     }
+
+    maven {
+        name 'dmulloy2-releases'
+        url 'http://repo.dmulloy2.net/content/repositories/releases/'
+    }
 }
 
 dependencies {
@@ -96,6 +101,7 @@ dependencies {
     compile 'net.milkbowl.vault:VaultAPI:1.6'
     compile 'me.clip:placeholderapi:2.8.7'
     compile 'be.maximvdw:MVdWPlaceholderAPI:2.5.1-SNAPSHOT'
+    compile 'com.comphenix.protocol:ProtocolLib-API:4.2.1'
     compile 'org.projectlombok:lombok:1.16.20'
 
     compile 'redis.clients:jedis:2.9.0'

@@ -56,6 +56,11 @@ public class BalanceCommand extends BaseCommand {
             return;
         }
 
+        if (!sender.hasPermission("tokenmanager.use.balance.others")) {
+            sendMessage(sender, true, "ERROR.no-permission", "permission", "tokenmanager.use.balance.others");
+            return;
+        }
+
         final Player target;
 
         if ((target = Bukkit.getPlayerExact(args[1])) == null) {
