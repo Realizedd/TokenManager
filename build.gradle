@@ -118,7 +118,7 @@ shadowJar {
 
     def group = project.group.toString() + "." + project.name.toLowerCase() + ".shaded."
 
-    relocate 'redis.clients.jedis', group + 'redis.clients.jedis'
+    relocate 'redis.clients', group + 'redis.clients'
     relocate 'org.apache.commons.pool2', group + 'apache.commons.pool2'
     relocate 'com.zaxxer.hikari', group + 'zaxxer.hikari'
     relocate 'org.slf4j', group + "slf4j"
