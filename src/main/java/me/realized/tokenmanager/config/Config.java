@@ -27,7 +27,6 @@
 
 package me.realized.tokenmanager.config;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.Getter;
@@ -96,7 +95,7 @@ public class Config extends AbstractConfiguration<TokenManagerPlugin> {
     }
 
     @Override
-    protected void loadValues(FileConfiguration configuration) throws IOException {
+    protected void loadValues(FileConfiguration configuration) throws Exception {
         if (!configuration.isInt("config-version")) {
             configuration = convert(new Converter2_3());
         } else if (configuration.getInt("config-version") < getLatestVersion()) {

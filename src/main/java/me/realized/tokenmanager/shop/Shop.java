@@ -31,6 +31,7 @@ import java.util.HashMap;
 import java.util.Map;
 import lombok.Getter;
 import me.realized.tokenmanager.util.StringUtil;
+import me.realized.tokenmanager.util.inventory.ItemUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -77,6 +78,7 @@ public class Shop {
     }
 
     public void setSlot(final int slot, final ItemStack displayed, final Slot data) {
+        ItemUtil.replace(displayed, "%price%", data.getCost());
         gui.setItem(slot, displayed);
 
         if (slots == null) {

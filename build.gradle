@@ -11,7 +11,7 @@ buildscript {
 }
 
 group 'me.realized'
-version '3.1.2'
+version '3.1.3'
 
 apply plugin: 'java'
 apply plugin: 'com.github.johnrengelman.shadow'
@@ -21,12 +21,7 @@ jar.enabled = false
 
 compileJava.options.encoding = 'UTF-8'
 
-sourceCompatibility = 1.8
 targetCompatibility = 1.8
-
-jar {
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-}
 
 shadowJar {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
@@ -56,26 +51,30 @@ tasks.withType(Jar) {
 }
 
 repositories {
-    mavenLocal()
     mavenCentral()
 
     maven {
-        name 'Spigot'
+        name 'spigot-repo'
         url 'https://hub.spigotmc.org/nexus/content/repositories/snapshots'
     }
 
     maven {
-        name 'Vault'
+        name 'bungeecord-repo'
+        url 'https://oss.sonatype.org/content/repositories/snapshots'
+    }
+
+    maven {
+        name 'vault-repo'
         url 'http://nexus.hc.to/content/repositories/pub_releases'
     }
 
     maven {
-        name 'MVdW Public Repositories'
+        name 'mvdw-repo'
         url 'http://repo.mvdw-software.be/content/groups/public/'
     }
 
     maven {
-        name 'PlaceholderAPI'
+        name 'clip-repo'
         url 'http://repo.extendedclip.com/content/repositories/placeholderapi/'
     }
 
@@ -88,20 +87,13 @@ repositories {
         name 'bstats-repo'
         url 'http://repo.bstats.org/content/repositories/releases/'
     }
-
-    maven {
-        name 'dmulloy2-releases'
-        url 'http://repo.dmulloy2.net/content/repositories/releases/'
-    }
 }
 
 dependencies {
-    compile 'org.spigotmc:spigot-api:1.12.2-R0.1-SNAPSHOT'
-    compile 'org.spigotmc:spigot:1.12.2-R0.1-SNAPSHOT'
+    compile 'org.spigotmc:spigot-api:1.13-R0.1-SNAPSHOT'
     compile 'net.milkbowl.vault:VaultAPI:1.6'
     compile 'me.clip:placeholderapi:2.8.7'
-    compile 'be.maximvdw:MVdWPlaceholderAPI:2.5.1-SNAPSHOT'
-    compile 'com.comphenix.protocol:ProtocolLib-API:4.2.1'
+    compile ('be.maximvdw:MVdWPlaceholderAPI:2.5.1-SNAPSHOT') { transitive = false }
     compile 'org.projectlombok:lombok:1.16.20'
 
     compile 'redis.clients:jedis:2.9.0'
@@ -126,6 +118,10 @@ shadowJar {
 
     def group = project.group.toString() + "." + project.name.toLowerCase() + ".shaded."
 
+    relocate 'redis.clients.jedis', group + 'redis.clients.jedis'
+    relocate 'org.apache.commons.pool2', group + 'apache.commons.pool2'
+    relocate 'com.zaxxer.hikari', group + 'zaxxer.hikari'
+    relocate 'org.slf4j', group + "slf4j"
     relocate 'org.inventivetalent.update.spiget', group + 'update.spiget'
     relocate 'org.bstats', group + 'bstats'
 }

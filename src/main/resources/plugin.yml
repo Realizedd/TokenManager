@@ -2,6 +2,7 @@ name: TokenManager
 main: me.realized.tokenmanager.TokenManagerPlugin
 version: @VERSION@
 softdepend: [MVdWPlaceholderAPI, PlaceholderAPI, Vault]
+api-version: 1.13
 
 author: Realized
 description: A simple economy plugin for your server.

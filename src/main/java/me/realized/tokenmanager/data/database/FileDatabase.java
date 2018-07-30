@@ -1,7 +1,12 @@
 package me.realized.tokenmanager.data.database;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import java.io.File;
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -11,9 +16,13 @@ import java.util.OptionalLong;
 import java.util.UUID;
 import java.util.function.Consumer;
 import me.realized.tokenmanager.TokenManagerPlugin;
+import me.realized.tokenmanager.config.Config;
 import me.realized.tokenmanager.util.Log;
 import me.realized.tokenmanager.util.profile.ProfileUtil;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -167,6 +176,51 @@ public class FileDatabase extends AbstractDatabase {
                 config.save(file);
             } catch (IOException ex) {
                 Log.error("Failed to save data: " + ex.getMessage());
+                ex.printStackTrace();
+            }
+        });
+    }
+
+    @Override
+    public void transfer(final CommandSender sender, final Consumer<String> errorHandler) {
+        final Config config = plugin.getConfiguration();
+        final String query = String
+            .format("SELECT %s, tokens FROM %s;", online ? "uuid" : "name", StringEscapeUtils.escapeSql(plugin.getConfiguration().getMysqlTable()));
+        final HikariConfig hikariConfig = new HikariConfig();
+        hikariConfig.setJdbcUrl("jdbc:mysql://" + config.getMysqlHostname() + ":" + config.getMysqlPort() + "/" + config.getMysqlDatabase());
+        hikariConfig.setDriverClassName("com.mysql.jdbc.Driver");
+        hikariConfig.setUsername(config.getMysqlUsername());
+        hikariConfig.setPassword(config.getMysqlPassword());
+        hikariConfig.setMaximumPoolSize(1);
+
+        plugin.doAsync(() -> {
+            sender.sendMessage(ChatColor.BLUE + plugin.getDescription().getFullName() + ": Loading user data from MySQL database...");
+
+            try (
+                HikariDataSource dataSource = new HikariDataSource(hikariConfig);
+                Connection connection = dataSource.getConnection();
+                PreparedStatement statement = connection.prepareStatement(query);
+                ResultSet resultSet = statement.executeQuery()
+            ) {
+                sender.sendMessage(ChatColor.BLUE + plugin.getDescription().getFullName() + ": Load Complete. Starting the transfer...");
+
+                final File file = new File(plugin.getDataFolder(), "sqldump-" + System.currentTimeMillis() + ".yml");
+                file.createNewFile();
+
+                final FileConfiguration configuration = YamlConfiguration.loadConfiguration(file);
+                int count = 0;
+
+                while (resultSet.next()) {
+                    final String key = online ? resultSet.getString("uuid") : resultSet.getString("name");
+                    configuration.set("Players." + key, resultSet.getLong("tokens"));
+                    count++;
+                }
+
+                configuration.save(file);
+                sender.sendMessage(ChatColor.BLUE + plugin.getDescription().getFullName() + ": SQL Data saved to " + file.getName() + ". Total Transferred Rows: " + count);
+            } catch (Exception ex) {
+                errorHandler.accept(ex.getMessage());
+                Log.error("Failed to transfer data from MySQL database: " + ex.getMessage());
                 ex.printStackTrace();
             }
         });

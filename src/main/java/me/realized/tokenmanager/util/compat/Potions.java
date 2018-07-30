@@ -1,189 +1,125 @@
 package me.realized.tokenmanager.util.compat;
 
-import java.lang.reflect.Method;
 import java.util.Collection;
-import me.realized.tokenmanager.util.ReflectionUtil;
+import lombok.Getter;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.potion.PotionType;
 
-public class Potions {
+public class Potions extends CompatBase {
 
-    private static final Method AS_NMS_COPY;
-    private static final Class<?> TAG_COMPOUND;
-    private static final Method SET_STRING;
-    private static final Method GET_TAG;
-    private static final Method SET_TAG;
-    private static final Method AS_BUKKIT_COPY;
+    public enum PotionType {
 
-    static {
-        final Class<?> CB_ITEMSTACK;
-        AS_NMS_COPY = ReflectionUtil.getMethod(CB_ITEMSTACK = ReflectionUtil.getCBClass("inventory.CraftItemStack"), "asNMSCopy", ItemStack.class);
-        TAG_COMPOUND = ReflectionUtil.getNMSClass("NBTTagCompound");
-        SET_STRING = ReflectionUtil.getMethod(TAG_COMPOUND, "setString", String.class, String.class);
-        final Class<?> NMS_ITEMSTACK;
-        GET_TAG = ReflectionUtil.getMethod(NMS_ITEMSTACK = ReflectionUtil.getNMSClass("ItemStack"), "getTag");
-        SET_TAG = ReflectionUtil.getMethod(NMS_ITEMSTACK, "setTag", TAG_COMPOUND);
-        AS_BUKKIT_COPY = ReflectionUtil.getMethod(CB_ITEMSTACK, "asBukkitCopy", NMS_ITEMSTACK);
+        FIRE_RESISTANCE, INSTANT_DAMAGE, INSTANT_HEAL,
+        INVISIBILITY, JUMP, LUCK,
+        NIGHT_VISION, POISON, REGEN,
+        SLOWNESS, SPEED, STRENGTH,
+        WATER, WATER_BREATHING, WEAKNESS,
+        EMPTY, UNCRAFTABLE, MUNDANE, THICK, AWKWARD,
+        TURTLE_MASTER, SLOW_FALLING
     }
 
+    @Getter
     private final PotionType type;
+    @Getter
     private final boolean strong, extended, linger, splash;
 
-    public Potions(PotionType type, Collection<String> args) {
+    private Potions(final PotionType type, final boolean strong, final boolean extended, final boolean linger, final boolean splash) {
         this.type = type;
-        this.strong = args.contains("strong");
-        this.extended = args.contains("extended");
-        this.linger = args.contains("linger");
-        this.splash = args.contains("splash");
+        this.strong = strong;
+        this.extended = extended;
+        this.linger = linger;
+        this.splash = splash;
+    }
+
+    public Potions(PotionType type, Collection<String> args) {
+        this(type, args.contains("strong"), args.contains("extended"), args.contains("linger"), args.contains("splash"));
     }
 
     public ItemStack toItemStack() {
-        ItemStack item = new ItemStack(Material.POTION);
-
-        if (splash) {
-            item = new ItemStack(Material.SPLASH_POTION);
-        } else if (linger) {
-            item = new ItemStack(Material.LINGERING_POTION);
-        }
+        final ItemStack item = new ItemStack(!splash ? (linger ? Material.LINGERING_POTION : Material.POTION) : Material.SPLASH_POTION);
 
         try {
-            Object stack = AS_NMS_COPY.invoke(null, item);
-            Object tagCompound = GET_TAG.invoke(stack);
+            final Object nmsItem = AS_NMS_COPY.invoke(null, item);
+            Object tag = GET_TAG.invoke(nmsItem);
 
-            if (tagCompound == null) {
-                tagCompound = TAG_COMPOUND.newInstance();
+            if (tag == null) {
+                tag = TAG_COMPOUND.newInstance();
             }
 
-            String tag;
+            String potionType;
 
             switch (type) {
+                case EMPTY:
                 case UNCRAFTABLE:
-                    tag = "empty";
+                    potionType = "empty";
                     break;
                 case WATER:
-                    tag = "water";
+                    potionType = "water";
                     break;
                 case MUNDANE:
-                    tag = "mundane";
+                    potionType = "mundane";
                     break;
                 case THICK:
-                    tag = "thick";
+                    potionType = "thick";
                     break;
                 case AWKWARD:
-                    tag = "awkward";
+                    potionType = "awkward";
                     break;
                 case NIGHT_VISION:
-                    if (extended) {
-                        tag = "long_night_vision";
-                    } else {
-                        tag = "night_vision";
-                    }
+                    potionType = extended ? "long_night_vision" : "night_vision";
                     break;
                 case INVISIBILITY:
-                    if (extended) {
-                        tag = "long_invisibility";
-                    } else {
-                        tag = "invisibility";
-                    }
+                    potionType = extended ? "long_invisibility" : "invisibility";
                     break;
                 case JUMP:
-                    if (extended) {
-                        tag = "long_leaping";
-                    } else if (strong) {
-                        tag = "strong_leaping";
-                    } else {
-                        tag = "leaping";
-                    }
+                    potionType = extended ? "long_leaping" : (strong ? "strong_leaping" : "leaping");
                     break;
                 case FIRE_RESISTANCE:
-                    if (extended) {
-                        tag = "long_fire_resistance";
-                    } else {
-                        tag = "fire_resistance";
-                    }
+                    potionType = extended ? "long_fire_resistance" : "fire_resistance";
                     break;
                 case SPEED:
-                    if (extended) {
-                        tag = "long_swiftness";
-                    } else if (strong) {
-                        tag = "strong_swiftness";
-                    } else {
-                        tag = "swiftness";
-                    }
+                    potionType = extended ? "long_swiftness" : (strong ? "strong_swiftness" : "swiftness");
                     break;
                 case SLOWNESS:
-                    if (extended) {
-                        tag = "long_slowness";
-                    } else {
-                        tag = "slowness";
-                    }
+                    potionType = extended ? "long_slowness" : "slowness";
                     break;
                 case WATER_BREATHING:
-                    if (extended) {
-                        tag = "long_water_breathing";
-                    } else {
-                        tag = "water_breathing";
-                    }
+                    potionType = extended ? "long_water_breathing" : "water_breathing";
                     break;
                 case INSTANT_HEAL:
-                    if (strong) {
-                        tag = "strong_healing";
-                    } else {
-                        tag = "healing";
-                    }
+                    potionType = strong ? "strong_healing" : "healing";
                     break;
                 case INSTANT_DAMAGE:
-                    if (strong) {
-                        tag = "strong_harming";
-                    } else {
-                        tag = "harming";
-                    }
+                    potionType = strong ? "strong_harming" : "harming";
                     break;
                 case POISON:
-                    if (extended) {
-                        tag = "long_poison";
-                    } else if (strong) {
-                        tag = "strong_poison";
-                    } else {
-                        tag = "poison";
-                    }
+                    potionType = extended ? "long_poison" : (strong ? "strong_poison" : "poison");
                     break;
                 case REGEN:
-                    if (extended) {
-                        tag = "long_regeneration";
-                    } else if (strong) {
-                        tag = "strong_regeneration";
-                    } else {
-                        tag = "regeneration";
-                    }
+                    potionType = extended ? "long_regeneration" : (strong ? "strong_regeneration" : "regeneration");
                     break;
                 case STRENGTH:
-                    if (extended) {
-                        tag = "long_strength";
-                    } else if (strong) {
-                        tag = "strong_strength";
-                    } else {
-                        tag = "strength";
-                    }
+                    potionType = extended ? "long_strength" : (strong ? "strong_strength" : "strength");
                     break;
                 case WEAKNESS:
-                    if (extended) {
-                        tag = "long_weakness";
-                    } else {
-                        tag = "weakness";
-                    }
+                    potionType = extended ? "long_weakness" : "weakness";
                     break;
                 case LUCK:
-                    tag = "luck";
+                    potionType = "luck";
+                    break;
+                case TURTLE_MASTER:
+                    potionType = extended ? "long_turtle_master" : (strong ? "strong_turtle_master" : "turtle_master");
+                    break;
+                case SLOW_FALLING:
+                    potionType = extended ? "long_slow_falling" : "slow_falling";
                     break;
                 default:
                     return null;
             }
 
-            SET_STRING.invoke(tagCompound, "Potion", "minecraft:" + tag);
-            SET_TAG.invoke(stack, tagCompound);
-            return (ItemStack) AS_BUKKIT_COPY.invoke(null, stack);
+            SET_STRING.invoke(tag, "Potion", "minecraft:" + potionType);
+            SET_TAG.invoke(nmsItem, tag);
+            return (ItemStack) AS_BUKKIT_COPY.invoke(null, nmsItem);
         } catch (Exception ex) {
             ex.printStackTrace();
             return null;

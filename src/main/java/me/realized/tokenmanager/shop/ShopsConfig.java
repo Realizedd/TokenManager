@@ -41,6 +41,7 @@ import me.realized.tokenmanager.util.Log;
 import me.realized.tokenmanager.util.NumberUtil;
 import me.realized.tokenmanager.util.Reloadable;
 import me.realized.tokenmanager.util.StringUtil;
+import me.realized.tokenmanager.util.compat.Items;
 import me.realized.tokenmanager.util.config.AbstractConfiguration;
 import me.realized.tokenmanager.util.inventory.GUIBuilder;
 import me.realized.tokenmanager.util.inventory.GUIBuilder.Pattern;
@@ -154,9 +155,9 @@ public class ShopsConfig extends AbstractConfiguration<TokenManagerPlugin> imple
         this.confirmGuiSample = GUIBuilder.of(StringUtil.color(config.getConfirmPurchaseTitle()), 3)
             .pattern(
                 Pattern.of("AAABBBCCC", "AAABBBCCC", "AAABBBCCC")
-                    .specify('A', ItemBuilder.of(Material.STAINED_GLASS_PANE, 1, (short) 13).name(" ").build())
-                    .specify('B', ItemBuilder.of(Material.STAINED_GLASS_PANE, 1, (short) 7).name(" ").build())
-                    .specify('C', ItemBuilder.of(Material.STAINED_GLASS_PANE, 1, (short) 14).name(" ").build()))
+                    .specify('A', Items.GREEN_PANE.clone())
+                    .specify('B', Items.GRAY_PANE.clone())
+                    .specify('C', Items.RED_PANE.clone()))
             .set(
                 ConfirmInventory.CONFIRM_PURCHASE_SLOT,
                 ItemUtil.loadFromString(config.getConfirmPurchaseConfirm(), error -> Log.error(this, "Failed to load confirm-button: " + error))

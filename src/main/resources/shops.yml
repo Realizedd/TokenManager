@@ -21,7 +21,9 @@
 # [IMPORTANT]
 # In Minecraft 1.9, potions & mob spawn eggs no longer use durability to specify the type.
 #
-#  (1.9+) - Example of setting mob spawn egg (zombie) as a displayed item
+# NOTE: In Minecraft 1.13, Spawn Eggs were given their own material name!
+#
+#  (1.9+ - 1.12.2) - Example of setting mob spawn egg (zombie) as a displayed item
 #
 #  displayed: MONSTER_EGG:ZOMBIE 1 name:&9Purchase_a_Zombie_Spawn_Egg!
 #
@@ -47,29 +49,29 @@ shops:
     auto-close: true # 'true' to close the shop inventory when a player purchases an item
     items:
       '0': # Slot of the item, 0 is the first slot of the inventory gui
-        displayed: DIAMOND_SWORD 1 sharpness:5 fireaspect:2 name:&cExample_Sword lore:&bExample_Line_1|&eExample_Line_2|&aPrice:&a_10_Tokens
-        cost: 10 # Cost of this item
-        message: '&bTM &8» &7Thanks for your purchase, %player%! &c-10 tokens' # Message to be sent on purchase, %player% for purchaser's name
+        displayed: DIAMOND_SWORD 1 sharpness:5 fireaspect:2 name:&cExample_Sword lore:&bExample_Line_1|&eExample_Line_2|&aPrice:&a_%price%_Tokens
+        cost: 10 # Cost of this item. %price% placeholder, usable in displayed, message, and commands, displays this value.
+        message: '&bTM &8» &7Thanks for your purchase, %player%! &c-%price% tokens' # Message to be sent on purchase, %player% for purchaser's name
         commands: # Commands to execute on purchase, %player% for purchaser's name
-        - 'give %player% DIAMOND_SWORD 1 sharpness:5 fireaspect:2 name:&cExample_Sword lore:&bExample_Line_1|&eExample_Line_2|&aPrice:_10_Tokens'
+        - 'give %player% DIAMOND_SWORD 1 sharpness:5 fireaspect:2 name:&cExample_Sword lore:&bExample_Line_1|&eExample_Line_2|&aPrice:_%price%_Tokens'
       '1':
-        displayed: STONE 32 name:&3Stone_(x32) lore:&aPrice:_5_Tokens
+        displayed: STONE 32 name:&3Stone_(x32) lore:&aPrice:_%price%_Tokens
         cost: 5
-        message: '&bTM &8» &7Thanks for your purchase, %player%! &c-5 tokens'
+        message: '&bTM &8» &7Thanks for your purchase, %player%! &c-%price% tokens'
         commands:
         - 'give %player% STONE 32'
       '2':
-        displayed: DIAMOND 4 name:&bDiamond_(x4) lore:&aPrice:_50_Tokens|&c&lREQUIRES_PERMISSION!
+        displayed: DIAMOND 4 name:&bDiamond_(x4) lore:&aPrice:_%price%_Tokens|&c&lREQUIRES_PERMISSION!
         cost: 50
         use-permission: true # 'true' to require players to have the permission 'tokenmanager.use.example-2' to purchase this item
-        message: '&bTM &8» &7Thanks for your purchase, %player%! &c-50 tokens'
+        message: '&bTM &8» &7Thanks for your purchase, %player%! &c-%price% tokens'
         commands:
         - 'give %player% DIAMOND 4'
       '3':
-        displayed: WATER_BUCKET 1 name:&9Water_Bucket lore:&aPrice:_15_Tokens
+        displayed: WATER_BUCKET 1 name:&9Water_Bucket lore:&aPrice:_%price%_Tokens
         cost: 15
         confirm-purchase: true # 'true' to open a confirm purchase gui to make sure player intended to purchase this item
-        message: '&bTM &8» &7Thanks for your purchase, %player%! &c-15 tokens'
+        message: '&bTM &8» &7Thanks for your purchase, %player%! &c-%price% tokens'
         commands:
         - 'give %player% WATER_BUCKET 1'
       '4':
@@ -86,7 +88,7 @@ shops:
     items:
       '0':
         # This will not display properly if your server version is 1.9+! Use 'POTION:INSTANT_HEAL-strong-splash' instead of '373:16421'
-        displayed: 373:16421 1 name:&dSplash_Potion_of_Healing lore:&dCost:&a_5_Tokens
+        displayed: 373:16421 1 name:&dSplash_Potion_of_Healing lore:&dCost:&a_%price%_Tokens
         cost: 5
         commands:
         - 'give %player% 373:16421 1 name:&dSplash_Potion_of_Healing'
@@ -101,7 +103,7 @@ shops:
     confirm-purchase: true # 'true' to open a confirm purchase gui for every item in this shop inventory with a cost over 0
     items:
       '0':
-        displayed: BEACON 1 name:&5Beacon lore:&dCost:&a_1000_Tokens
+        displayed: BEACON 1 name:&5Beacon lore:&dCost:&a_%price%_Tokens
         cost: 1000
         commands:
         - 'give %player% BEACON 1'

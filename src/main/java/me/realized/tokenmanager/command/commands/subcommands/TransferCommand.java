@@ -13,11 +13,6 @@ public class TransferCommand extends BaseCommand {
 
     @Override
     protected void execute(final CommandSender sender, final String label, final String[] args) {
-        if (!config.isMysqlEnabled()) {
-            sender.sendMessage(ChatColor.RED + "MySQL option is not enabled in the configuration.");
-            return;
-        }
-
         dataManager.transfer(sender, error -> sender.sendMessage(ChatColor.RED + "Could not transfer data: " + error));
     }
 }

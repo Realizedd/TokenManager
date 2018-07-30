@@ -1,30 +1,3 @@
-/*
- *
- *   This file is part of TokenManager, licensed under the MIT License.
- *
- *   Copyright (c) Realized
- *   Copyright (c) contributors
- *
- *   Permission is hereby granted, free of charge, to any person obtaining a copy
- *   of this software and associated documentation files (the "Software"), to deal
- *   in the Software without restriction, including without limitation the rights
- *   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- *   copies of the Software, and to permit persons to whom the Software is
- *   furnished to do so, subject to the following conditions:
- *
- *   The above copyright notice and this permission notice shall be included in all
- *   copies or substantial portions of the Software.
- *
- *   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- *   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- *   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- *   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- *   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- *   SOFTWARE.
- *
- */
-
 package me.realized.tokenmanager.util.config;
 
 import com.google.common.collect.LinkedListMultimap;
@@ -36,6 +9,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -75,7 +49,7 @@ public abstract class AbstractConfiguration<P extends JavaPlugin> implements Loa
     }
 
     @Override
-    public void handleLoad() throws IOException {
+    public void handleLoad() throws Exception {
         if (!file.exists()) {
             plugin.saveResource(name, true);
         }
@@ -86,16 +60,18 @@ public abstract class AbstractConfiguration<P extends JavaPlugin> implements Loa
     @Override
     public void handleUnload() {}
 
-    protected abstract void loadValues(final FileConfiguration configuration) throws IOException;
+    protected abstract void loadValues(final FileConfiguration configuration) throws Exception;
 
-    protected int getLatestVersion() {
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(plugin.getClass().getResourceAsStream("/" + name)))) {
-            return YamlConfiguration.loadConfiguration(reader).getInt("config-version", -1);
-        } catch (IOException ex) {
-            ex.printStackTrace();
+    protected int getLatestVersion() throws Exception {
+        final InputStream stream = plugin.getClass().getResourceAsStream("/" + name);
+
+        if (stream == null) {
+            throw new IllegalStateException(plugin.getName() + "'s jar file was replaced, but a reload was called! Please restart your server instead when updating this plugin.");
         }
 
-        return -1;
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream))) {
+            return YamlConfiguration.loadConfiguration(reader).getInt("config-version", -1);
+        }
     }
 
     protected FileConfiguration convert(final Converter converter) throws IOException {
@@ -155,7 +131,9 @@ public abstract class AbstractConfiguration<P extends JavaPlugin> implements Loa
 
             // Transfer values from the old configuration
             for (Map.Entry<String, Object> entry : oldValues.entrySet()) {
-                if (configuration.get(entry.getKey()) != null) {
+                final Object value = configuration.get(entry.getKey());
+
+                if (value != null && !(value instanceof MemorySection)) {
                     configuration.set(entry.getKey(), entry.getValue());
                 }
             }

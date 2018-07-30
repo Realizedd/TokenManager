@@ -27,7 +27,6 @@
 
 package me.realized.tokenmanager.config;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,7 +52,7 @@ public class Lang extends AbstractConfiguration<TokenManagerPlugin> implements R
     }
 
     @Override
-    protected void loadValues(FileConfiguration configuration) throws IOException {
+    protected void loadValues(FileConfiguration configuration) throws Exception {
         if (!configuration.isInt("config-version")) {
             configuration = convert(new Converter2_3());
         } else if (configuration.getInt("config-version") < getLatestVersion()) {

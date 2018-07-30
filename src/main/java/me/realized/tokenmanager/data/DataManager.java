@@ -133,8 +133,8 @@ public class DataManager implements Loadable, Listener {
     }
 
     public void transfer(final CommandSender sender, final Consumer<String> errorHandler) {
-        if (database != null && database instanceof MySQLDatabase) {
-            ((MySQLDatabase) database).transfer(sender, errorHandler);
+        if (database != null) {
+            database.transfer(sender, errorHandler);
         }
     }
 

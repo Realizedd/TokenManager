@@ -55,10 +55,11 @@ public class Slot {
         this.slot = slot;
         this.cost = cost;
         this.displayed = displayed;
-        this.message = message;
+        this.message = message != null ? message.replace("%price%", String.valueOf(cost)) : null;
         this.subshop = subshop;
         this.commands = commands;
         this.usePermission = usePermission;
         this.confirmPurchase = confirmPurchase;
+        commands.replaceAll(command -> command = command.replace("%price%", String.valueOf(cost)));
     }
 }

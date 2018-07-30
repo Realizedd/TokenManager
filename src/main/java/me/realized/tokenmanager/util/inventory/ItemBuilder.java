@@ -54,6 +54,10 @@ public final class ItemBuilder {
         return new ItemBuilder(type, amount, durability);
     }
 
+    public static ItemBuilder of(final String type, final int amount, final short durability) {
+        return new ItemBuilder(Material.getMaterial(type), amount, durability);
+    }
+
     public ItemBuilder name(final String name) {
         ItemMeta meta = result.getItemMeta();
         meta.setDisplayName(StringUtil.color(name));

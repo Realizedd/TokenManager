@@ -37,9 +37,12 @@ import java.util.function.Consumer;
 import me.realized.tokenmanager.util.EnumUtil;
 import me.realized.tokenmanager.util.NumberUtil;
 import me.realized.tokenmanager.util.StringUtil;
+import me.realized.tokenmanager.util.compat.CompatUtil;
+import me.realized.tokenmanager.util.compat.Items;
 import me.realized.tokenmanager.util.compat.Potions;
+import me.realized.tokenmanager.util.compat.Potions.PotionType;
 import me.realized.tokenmanager.util.compat.SpawnEggs;
-import org.bukkit.Bukkit;
+import me.realized.tokenmanager.util.compat.Terracottas;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.EntityType;
@@ -50,7 +53,6 @@ import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.potion.PotionType;
 
 public final class ItemUtil {
 
@@ -147,8 +149,19 @@ public final class ItemUtil {
         }
 
         final String[] args = line.split(" +");
-        final String[] materialData = args[0].split(":");
-        final Material material = Material.matchMaterial(materialData[0]);
+        String[] materialData = args[0].split(":");
+        Material material = Material.matchMaterial(materialData[0]);
+
+        // TEMP: Allow confirm button item loading in 1.13
+        if (!CompatUtil.isPre1_13()) {
+            if (materialData[0].equalsIgnoreCase("STAINED_CLAY")) {
+                material = Material.TERRACOTTA;
+
+                if (materialData.length > 1) {
+                    material = Terracottas.from((short) NumberUtil.parseLong(materialData[1]).orElse(0));
+                }
+            }
+        }
 
         if (material == null) {
             throw new IllegalArgumentException("'" + args[0] + "' is not a valid material.");
@@ -158,7 +171,7 @@ public final class ItemUtil {
 
         if (materialData.length > 1) {
             // Handle potions and spawn eggs switching to NBT in 1.9+
-            if (!ItemUtil.isPre1_9()) {
+            if (!CompatUtil.isPre1_9()) {
                 if (material.name().contains("POTION")) {
                     final String[] values = materialData[1].split("-");
                     final PotionType type;
@@ -168,7 +181,7 @@ public final class ItemUtil {
                     }
 
                     result = new Potions(type, Arrays.asList(values)).toItemStack();
-                } else if (material == Material.MONSTER_EGG) {
+                } else if (CompatUtil.isPre1_13() && material.name().equals("MONSTER_EGG")) {
                     final EntityType type;
 
                     if ((type = EnumUtil.getByName(materialData[1], EntityType.class)) == null) {
@@ -248,7 +261,7 @@ public final class ItemUtil {
         }
 
         if (key.equalsIgnoreCase("unbreakable") && value.equalsIgnoreCase("true")) {
-            if (isPre1_12()) {
+            if (CompatUtil.isPre1_12()) {
                 meta.spigot().setUnbreakable(true);
             } else {
                 meta.setUnbreakable(true);
@@ -259,7 +272,7 @@ public final class ItemUtil {
         }
 
         if (key.equalsIgnoreCase("flags")) {
-            if (!isPre1_8()) {
+            if (!CompatUtil.isPre1_8()) {
                 final List<String> flags = Arrays.asList(value.split(","));
 
                 for (final String flag : flags) {
@@ -296,27 +309,10 @@ public final class ItemUtil {
             }
         }
 
-        if (item.getType() == Material.SKULL_ITEM && item.getDurability() == 3 && key.equalsIgnoreCase("player") || key
-            .equalsIgnoreCase("owner")) {
+        if (Items.equals(Items.HEAD, item) && (key.equalsIgnoreCase("player") || key.equalsIgnoreCase("owner"))) {
             final SkullMeta skullMeta = (SkullMeta) meta;
             skullMeta.setOwner(value);
             item.setItemMeta(skullMeta);
         }
-    }
-
-    private static boolean isPre1_8() {
-        return Bukkit.getVersion().contains("1.7");
-    }
-
-    private static boolean isPre1_9() {
-        return isPre1_8() || getVersion().contains("1.8");
-    }
-
-    private static boolean isPre1_12() {
-        return isPre1_9() || getVersion().contains("1.9") || getVersion().contains("1.10") || getVersion().contains("1.11");
-    }
-
-    private static String getVersion() {
-        return Bukkit.getVersion();
     }
 }

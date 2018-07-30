@@ -3,6 +3,7 @@ package me.realized.tokenmanager.data.database;
 import java.util.List;
 import java.util.OptionalLong;
 import java.util.function.Consumer;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 public interface Database {
@@ -97,6 +98,7 @@ public interface Database {
      */
     void ordered(final int limit, final Consumer<List<TopElement>> consumer);
 
+    void transfer(final CommandSender sender, final Consumer<String> errorHandler);
 
     class TopElement {
 

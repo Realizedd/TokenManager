@@ -126,7 +126,7 @@ public class ShopListener implements Loadable, Listener {
             return;
         }
 
-        if (data.isUsePermission() && !player.hasPermission("tokenmanager.use." + target.getName() + "-" + slot)) {
+        if (!confirmGui && data.isUsePermission() && !player.hasPermission("tokenmanager.use." + target.getName() + "-" + slot)) {
             plugin.doSync(player::closeInventory);
             plugin.getLang().sendMessage(player, true, "ERROR.no-permission", "permission", "tokenmanager.use." + target.getName() + "-" + slot);
             return;
