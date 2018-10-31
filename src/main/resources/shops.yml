@@ -99,7 +99,7 @@ shops:
   examplesubshop2:
     title: '&6Example Subshop 2 Title'
     rows: 1
-    use-permission: true # 'true' to require players to have the permission 'tokenmanager.use.examplesubshop2' to purchase this item
+    use-permission: true # 'true' to require players to have the permission 'tokenmanager.use.examplesubshop2' to access this shop
     confirm-purchase: true # 'true' to open a confirm purchase gui for every item in this shop inventory with a cost over 0
     items:
       '0':

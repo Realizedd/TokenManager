@@ -25,7 +25,7 @@
  *
  */
 
-package me.realized.tokenmanager.hooks;
+package me.realized.tokenmanager.hook.hooks;
 
 import java.util.List;
 import me.realized.tokenmanager.TokenManagerPlugin;

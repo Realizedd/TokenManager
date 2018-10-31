@@ -25,7 +25,7 @@
  *
  */
 
-package me.realized.tokenmanager.hooks;
+package me.realized.tokenmanager.hook.hooks;
 
 import be.maximvdw.placeholderapi.PlaceholderAPI;
 import be.maximvdw.placeholderapi.PlaceholderReplaceEvent;

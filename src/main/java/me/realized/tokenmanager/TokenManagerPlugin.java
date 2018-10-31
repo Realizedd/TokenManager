@@ -40,7 +40,7 @@ import me.realized.tokenmanager.command.commands.TokenCommand;
 import me.realized.tokenmanager.config.Config;
 import me.realized.tokenmanager.config.Lang;
 import me.realized.tokenmanager.data.DataManager;
-import me.realized.tokenmanager.hooks.HookManager;
+import me.realized.tokenmanager.hook.HookManager;
 import me.realized.tokenmanager.shop.Shop;
 import me.realized.tokenmanager.shop.ShopListener;
 import me.realized.tokenmanager.shop.ShopsConfig;

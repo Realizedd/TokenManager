@@ -25,7 +25,7 @@
  *
  */
 
-package me.realized.tokenmanager.hooks;
+package me.realized.tokenmanager.hook.hooks;
 
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import me.realized.tokenmanager.TokenManagerPlugin;
