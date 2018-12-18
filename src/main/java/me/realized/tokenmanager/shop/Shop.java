@@ -29,6 +29,7 @@ package me.realized.tokenmanager.shop;
 
 import java.util.HashMap;
 import java.util.Map;
+import lombok.AccessLevel;
 import lombok.Getter;
 import me.realized.tokenmanager.util.StringUtil;
 import me.realized.tokenmanager.util.inventory.ItemUtil;
@@ -40,8 +41,8 @@ public class Shop {
 
     @Getter
     private final String name;
-    @Getter
-    private final Inventory gui;
+    @Getter(value = AccessLevel.PACKAGE)
+    private final Inventory inventory;
     @Getter
     private final boolean autoClose;
     @Getter
@@ -71,15 +72,23 @@ public class Shop {
             throw new IllegalArgumentException("Shop rows must be in between 1 - 6.");
         }
 
-        this.gui = Bukkit.createInventory(null, rows * 9, StringUtil.color(title));
+        this.inventory = Bukkit.createInventory(null, rows * 9, StringUtil.color(title));
         this.autoClose = autoClose;
         this.usePermission = usePermission;
         this.confirmPurchase = confirmPurchase;
     }
 
+    public String getTitle() {
+        return inventory.getTitle();
+    }
+
+    public int getSize() {
+        return inventory.getSize();
+    }
+
     public void setSlot(final int slot, final ItemStack displayed, final Slot data) {
-        ItemUtil.replace(displayed, "%price%", data.getCost());
-        gui.setItem(slot, displayed);
+        ItemUtil.replace(displayed, data.getCost(), "%price%");
+        inventory.setItem(slot, displayed);
 
         if (slots == null) {
             slots = new HashMap<>();

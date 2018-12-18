@@ -30,4 +30,5 @@ permissions:
       tokenmanager.use.top: true
       tokenmanager.use.shop: true
       tokenmanager.use.balance.others: true
-
+      tokenmanager.use.sell: true
+      tokenmanager.use.worth: true

@@ -29,8 +29,10 @@ package me.realized.tokenmanager.command;
 
 import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.config.Config;
+import me.realized.tokenmanager.config.WorthConfig;
 import me.realized.tokenmanager.data.DataManager;
-import me.realized.tokenmanager.shop.ShopsConfig;
+import me.realized.tokenmanager.shop.ShopConfig;
+import me.realized.tokenmanager.shop.ShopManager;
 import me.realized.tokenmanager.util.command.AbstractCommand;
 import me.realized.tokenmanager.util.profile.ProfileUtil;
 import org.bukkit.command.CommandSender;
@@ -38,8 +40,10 @@ import org.bukkit.command.CommandSender;
 public abstract class BaseCommand extends AbstractCommand<TokenManagerPlugin> {
 
     protected final Config config;
-    protected final ShopsConfig shopConfig;
+    protected final ShopConfig shopConfig;
+    protected final ShopManager shopManager;
     protected final DataManager dataManager;
+    protected final WorthConfig worthConfig;
     protected final boolean online;
 
     public BaseCommand(final TokenManagerPlugin plugin, final String name, final String permission, final boolean playerOnly) {
@@ -50,8 +54,10 @@ public abstract class BaseCommand extends AbstractCommand<TokenManagerPlugin> {
         final boolean playerOnly, final String... aliases) {
         super(plugin, name, usage, permission, length, playerOnly, aliases);
         this.config = plugin.getConfiguration();
-        this.dataManager = plugin.getDataManager();
         this.shopConfig = plugin.getShopConfig();
+        this.shopManager = plugin.getShopManager();
+        this.dataManager = plugin.getDataManager();
+        this.worthConfig = plugin.getWorthConfig();
 
         final String mode = config.getOnlineMode();
         this.online = mode.equals("auto") ? ProfileUtil.isOnlineMode() : mode.equals("true");

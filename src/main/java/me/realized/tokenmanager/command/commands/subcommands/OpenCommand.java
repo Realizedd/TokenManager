@@ -33,6 +33,7 @@ import java.util.stream.Collectors;
 import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.command.BaseCommand;
 import me.realized.tokenmanager.shop.Shop;
+import me.realized.tokenmanager.shop.gui.guis.ShopGui;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -61,7 +62,7 @@ public class OpenCommand extends BaseCommand {
             return;
         }
 
-        target.openInventory(shop.get().getGui());
+        shopManager.open(target, new ShopGui(plugin, shop.get()));
         sendMessage(sender, true, "COMMAND.tokenmanager.open", "name", name, "player", target.getName());
     }
 

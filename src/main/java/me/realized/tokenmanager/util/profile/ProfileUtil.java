@@ -50,9 +50,7 @@ public final class ProfileUtil {
     private ProfileUtil() {}
 
     public static boolean isOnlineMode() {
-        final boolean online;
-        return !(online = Bukkit.getOnlineMode()) && USING_SPIGOT && Bukkit.spigot().getConfig().getBoolean("settings.bungeecord")
-            || online;
+        return Bukkit.getOnlineMode() || (USING_SPIGOT && Bukkit.spigot().getConfig().getBoolean("settings.bungeecord"));
     }
 
     public static boolean isUUID(final String s) {

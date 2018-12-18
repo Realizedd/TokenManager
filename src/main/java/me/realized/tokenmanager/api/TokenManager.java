@@ -31,8 +31,10 @@ import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.UUID;
 import me.realized.tokenmanager.shop.Shop;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
 
 public interface TokenManager {
 
@@ -51,6 +53,24 @@ public interface TokenManager {
      * @return Optional containing the shop instance if found, otherwise empty
      */
     Optional<Shop> getShop(final Inventory inventory);
+
+    /**
+     * Get worth of the material defined in worth.yml.
+     *
+     * @param material Material to check for worth.
+     * @return Optional containing the worth of the material if defined. Empty otherwise
+     * @since v3.2.0
+     */
+    OptionalLong getWorth(final Material material);
+
+    /**
+     * Get worth of the item defined in worth.yml.
+     *
+     * @param item ItemStack to check for worth.
+     * @return Optional containing the worth of the item if defined. Empty otherwise
+     * @since v3.2.0
+     */
+    OptionalLong getWorth(final ItemStack item);
 
     /**
      * Get online player's token balance.

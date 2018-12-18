@@ -1,5 +1,5 @@
-import org.apache.tools.ant.filters.ReplaceTokens
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import org.apache.tools.ant.filters.ReplaceTokens
 
 buildscript {
     repositories {
@@ -11,7 +11,7 @@ buildscript {
 }
 
 group 'me.realized'
-version '3.1.3'
+version '3.2.0'
 
 apply plugin: 'java'
 apply plugin: 'com.github.johnrengelman.shadow'
@@ -32,7 +32,6 @@ processResources {
 
     from(sourceSets.main.resources.srcDirs) {
         include '**/*.yml'
-        include '**/*.properties'
         filter(ReplaceTokens, tokens: [NAME: project.name, VERSION: project.version, SHADED_GROUP: group])
     }
 }
@@ -82,18 +81,18 @@ repositories {
     }
 
     maven {
-        name 'inventive-repo'
-        url 'https://repo.inventivetalent.org/content/groups/public/'
+        name 'bstats-repo'
+        url 'http://repo.bstats.org/content/repositories/releases/'
     }
 
     maven {
-        name 'bstats-repo'
-        url 'http://repo.bstats.org/content/repositories/releases/'
+        name 'inventive-repo'
+        url 'https://repo.inventivetalent.org/content/groups/public/'
     }
 }
 
 dependencies {
-    compile 'org.spigotmc:spigot-api:1.13-R0.1-SNAPSHOT'
+    compile 'org.spigotmc:spigot-api:1.13.2-R0.1-SNAPSHOT'
     compile 'net.milkbowl.vault:VaultAPI:1.6'
     compile 'me.clip:placeholderapi:2.8.7'
     compile ('be.maximvdw:MVdWPlaceholderAPI:2.5.1-SNAPSHOT') { transitive = false }
@@ -103,8 +102,8 @@ dependencies {
     compile 'org.apache.commons:commons-pool2:2.4.2'
     compile 'com.zaxxer:HikariCP:2.7.8'
     compile 'org.slf4j:slf4j-nop:1.7.25'
-    compile 'org.inventivetalent.spiget-update:bukkit:1.4.0'
     compile 'org.bstats:bstats-bukkit:1.2'
+    compile 'org.inventivetalent.spiget-update:bukkit:1.4.0'
 }
 
 shadowJar {
@@ -116,8 +115,8 @@ shadowJar {
         include(dependency('org.apache.commons:.*'))
         include(dependency('com.zaxxer:.*'))
         include(dependency('org.slf4j:.*'))
-        include(dependency('org.inventivetalent.spiget-update:.*'))
         include(dependency('org.bstats:.*'))
+        include(dependency('org.inventivetalent.spiget-update:.*'))
     }
 
     def group = project.group.toString() + "." + project.name.toLowerCase() + ".shaded."
@@ -126,6 +125,6 @@ shadowJar {
     relocate 'org.apache.commons.pool2', group + 'apache.commons.pool2'
     relocate 'com.zaxxer.hikari', group + 'zaxxer.hikari'
     relocate 'org.slf4j', group + "slf4j"
-    relocate 'org.inventivetalent.update.spiget', group + 'update.spiget'
     relocate 'org.bstats', group + 'bstats'
+    relocate 'org.inventivetalent.update.spiget', group + 'update.spiget'
 }

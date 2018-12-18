@@ -1,5 +1,5 @@
 # DO NOT EDIT THIS VALUE!
-config-version: 4
+config-version: 5
 
 # Define placeholders usable in any message below.
 # Example: Adding 'PREFIX: "[Cool]"' below and then putting '{PREFIX}' in a message will display '[Cool]' when the message is sent in game.
@@ -19,6 +19,8 @@ ERROR:
   on-click-cooldown: '&cYou''re clicking too fast! Try with a little delay. (%remaining%)'
   target-is-self: '&cYou cannot send tokens to yourself.'
   target-has-same-ip: '&cYou cannot send tokens to this player. (alt prevention)'
+  no-item-in-hand: '&cYou must be holding an item to sell.'
+  item-is-worthless: '&cNo worth has been defined for this item.'
 
 COMMAND:
   token:
@@ -42,6 +44,8 @@ COMMAND:
       display-format: '&7%rank%. &b%name% &7with &b%tokens% token(s)'
       footer: '&8&m*]------------------------------[*&r'
     shops: '{PREFIX} &7Shops: &b%shops%'
+    sell: '{PREFIX} &7Sold &f%item_type% (&ax%item_amount%&f) &7for &b%amount% tokens&7.'
+    worth: '{PREFIX} &f%item_type% (&ax%item_amount%&f) &7is worth &b%amount% tokens&7. Type &f/token sell &7to sell this item.'
 
   tokenmanager:
     usage:

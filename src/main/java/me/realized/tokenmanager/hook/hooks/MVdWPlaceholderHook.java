@@ -46,13 +46,14 @@ public class MVdWPlaceholderHook extends PluginHook<TokenManagerPlugin> {
 
         final Placeholders placeholders = new Placeholders();
         PlaceholderAPI.registerPlaceholder(plugin, "tm_tokens", placeholders);
+        PlaceholderAPI.registerPlaceholder(plugin, "tm_tokens_raw", placeholders);
         PlaceholderAPI.registerPlaceholder(plugin, "tm_tokens_formatted", placeholders);
     }
 
     public class Placeholders implements PlaceholderReplacer {
 
         @Override
-        public String onPlaceholderReplace(PlaceholderReplaceEvent event) {
+        public String onPlaceholderReplace(final PlaceholderReplaceEvent event) {
             final Player player = event.getPlayer();
 
             if (player == null) {
@@ -60,7 +61,17 @@ public class MVdWPlaceholderHook extends PluginHook<TokenManagerPlugin> {
             }
 
             final long balance = dataManager.get(player).orElse(0);
-            return event.getPlaceholder().equals("tm_tokens") ? String.valueOf(balance) : NumberUtil.withSuffix(balance);
+
+            switch (event.getPlaceholder().substring(3)) {
+                case "tokens":
+                    return NumberUtil.withCommas(balance);
+                case "tokens_formatted":
+                    return NumberUtil.withSuffix(balance);
+                case "tokens_raw":
+                    return String.valueOf(balance);
+            }
+
+            return null;
         }
     }
 }

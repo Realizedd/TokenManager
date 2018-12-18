@@ -51,49 +51,45 @@ public class OfflineCommand extends BaseCommand {
     protected void execute(final CommandSender sender, final String label, final String[] args) {
         final OptionalLong amount = NumberUtil.parseLong(args[2]);
 
-        // Case: Invalid amount specified
+        // When specified amount is an invalid number
         if (!amount.isPresent() || amount.getAsLong() <= 0) {
             sendMessage(sender, true, "ERROR.invalid-amount", "input", args[2]);
             return;
         }
 
-        final List<String> argList = Arrays.asList(args);
-        final boolean silent = argList.contains("-s");
+        final List<String> options = Arrays.asList(args);
+        final boolean silent = options.contains("-s"), onlineOnly = options.contains("-o");
         final long fixedAmount = (type == ModifyType.REMOVE ? -1 : 1) * amount.getAsLong();
+        final Player target = Bukkit.getPlayerExact(args[1]);
 
-        if (argList.contains("-o")) {
-            final Player target = Bukkit.getPlayerExact(args[1]);
-
-            if (target == null) {
-                sendMessage(sender, true, "ERROR.player-not-found", "input", args[1]);
-                return;
-            }
+        if (target != null) {
+            sendMessage(sender, true, type.getMessageKey(), "amount", amount.getAsLong(), "player", target.getName());
 
             if (type == ModifyType.SET) {
                 dataManager.set(target, amount.getAsLong());
                 return;
-            }
-
-            final OptionalLong balance = dataManager.get(target);
-
-            if (!balance.isPresent()) {
-                sendMessage(sender, true, "ERROR.player-not-found", "input", args[1]);
-                return;
-            }
-
-            dataManager.set(target, balance.getAsLong() + fixedAmount);
-            sendMessage(sender, true, type.getMessageKey(), "amount", amount.getAsLong(), "player", target.getName());
-
-            if (silent) {
-                return;
-            }
-
-            if (amount.getAsLong() > 0) {
-                plugin.getLang().sendMessage(target, true, "COMMAND.add", "amount", fixedAmount);
             } else {
-                plugin.getLang().sendMessage(target, true, "COMMAND.remove", "amount", Math.abs(fixedAmount));
+                final OptionalLong balance = dataManager.get(target);
+
+                if (!balance.isPresent()) {
+                    sendMessage(sender, true, "ERROR.player-not-found", "input", args[1]);
+                    return;
+                }
+
+                dataManager.set(target, balance.getAsLong() + fixedAmount);
             }
 
+            if (!silent) {
+                if (fixedAmount > 0) {
+                    plugin.getLang().sendMessage(target, true, "COMMAND.add", "amount", amount.getAsLong());
+                } else {
+                    plugin.getLang().sendMessage(target, true, "COMMAND.remove", "amount", amount.getAsLong());
+                }
+            }
+
+            return;
+        } else if (onlineOnly) {
+            sendMessage(sender, true, "ERROR.player-not-found", "input", args[1]);
             return;
         }
 

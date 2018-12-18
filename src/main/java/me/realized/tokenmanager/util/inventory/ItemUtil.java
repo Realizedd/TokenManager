@@ -29,6 +29,7 @@ package me.realized.tokenmanager.util.inventory;
 
 import com.google.common.collect.Lists;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,12 +44,14 @@ import me.realized.tokenmanager.util.compat.Potions;
 import me.realized.tokenmanager.util.compat.Potions.PotionType;
 import me.realized.tokenmanager.util.compat.SpawnEggs;
 import me.realized.tokenmanager.util.compat.Terracottas;
+import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.potion.PotionEffect;
@@ -56,73 +59,80 @@ import org.bukkit.potion.PotionEffectType;
 
 public final class ItemUtil {
 
-    private static final Map<String, Enchantment> ENCHANTMENTS = new HashMap<>();
-    private static final Map<String, PotionEffectType> EFFECTS = new HashMap<>();
+    private static final Map<String, Enchantment> ENCHANTMENTS;
+    private static final Map<String, PotionEffectType> EFFECTS;
 
     static {
-        registerEnchantment("power", Enchantment.ARROW_DAMAGE);
-        registerEnchantment("flame", Enchantment.ARROW_FIRE);
-        registerEnchantment("infinity", Enchantment.ARROW_INFINITE);
-        registerEnchantment("punch", Enchantment.ARROW_KNOCKBACK);
-        registerEnchantment("sharpness", Enchantment.DAMAGE_ALL);
-        registerEnchantment("baneofarthopods", Enchantment.DAMAGE_ARTHROPODS);
-        registerEnchantment("smite", Enchantment.DAMAGE_UNDEAD);
-        registerEnchantment("efficiency", Enchantment.DIG_SPEED);
-        registerEnchantment("unbreaking", Enchantment.DURABILITY);
-        registerEnchantment("thorns", Enchantment.THORNS);
-        registerEnchantment("fireaspect", Enchantment.FIRE_ASPECT);
-        registerEnchantment("knockback", Enchantment.KNOCKBACK);
-        registerEnchantment("fortune", Enchantment.LOOT_BONUS_BLOCKS);
-        registerEnchantment("looting", Enchantment.LOOT_BONUS_MOBS);
-        registerEnchantment("respiration", Enchantment.OXYGEN);
-        registerEnchantment("blastprotection", Enchantment.PROTECTION_EXPLOSIONS);
-        registerEnchantment("featherfalling", Enchantment.PROTECTION_FALL);
-        registerEnchantment("fireprotection", Enchantment.PROTECTION_FIRE);
-        registerEnchantment("projectileprotection", Enchantment.PROTECTION_PROJECTILE);
-        registerEnchantment("protection", Enchantment.PROTECTION_ENVIRONMENTAL);
-        registerEnchantment("silktouch", Enchantment.SILK_TOUCH);
-        registerEnchantment("aquaaffinity", Enchantment.WATER_WORKER);
-        registerEnchantment("luck", Enchantment.LUCK);
-        registerEnchantment("lure", Enchantment.LURE);
+        final Map<String, Enchantment> enchantments = new HashMap<>();
+        Arrays.stream(Enchantment.values()).forEach(enchantment -> {
+            enchantments.put(enchantment.getName(), enchantment);
 
-        registerEffect("speed", PotionEffectType.SPEED);
-        registerEffect("slowness", PotionEffectType.SLOW);
-        registerEffect("haste", PotionEffectType.FAST_DIGGING);
-        registerEffect("fatigue", PotionEffectType.SLOW_DIGGING);
-        registerEffect("strength", PotionEffectType.INCREASE_DAMAGE);
-        registerEffect("heal", PotionEffectType.HEAL);
-        registerEffect("harm", PotionEffectType.HARM);
-        registerEffect("jump", PotionEffectType.JUMP);
-        registerEffect("nausea", PotionEffectType.CONFUSION);
-        registerEffect("regeneration", PotionEffectType.REGENERATION);
-        registerEffect("resistance", PotionEffectType.DAMAGE_RESISTANCE);
-        registerEffect("fireresistance", PotionEffectType.FIRE_RESISTANCE);
-        registerEffect("waterbreathing", PotionEffectType.WATER_BREATHING);
-        registerEffect("invisibility", PotionEffectType.INVISIBILITY);
-        registerEffect("blindness", PotionEffectType.BLINDNESS);
-        registerEffect("nightvision", PotionEffectType.NIGHT_VISION);
-        registerEffect("hunger", PotionEffectType.HUNGER);
-        registerEffect("weakness", PotionEffectType.WEAKNESS);
-        registerEffect("poison", PotionEffectType.POISON);
-        registerEffect("wither", PotionEffectType.WITHER);
-        registerEffect("healthboost", PotionEffectType.HEALTH_BOOST);
-        registerEffect("absorption", PotionEffectType.ABSORPTION);
-        registerEffect("saturation", PotionEffectType.SATURATION);
+            if (!CompatUtil.isPre1_13()) {
+                enchantments.put(enchantment.getKey().getKey(), enchantment);
+            }
+        });
+        enchantments.put("power", Enchantment.ARROW_DAMAGE);
+        enchantments.put("flame", Enchantment.ARROW_FIRE);
+        enchantments.put("infinity", Enchantment.ARROW_INFINITE);
+        enchantments.put("punch", Enchantment.ARROW_KNOCKBACK);
+        enchantments.put("sharpness", Enchantment.DAMAGE_ALL);
+        enchantments.put("baneofarthopods", Enchantment.DAMAGE_ARTHROPODS);
+        enchantments.put("smite", Enchantment.DAMAGE_UNDEAD);
+        enchantments.put("efficiency", Enchantment.DIG_SPEED);
+        enchantments.put("unbreaking", Enchantment.DURABILITY);
+        enchantments.put("thorns", Enchantment.THORNS);
+        enchantments.put("fireaspect", Enchantment.FIRE_ASPECT);
+        enchantments.put("knockback", Enchantment.KNOCKBACK);
+        enchantments.put("fortune", Enchantment.LOOT_BONUS_BLOCKS);
+        enchantments.put("looting", Enchantment.LOOT_BONUS_MOBS);
+        enchantments.put("respiration", Enchantment.OXYGEN);
+        enchantments.put("blastprotection", Enchantment.PROTECTION_EXPLOSIONS);
+        enchantments.put("featherfalling", Enchantment.PROTECTION_FALL);
+        enchantments.put("fireprotection", Enchantment.PROTECTION_FIRE);
+        enchantments.put("projectileprotection", Enchantment.PROTECTION_PROJECTILE);
+        enchantments.put("protection", Enchantment.PROTECTION_ENVIRONMENTAL);
+        enchantments.put("silktouch", Enchantment.SILK_TOUCH);
+        enchantments.put("aquaaffinity", Enchantment.WATER_WORKER);
+        enchantments.put("luck", Enchantment.LUCK);
+        ENCHANTMENTS = Collections.unmodifiableMap(enchantments);
+
+        final Map<String, PotionEffectType> effects = new HashMap<>();
+        Arrays.stream(PotionEffectType.values()).forEach(type -> {
+            if (type == null) {
+                return;
+            }
+
+            effects.put(type.getName(), type);
+        });
+        effects.put("speed", PotionEffectType.SPEED);
+        effects.put("slowness", PotionEffectType.SLOW);
+        effects.put("haste", PotionEffectType.FAST_DIGGING);
+        effects.put("fatigue", PotionEffectType.SLOW_DIGGING);
+        effects.put("strength", PotionEffectType.INCREASE_DAMAGE);
+        effects.put("heal", PotionEffectType.HEAL);
+        effects.put("harm", PotionEffectType.HARM);
+        effects.put("jump", PotionEffectType.JUMP);
+        effects.put("nausea", PotionEffectType.CONFUSION);
+        effects.put("regeneration", PotionEffectType.REGENERATION);
+        effects.put("resistance", PotionEffectType.DAMAGE_RESISTANCE);
+        effects.put("fireresistance", PotionEffectType.FIRE_RESISTANCE);
+        effects.put("waterbreathing", PotionEffectType.WATER_BREATHING);
+        effects.put("invisibility", PotionEffectType.INVISIBILITY);
+        effects.put("blindness", PotionEffectType.BLINDNESS);
+        effects.put("nightvision", PotionEffectType.NIGHT_VISION);
+        effects.put("hunger", PotionEffectType.HUNGER);
+        effects.put("weakness", PotionEffectType.WEAKNESS);
+        effects.put("poison", PotionEffectType.POISON);
+        effects.put("wither", PotionEffectType.WITHER);
+        effects.put("healthboost", PotionEffectType.HEALTH_BOOST);
+        effects.put("absorption", PotionEffectType.ABSORPTION);
+        effects.put("saturation", PotionEffectType.SATURATION);
+        EFFECTS = Collections.unmodifiableMap(effects);
     }
 
     private ItemUtil() {}
 
-    private static void registerEnchantment(final String key, final Enchantment value) {
-        ENCHANTMENTS.put(key, value);
-        ENCHANTMENTS.put(value.getName(), value);
-    }
-
-    private static void registerEffect(final String key, final PotionEffectType value) {
-        EFFECTS.put(key, value);
-        EFFECTS.put(value.getName(), value);
-    }
-
-    public static ItemStack replace(final ItemStack item, final String placeholder, final Object value) {
+    public static ItemStack replace(final ItemStack item, final Object value, final String... placeholders) {
         if (!item.hasItemMeta()) {
             return item;
         }
@@ -131,12 +141,24 @@ public final class ItemUtil {
 
         if (meta.hasLore()) {
             final List<String> lore = meta.getLore();
-            lore.replaceAll(line -> line.replace(placeholder, value.toString()));
+            lore.replaceAll(line -> {
+                for (final String placeholder : placeholders) {
+                    line = line.replace(placeholder, value.toString());
+                }
+
+                return line;
+            });
             meta.setLore(lore);
         }
 
         if (meta.hasDisplayName()) {
-            meta.setDisplayName(meta.getDisplayName().replace(placeholder, value.toString()));
+            String displayName = meta.getDisplayName();
+
+            for (final String placeholder : placeholders) {
+                displayName = displayName.replace(placeholder, value.toString());
+            }
+
+            meta.setDisplayName(displayName);
         }
 
         item.setItemMeta(meta);
@@ -145,7 +167,7 @@ public final class ItemUtil {
 
     public static ItemStack loadFromString(final String line) {
         if (line == null || line.isEmpty()) {
-            throw new IllegalArgumentException("Line is empty or null!");
+            throw new IllegalArgumentException("Line is empty or null");
         }
 
         final String[] args = line.split(" +");
@@ -164,7 +186,7 @@ public final class ItemUtil {
         }
 
         if (material == null) {
-            throw new IllegalArgumentException("'" + args[0] + "' is not a valid material.");
+            throw new IllegalArgumentException("'" + args[0] + "' is not a valid material");
         }
 
         ItemStack result = new ItemStack(material, 1);
@@ -301,8 +323,8 @@ public final class ItemUtil {
             final PotionEffectType effectType = EFFECTS.get(key);
 
             if (effectType != null) {
-                String[] values = value.split(":");
-                PotionMeta potionMeta = (PotionMeta) meta;
+                final String[] values = value.split(":");
+                final PotionMeta potionMeta = (PotionMeta) meta;
                 potionMeta.addCustomEffect(new PotionEffect(effectType, Integer.parseInt(values[1]), Integer.parseInt(values[0])), true);
                 item.setItemMeta(potionMeta);
                 return;
@@ -313,6 +335,13 @@ public final class ItemUtil {
             final SkullMeta skullMeta = (SkullMeta) meta;
             skullMeta.setOwner(value);
             item.setItemMeta(skullMeta);
+        }
+
+        if (item.getType().name().contains("LEATHER_") && key.equalsIgnoreCase("color")) {
+            final LeatherArmorMeta leatherArmorMeta = (LeatherArmorMeta) meta;
+            final String[] values = value.split(",");
+            leatherArmorMeta.setColor(Color.fromRGB(Integer.parseInt(values[0]), Integer.parseInt(values[1]), Integer.parseInt(values[2])));
+            item.setItemMeta(leatherArmorMeta);
         }
     }
 }

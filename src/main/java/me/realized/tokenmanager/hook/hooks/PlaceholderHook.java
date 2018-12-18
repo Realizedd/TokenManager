@@ -73,7 +73,17 @@ public class PlaceholderHook extends PluginHook<TokenManagerPlugin> {
             }
 
             final long balance = dataManager.get(player).orElse(0);
-            return identifier.equals("tokens") ? String.valueOf(balance) : NumberUtil.withSuffix(balance);
+
+            switch (identifier) {
+                case "tokens":
+                    return NumberUtil.withCommas(balance);
+                case "tokens_formatted":
+                    return NumberUtil.withSuffix(balance);
+                case "tokens_raw":
+                    return String.valueOf(balance);
+            }
+
+            return null;
         }
     }
 }

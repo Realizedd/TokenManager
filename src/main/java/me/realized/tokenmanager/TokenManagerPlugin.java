@@ -39,21 +39,24 @@ import me.realized.tokenmanager.command.commands.TMCommand;
 import me.realized.tokenmanager.command.commands.TokenCommand;
 import me.realized.tokenmanager.config.Config;
 import me.realized.tokenmanager.config.Lang;
+import me.realized.tokenmanager.config.WorthConfig;
 import me.realized.tokenmanager.data.DataManager;
 import me.realized.tokenmanager.hook.HookManager;
 import me.realized.tokenmanager.shop.Shop;
-import me.realized.tokenmanager.shop.ShopListener;
-import me.realized.tokenmanager.shop.ShopsConfig;
+import me.realized.tokenmanager.shop.ShopConfig;
+import me.realized.tokenmanager.shop.ShopManager;
 import me.realized.tokenmanager.util.Loadable;
 import me.realized.tokenmanager.util.Log;
 import me.realized.tokenmanager.util.Reloadable;
 import me.realized.tokenmanager.util.StringUtil;
 import org.bstats.bukkit.Metrics;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.inventivetalent.update.spiget.SpigetUpdate;
 import org.inventivetalent.update.spiget.UpdateCallback;
@@ -62,7 +65,8 @@ import org.inventivetalent.update.spiget.comparator.VersionComparator;
 public class TokenManagerPlugin extends JavaPlugin implements TokenManager, Listener {
 
     private static final int RESOURCE_ID = 8610;
-    private static final String ADMIN_UPDATE_MESSAGE = "&9[TM] &bThere is an update available for TokenManager. Download at &7%s";
+    private static final String ADMIN_UPDATE_MESSAGE = "&9[TM] &bTokenManager &fv%s &7is now available for download! Download at: &c%s";
+    private static final String RESOURCE_URL = "https://www.spigotmc.org/resources/tokenmanager.8610/";
 
     @Getter
     private static TokenManagerPlugin instance;
@@ -75,12 +79,16 @@ public class TokenManagerPlugin extends JavaPlugin implements TokenManager, List
     @Getter
     private Lang lang;
     @Getter
-    private ShopsConfig shopConfig;
-    @Getter
     private DataManager dataManager;
+    @Getter
+    private ShopConfig shopConfig;
+    @Getter
+    private ShopManager shopManager;
+    @Getter
+    private WorthConfig worthConfig;
 
     private volatile boolean updateAvailable;
-    private volatile String downloadLink;
+    private volatile String newVersion;
 
     @Override
     public void onEnable() {
@@ -88,9 +96,10 @@ public class TokenManagerPlugin extends JavaPlugin implements TokenManager, List
         Log.setSource(this);
         loadables.add(configuration = new Config(this));
         loadables.add(lang = new Lang(this));
-        loadables.add(shopConfig = new ShopsConfig(this));
         loadables.add(dataManager = new DataManager(this));
-        loadables.add(new ShopListener(this));
+        loadables.add(shopConfig = new ShopConfig(this));
+        loadables.add(shopManager = new ShopManager(this));
+        loadables.add(worthConfig = new WorthConfig(this));
         loadables.add(new HookManager(this));
 
         if (!load()) {
@@ -112,12 +121,12 @@ public class TokenManagerPlugin extends JavaPlugin implements TokenManager, List
         updateChecker.checkForUpdate(new UpdateCallback() {
             @Override
             public void updateAvailable(final String newVersion, final String downloadUrl, final boolean hasDirectDownload) {
-                updateAvailable = true;
-                downloadLink = downloadUrl;
+                TokenManagerPlugin.this.updateAvailable = true;
+                TokenManagerPlugin.this.newVersion = newVersion;
                 Log.info("===============================================");
                 Log.info("An update for " + getName() + " is available!");
                 Log.info("Download " + getName() + " v" + newVersion + " here:");
-                Log.info(downloadUrl);
+                Log.info(RESOURCE_URL);
                 Log.info("===============================================");
             }
 
@@ -204,7 +213,17 @@ public class TokenManagerPlugin extends JavaPlugin implements TokenManager, List
 
     @Override
     public Optional<Shop> getShop(final Inventory inventory) {
-        return shopConfig.getShops().stream().filter(shop -> shop.getGui().equals(inventory)).findFirst();
+        return shopManager.find(inventory);
+    }
+
+    @Override
+    public OptionalLong getWorth(final Material material) {
+        return OptionalLong.of(worthConfig.getWorth(material));
+    }
+
+    @Override
+    public OptionalLong getWorth(final ItemStack item) {
+        return OptionalLong.of(worthConfig.getWorth(item));
     }
 
     @Override
@@ -299,7 +318,7 @@ public class TokenManagerPlugin extends JavaPlugin implements TokenManager, List
         final Player player = event.getPlayer();
 
         if (updateAvailable && (player.isOp() || player.hasPermission("tokenmanager.admin"))) {
-            player.sendMessage(StringUtil.color(String.format(ADMIN_UPDATE_MESSAGE, downloadLink)));
+            player.sendMessage(StringUtil.color(String.format(ADMIN_UPDATE_MESSAGE, newVersion, RESOURCE_URL)));
         }
     }
 }

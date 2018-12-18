@@ -31,11 +31,13 @@ import java.util.OptionalLong;
 import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.command.BaseCommand;
 import me.realized.tokenmanager.command.commands.subcommands.BalanceCommand;
+import me.realized.tokenmanager.command.commands.subcommands.SellCommand;
 import me.realized.tokenmanager.command.commands.subcommands.SendCommand;
 import me.realized.tokenmanager.command.commands.subcommands.ShopCommand;
 import me.realized.tokenmanager.command.commands.subcommands.ShopsCommand;
 import me.realized.tokenmanager.command.commands.subcommands.TopCommand;
 import me.realized.tokenmanager.command.commands.subcommands.VersionCommand;
+import me.realized.tokenmanager.command.commands.subcommands.WorthCommand;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -49,6 +51,8 @@ public class TokenCommand extends BaseCommand {
             new TopCommand(plugin),
             new ShopCommand(plugin),
             new ShopsCommand(plugin),
+            new SellCommand(plugin),
+            new WorthCommand(plugin),
             new VersionCommand(plugin)
         );
     }

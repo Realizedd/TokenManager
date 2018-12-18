@@ -33,6 +33,7 @@ import java.util.stream.Collectors;
 import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.command.BaseCommand;
 import me.realized.tokenmanager.shop.Shop;
+import me.realized.tokenmanager.shop.gui.guis.ShopGui;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -58,7 +59,7 @@ public class ShopCommand extends BaseCommand {
                 return;
             }
 
-            player.openInventory(shop.get().getGui());
+            shopManager.open(player, new ShopGui(plugin, shop.get()));
             return;
         }
 
@@ -75,7 +76,7 @@ public class ShopCommand extends BaseCommand {
             return;
         }
 
-        player.openInventory(shop.get().getGui());
+        shopManager.open(player, new ShopGui(plugin, shop.get()));
     }
 
     @Override

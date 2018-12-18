@@ -28,15 +28,14 @@
 package me.realized.tokenmanager.shop;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalLong;
-import java.util.UUID;
 import lombok.Getter;
 import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.config.Config;
+import me.realized.tokenmanager.shop.gui.guis.ConfirmGui;
 import me.realized.tokenmanager.util.Log;
 import me.realized.tokenmanager.util.NumberUtil;
 import me.realized.tokenmanager.util.Reloadable;
@@ -47,24 +46,20 @@ import me.realized.tokenmanager.util.inventory.GUIBuilder;
 import me.realized.tokenmanager.util.inventory.GUIBuilder.Pattern;
 import me.realized.tokenmanager.util.inventory.ItemBuilder;
 import me.realized.tokenmanager.util.inventory.ItemUtil;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
-public class ShopsConfig extends AbstractConfiguration<TokenManagerPlugin> implements Reloadable {
+public class ShopConfig extends AbstractConfiguration<TokenManagerPlugin> implements Reloadable {
 
-    private final Map<String, Shop> shops = new LinkedHashMap<>();
-
-    @Getter
-    private final Map<UUID, ConfirmInventory> inventories = new HashMap<>();
+    private final Map<String, Shop> shopSamples = new LinkedHashMap<>();
 
     @Getter
     private Inventory confirmGuiSample;
 
-    public ShopsConfig(final TokenManagerPlugin plugin) {
+    public ShopConfig(final TokenManagerPlugin plugin) {
         super(plugin, "shops");
     }
 
@@ -107,7 +102,7 @@ public class ShopsConfig extends AbstractConfiguration<TokenManagerPlugin> imple
 
                     final long slot = target.getAsLong();
 
-                    if (slot < 0 || slot >= shop.getGui().getSize()) {
+                    if (slot < 0 || slot >= shop.getInventory().getSize()) {
                         Log.error(this, "Failed to load slot '" + num + "' of shop '" + name + "': '" + slot + "' is over the shop size.");
                         continue;
                     }
@@ -118,7 +113,7 @@ public class ShopsConfig extends AbstractConfiguration<TokenManagerPlugin> imple
                     try {
                         displayed = ItemUtil.loadFromString(slotSection.getString("displayed"));
                     } catch (Exception ex) {
-                        shop.getGui().setItem((int) slot, ItemBuilder
+                        shop.getInventory().setItem((int) slot, ItemBuilder
                             .of(Material.REDSTONE_BLOCK)
                             .name("&4&m------------------")
                             .lore(
@@ -135,6 +130,8 @@ public class ShopsConfig extends AbstractConfiguration<TokenManagerPlugin> imple
                     }
 
                     shop.setSlot((int) slot, displayed, new Slot(
+                        plugin,
+                        shop,
                         (int) slot,
                         slotSection.getInt("cost", 1000000),
                         displayed,
@@ -159,11 +156,11 @@ public class ShopsConfig extends AbstractConfiguration<TokenManagerPlugin> imple
                     .specify('B', Items.GRAY_PANE.clone())
                     .specify('C', Items.RED_PANE.clone()))
             .set(
-                ConfirmInventory.CONFIRM_PURCHASE_SLOT,
+                ConfirmGui.CONFIRM_PURCHASE_SLOT,
                 ItemUtil.loadFromString(config.getConfirmPurchaseConfirm(), error -> Log.error(this, "Failed to load confirm-button: " + error))
             )
             .set(
-                ConfirmInventory.CANCEL_PURCHASE_SLOT,
+                ConfirmGui.CANCEL_PURCHASE_SLOT,
                 ItemUtil.loadFromString(config.getConfirmPurchaseCancel(), error -> Log.error(this, "Failed to load cancel-button: " + error))
             )
             .build();
@@ -171,34 +168,19 @@ public class ShopsConfig extends AbstractConfiguration<TokenManagerPlugin> imple
 
     @Override
     public void handleUnload() {
-        Bukkit.getOnlinePlayers().forEach(player -> {
-            final Inventory top = player.getOpenInventory().getTopInventory();
-
-            if (getShops().stream().anyMatch(shop -> shop.getGui().equals(top))) {
-                player.closeInventory();
-                player.sendMessage(StringUtil.color("&cShop was automatically closed since the plugin is deactivating."));
-                return;
-            }
-
-            final ConfirmInventory inventory = inventories.get(player.getUniqueId());
-
-            if (inventory != null && inventory.getInventory().equals(top)) {
-                player.closeInventory();
-            }
-        });
-
-        shops.clear();
+        shopSamples.clear();
+        plugin.getShopManager().clearCache();
     }
 
     public Optional<Shop> getShop(final String name) {
-        return Optional.ofNullable(shops.get(name));
+        return Optional.ofNullable(shopSamples.get(name));
     }
 
     public Collection<Shop> getShops() {
-        return shops.values();
+        return shopSamples.values();
     }
 
     public Shop register(final String name, final Shop shop) {
-        return shops.put(name, shop);
+        return shopSamples.put(name, shop);
     }
 }

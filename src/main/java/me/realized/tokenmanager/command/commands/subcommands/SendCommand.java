@@ -31,6 +31,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.OptionalLong;
 import me.realized.tokenmanager.TokenManagerPlugin;
+import me.realized.tokenmanager.api.event.TMTokenSendEvent;
 import me.realized.tokenmanager.command.BaseCommand;
 import me.realized.tokenmanager.event.TokenReceiveEvent;
 import me.realized.tokenmanager.util.NumberUtil;
@@ -95,13 +96,20 @@ public class SendCommand extends BaseCommand {
             return;
         }
 
+        final TMTokenSendEvent event = new TMTokenSendEvent(player, target, amount);
+        plugin.getServer().getPluginManager().callEvent(event);
+
+        if (event.isCancelled()) {
+            return;
+        }
+
         dataManager.set(player, balance.getAsLong() - amount);
         sendMessage(sender, true, "COMMAND.token.send", "player", target.getName(), "amount", amount);
 
-        final TokenReceiveEvent event = new TokenReceiveEvent(target.getUniqueId(), (int) amount);
-        Bukkit.getPluginManager().callEvent(event);
+        final TokenReceiveEvent tokenReceiveEvent = new TokenReceiveEvent(target.getUniqueId(), (int) amount);
+        Bukkit.getPluginManager().callEvent(tokenReceiveEvent);
 
-        if (event.isCancelled()) {
+        if (tokenReceiveEvent.isCancelled()) {
             return;
         }
 
