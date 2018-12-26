@@ -113,9 +113,6 @@ public class TokenManagerPlugin extends JavaPlugin implements TokenManager, List
 
         new Metrics(this);
 
-        // TODO: 12/25/18 remove
-        this.getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
-
         if (!configuration.isCheckForUpdates()) {
             return;
         }
