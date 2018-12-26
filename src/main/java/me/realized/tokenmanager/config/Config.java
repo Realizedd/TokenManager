@@ -64,6 +64,8 @@ public class Config extends AbstractConfiguration<TokenManagerPlugin> {
     @Getter
     private int clickDelay;
     @Getter
+    private boolean checkInventoryFull;
+    @Getter
     private boolean mysqlEnabled;
     @Getter
     private String mysqlUsername;
@@ -77,6 +79,8 @@ public class Config extends AbstractConfiguration<TokenManagerPlugin> {
     private String mysqlDatabase;
     @Getter
     private String mysqlTable;
+    @Getter
+    private String mysqlUrl;
     @Getter
     private boolean redisEnabled;
     @Getter
@@ -115,6 +119,7 @@ public class Config extends AbstractConfiguration<TokenManagerPlugin> {
         confirmPurchaseConfirm = configuration.getString("shop.confirm-purchase-gui.confirm-button", "STAINED_CLAY:5 1 name:&a&lBUY lore:&7Price:_&a%price%_tokens");
         confirmPurchaseCancel = configuration.getString("shop.confirm-purchase-gui.cancel-button", "STAINED_CLAY:14 1 name:&c&lCANCEL");
         clickDelay = configuration.getInt("shop.click-delay", 0);
+        checkInventoryFull = configuration.getBoolean("shop.check-inventory-full", false);
         mysqlEnabled = configuration.getBoolean("data.mysql.enabled", false);
         mysqlUsername = configuration.getString("data.mysql.username", "root");
         mysqlPassword = configuration.getString("data.mysql.password", "password");
@@ -122,6 +127,7 @@ public class Config extends AbstractConfiguration<TokenManagerPlugin> {
         mysqlPort = configuration.getString("data.mysql.port", "3306");
         mysqlDatabase = configuration.getString("data.mysql.database", "database");
         mysqlTable = configuration.getString("data.mysql.table", "tokenmanager");
+        mysqlUrl = configuration.getString("data.mysql.url", "jdbc:mysql://%hostname%:%port%/%database%");
         redisEnabled = configuration.getBoolean("data.mysql.redis.enabled", false);
         redisServer = configuration.getString("data.mysql.redis.server", "127.0.0.1");
         redisPort = configuration.getInt("data.mysql.redis.port", 6379);

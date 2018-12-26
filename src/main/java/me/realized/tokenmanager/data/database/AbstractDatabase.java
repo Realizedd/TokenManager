@@ -34,6 +34,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.util.profile.ProfileUtil;
+import org.bukkit.entity.Player;
 
 public abstract class AbstractDatabase implements Database {
 
@@ -43,12 +44,16 @@ public abstract class AbstractDatabase implements Database {
     AbstractDatabase(final TokenManagerPlugin plugin) {
         this.plugin = plugin;
 
-        final String mode = plugin.getConfiguration().getOnlineMode();
+        final String mode = plugin.getConfiguration().getOnlineMode().toLowerCase();
         this.online = mode.equals("auto") ? ProfileUtil.isOnlineMode() : mode.equals("true");
     }
 
     OptionalLong from(final Long value) {
         return value != null ? OptionalLong.of(value) : OptionalLong.empty();
+    }
+
+    String from(final Player player) {
+        return online ? player.getUniqueId().toString() : player.getName();
     }
 
     void replaceNames(final List<TopElement> list, final Consumer<List<TopElement>> callback) {

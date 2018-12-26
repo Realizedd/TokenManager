@@ -52,6 +52,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import lombok.Getter;
 import me.realized.tokenmanager.TokenManagerPlugin;
+import me.realized.tokenmanager.command.commands.subcommands.OfflineCommand.ModifyType;
 import me.realized.tokenmanager.config.Config;
 import me.realized.tokenmanager.util.Log;
 import me.realized.tokenmanager.util.NumberUtil;
@@ -64,6 +65,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
@@ -72,6 +74,7 @@ import redis.clients.jedis.exceptions.JedisConnectionException;
 
 public class MySQLDatabase extends AbstractDatabase {
 
+    private static final long LOGIN_WAIT_DURATION = 30L;
     private static final String SERVER_MODE_MISMATCH = "Server is in %s mode, but found table '%s' does not have column '%s'! Please choose a different table name.";
     private final String table;
     private final ExecutorService executor;
@@ -95,7 +98,11 @@ public class MySQLDatabase extends AbstractDatabase {
     public void setup() throws Exception {
         final Config config = plugin.getConfiguration();
         final HikariConfig hikariConfig = new HikariConfig();
-        hikariConfig.setJdbcUrl("jdbc:mysql://" + config.getMysqlHostname() + ":" + config.getMysqlPort() + "/" + config.getMysqlDatabase());
+        hikariConfig.setJdbcUrl(config.getMysqlUrl()
+            .replace("%hostname%", config.getMysqlHostname())
+            .replace("%port%", config.getMysqlPort())
+            .replace("%database%", config.getMysqlDatabase())
+        );
         hikariConfig.setDriverClassName("com.mysql.jdbc.Driver");
         hikariConfig.setUsername(config.getMysqlUsername());
         hikariConfig.setPassword(config.getMysqlPassword());
@@ -144,21 +151,17 @@ public class MySQLDatabase extends AbstractDatabase {
     }
 
     @Override
-    public void get(final Player player, final Consumer<OptionalLong> consumer, final Consumer<String> errorHandler) {
-        get(online ? player.getUniqueId().toString() : player.getName(), consumer, errorHandler, true);
-    }
-
-    @Override
-    public void get(final String key, final Consumer<OptionalLong> consumer, final Consumer<String> errorHandler, final boolean create) {
-        executor.execute(() -> {
-            try {
-                consumer.accept(select(key, create));
-            } catch (Exception ex) {
-                errorHandler.accept(ex.getMessage());
-                Log.error("Failed to obtain data for " + key + ": " + ex.getMessage());
-                ex.printStackTrace();
+    public void get(final String key, final Consumer<OptionalLong> onLoad, final Consumer<String> onError, final boolean create) {
+        try (Connection connection = dataSource.getConnection()) {
+            onLoad.accept(select(connection, key, create));
+        } catch (Exception ex) {
+            if (onError != null) {
+                onError.accept(ex.getMessage());
             }
-        });
+
+            Log.error("Failed to obtain data for " + key + ": " + ex.getMessage());
+            ex.printStackTrace();
+        }
     }
 
     @Override
@@ -167,22 +170,25 @@ public class MySQLDatabase extends AbstractDatabase {
     }
 
     @Override
-    public void set(final String key, final boolean silent, final boolean set, final long amount, final long updated, final Runnable action,
-        final Consumer<String> errorHandler) {
-        executor.execute(() -> {
+    public void set(final String key, final ModifyType type, final long amount, final long balance, final boolean silent, final Runnable onDone, final Consumer<String> onError) {
+        plugin.doAsync(() -> {
             try (Connection connection = dataSource.getConnection()) {
-                update(connection, key, updated);
+                update(connection, key, balance);
+
                 if (usingRedis) {
-                    publish(key + ":" + (set ? updated : amount) + ":" + set + ":" + silent);
+                    publish(key + ":" + type.name() + ":" + amount + ":" + silent);
                 } else {
-                    plugin.doSync(() -> onModification(key, set ? updated : amount, set, silent));
+                    plugin.doSync(() -> onModification(key, type, amount, silent));
                 }
 
-                if (action != null) {
-                    action.run();
+                if (onDone != null) {
+                    onDone.run();
                 }
             } catch (Exception ex) {
-                errorHandler.accept(ex.getMessage());
+                if (onError != null) {
+                    onError.accept(ex.getMessage());
+                }
+
                 Log.error("Failed to save data for " + key + ": " + ex.getMessage());
                 ex.printStackTrace();
             }
@@ -190,35 +196,61 @@ public class MySQLDatabase extends AbstractDatabase {
     }
 
     @Override
-    public void set(final String key, final boolean set, final long amount, final long updated, final Runnable action, final Consumer<String> errorHandler) {
-        set(key, false, set, amount, updated, action, errorHandler);
+    public void load(final AsyncPlayerPreLoginEvent event, final Function<Long, Long> modifyLoad) {
+        load(online ? event.getUniqueId().toString() : event.getName(), event.getUniqueId(), modifyLoad);
+    }
+
+    @Override
+    public void load(final Player player) {
+        load(from(player), player.getUniqueId(), null);
+    }
+
+    private void load(final String key, final UUID uuid, final Function<Long, Long> modifyLoad) {
+        plugin.doAsyncLater(() -> get(key, balance -> {
+            if (!balance.isPresent()) {
+                return;
+            }
+
+            plugin.doSync(() -> {
+                // Cancel caching if player has left before loading was completed
+                if (Bukkit.getPlayer(uuid) == null) {
+                    return;
+                }
+
+                long totalBalance = balance.getAsLong();
+
+                if (modifyLoad != null) {
+                    totalBalance = modifyLoad.apply(totalBalance);
+                }
+
+                data.put(uuid, totalBalance);
+            });
+        }, null, true), LOGIN_WAIT_DURATION);
     }
 
     @Override
     public void save(final Player player) {
-        final OptionalLong balance = get(player);
+        final OptionalLong balance = from(data.remove(player.getUniqueId()));
 
         if (!balance.isPresent()) {
             return;
         }
 
-        data.remove(player.getUniqueId());
         executor.execute(() -> {
             try (Connection connection = dataSource.getConnection()) {
-                update(connection, online ? player.getUniqueId().toString() : player.getName(), balance.getAsLong());
+                update(connection, from(player), balance.getAsLong());
             } catch (Exception ex) {
-                Log.error("Failed to save data for " + player.getName() + ": " + ex.getMessage());
                 ex.printStackTrace();
             }
         });
     }
 
     @Override
-    public void save() throws Exception {
+    public void shutdown() throws Exception {
         executor.shutdown();
 
         if (!executor.awaitTermination(2, TimeUnit.SECONDS)) {
-            Log.error("Some tasks have failed to execute.");
+            Log.error("Some tasks have failed to execute!");
         }
 
         try (Connection connection = dataSource.getConnection()) {
@@ -238,18 +270,18 @@ public class MySQLDatabase extends AbstractDatabase {
     }
 
     @Override
-    public void ordered(final int limit, final Consumer<List<TopElement>> consumer) {
+    public void ordered(final int limit, final Consumer<List<TopElement>> onLoad) {
         final List<TopElement> result = new ArrayList<>();
 
         if (limit <= 0) {
-            consumer.accept(result);
+            onLoad.accept(result);
             return;
         }
 
         // Create a copy of the current cache to prevent HashMap being accessed by multiple threads
         final Map<UUID, Long> copy = new HashMap<>(data);
 
-        executor.execute(() -> {
+        plugin.doAsync(() -> {
             try (Connection connection = dataSource.getConnection()) {
                 insertCache(connection, copy, false);
                 connection.setAutoCommit(true);
@@ -263,7 +295,7 @@ public class MySQLDatabase extends AbstractDatabase {
                             result.add(new TopElement(key, (int) resultSet.getLong("tokens")));
                         }
 
-                        replaceNames(result, consumer);
+                        replaceNames(result, onLoad);
                     }
                 }
             } catch (Exception ex) {
@@ -274,8 +306,8 @@ public class MySQLDatabase extends AbstractDatabase {
     }
 
     @Override
-    public void transfer(final CommandSender sender, final Consumer<String> errorHandler) {
-        executor.submit(() -> {
+    public void transfer(final CommandSender sender, final Consumer<String> onError) {
+        plugin.doAsync(() -> {
             final File file = new File(plugin.getDataFolder(), "data.yml");
 
             if (!file.exists()) {
@@ -319,27 +351,11 @@ public class MySQLDatabase extends AbstractDatabase {
                 connection.setAutoCommit(true);
                 sender.sendMessage(ChatColor.BLUE + plugin.getDescription().getFullName() + ": Transfer Complete. Total Transferred Data: " + keys.size());
             } catch (SQLException ex) {
-                errorHandler.accept(ex.getMessage());
+                onError.accept(ex.getMessage());
                 Log.error("Failed to transfer data from file: " + ex.getMessage());
                 ex.printStackTrace();
             }
         });
-    }
-
-    private void insert(final Connection connection, final String key, final long value) throws SQLException {
-        try (PreparedStatement statement = connection.prepareStatement(Query.INSERT.query)) {
-            statement.setString(1, key);
-            statement.setLong(2, value);
-            statement.execute();
-        }
-    }
-
-    private void update(final Connection connection, final String key, final long value) throws SQLException {
-        try (PreparedStatement statement = connection.prepareStatement(Query.UPDATE.query)) {
-            statement.setLong(1, value);
-            statement.setString(2, key);
-            statement.execute();
-        }
     }
 
     private void insertCache(final Connection connection, final Map<UUID, Long> cache, final boolean remove) throws SQLException {
@@ -364,36 +380,59 @@ public class MySQLDatabase extends AbstractDatabase {
                     statement.executeBatch();
                 }
             }
-
+        } finally {
             connection.commit();
         }
     }
 
-    private OptionalLong select(final String key, final boolean create) throws Exception {
-        try (
-            Connection connection = dataSource.getConnection();
-            PreparedStatement statement = connection.prepareStatement(Query.SELECT_ONE.query)
-        ) {
-            statement.setString(1, key);
+    private OptionalLong select(final Connection connection, final String key, final boolean create) throws Exception {
+        connection.setAutoCommit(false);
 
-            try (ResultSet resultSet = statement.executeQuery()) {
-                if (!resultSet.isBeforeFirst()) {
+        try (PreparedStatement selectStatement = connection.prepareStatement(Query.SELECT_ONE.query)) {
+            selectStatement.setString(1, key);
+
+            try (ResultSet resultSet = selectStatement.executeQuery()) {
+                if (!resultSet.next()) {
                     if (create) {
                         final long defaultBalance = plugin.getConfiguration().getDefaultBalance();
-                        insert(connection, key, defaultBalance);
+
+                        try (PreparedStatement insertStatement = connection.prepareStatement(Query.INSERT.query)) {
+                            insertStatement.setString(1, key);
+                            insertStatement.setLong(2, plugin.getConfiguration().getDefaultBalance());
+                            insertStatement.execute();
+                        }
+
                         return OptionalLong.of(defaultBalance);
                     }
 
                     return OptionalLong.empty();
                 }
 
-                resultSet.next();
                 return OptionalLong.of(resultSet.getLong("tokens"));
             }
+        } finally {
+            connection.commit();
         }
     }
 
-    private void onModification(final String key, final long amount, final boolean set, final boolean silent) {
+    private void update(final Connection connection, final String key, final long value) throws Exception {
+        connection.setAutoCommit(false);
+
+        try (PreparedStatement selectStatement = connection
+            .prepareStatement(Query.SELECT_FOR_UPDATE.query, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+            selectStatement.setString(1, key);
+
+            try (ResultSet resultSet = selectStatement.executeQuery()) {
+                resultSet.next();
+                resultSet.updateLong("tokens", value);
+                resultSet.updateRow();
+            }
+        } finally {
+            connection.commit();
+        }
+    }
+
+    private void onModification(final String key, final ModifyType type, final long amount, final boolean silent) {
         final Player player;
 
         if (ProfileUtil.isUUID(key)) {
@@ -406,7 +445,7 @@ public class MySQLDatabase extends AbstractDatabase {
             return;
         }
 
-        if (set) {
+        if (type == ModifyType.SET) {
             set(player, amount);
             return;
         }
@@ -417,17 +456,13 @@ public class MySQLDatabase extends AbstractDatabase {
             return;
         }
 
-        set(player, cached.getAsLong() + amount);
+        set(player, type.apply(cached.getAsLong(), amount));
 
         if (silent) {
             return;
         }
 
-        if (amount > 0) {
-            plugin.getLang().sendMessage(player, true, "COMMAND.add", "amount", amount);
-        } else {
-            plugin.getLang().sendMessage(player, true, "COMMAND.remove", "amount", Math.abs(amount));
-        }
+        plugin.getLang().sendMessage(player, true, "COMMAND." + (type == ModifyType.ADD ? "add" : "remove"), "amount", amount);
     }
 
     private void publish(final String message) {
@@ -440,7 +475,8 @@ public class MySQLDatabase extends AbstractDatabase {
 
         CREATE_TABLE("CREATE TABLE IF NOT EXISTS {table} (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, {column} NOT NULL UNIQUE, tokens BIGINT(255) NOT NULL);"),
         SELECT_WITH_LIMIT("SELECT {identifier}, tokens FROM {table} ORDER BY tokens DESC LIMIT ?;"),
-        SELECT_ONE("SELECT tokens FROM {table} WHERE {identifier}=?;"),
+        SELECT_ONE("SELECT tokens FROM {table} WHERE {identifier}=? LOCK IN SHARE MODE;"),
+        SELECT_FOR_UPDATE("SELECT * FROM {table} WHERE {identifier}=? FOR UPDATE;"),
         INSERT("INSERT INTO {table} ({identifier}, tokens) VALUES (?, ?);"),
         UPDATE("UPDATE {table} SET tokens=? WHERE {identifier}=?;"),
         INSERT_OR_UPDATE("INSERT INTO {table} ({identifier}, tokens) VALUES (?, ?) ON DUPLICATE KEY UPDATE tokens=?;");
@@ -477,13 +513,14 @@ public class MySQLDatabase extends AbstractDatabase {
             }
 
             plugin.doSync(() -> {
-                final OptionalLong amount = NumberUtil.parseLong(args[1]);
+                final ModifyType type = ModifyType.valueOf(args[1]);
+                final OptionalLong amount = NumberUtil.parseLong(args[2]);
 
                 if (!amount.isPresent()) {
                     return;
                 }
 
-                onModification(args[0], amount.getAsLong(), args[2].equals("true"), args.length > 3 && args[3].equals("true"));
+                onModification(args[0], type, amount.getAsLong(), args[3].equals("true"));
             });
         }
 

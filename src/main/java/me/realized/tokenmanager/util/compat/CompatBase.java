@@ -12,7 +12,6 @@ class CompatBase {
     static final Method GET_TAG;
     static final Method SET_TAG;
     static final Method SET;
-    static final Method GET_STRING;
     static final Method SET_STRING;
 
     static {
@@ -26,7 +25,6 @@ class CompatBase {
         GET_TAG = ReflectionUtil.getMethod(NMS_ITEMSTACK, "getTag");
         SET_TAG = ReflectionUtil.getMethod(NMS_ITEMSTACK, "setTag", TAG_COMPOUND);
         SET = ReflectionUtil.getMethod(TAG_COMPOUND, "set", String.class, TAG_BASE);
-        GET_STRING = ReflectionUtil.getMethod(TAG_COMPOUND, "getString", String.class);
         SET_STRING = ReflectionUtil.getMethod(TAG_COMPOUND, "setString", String.class, String.class);
     }
 }

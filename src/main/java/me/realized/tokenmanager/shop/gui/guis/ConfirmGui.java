@@ -33,8 +33,8 @@ public class ConfirmGui extends BaseGui {
     }
 
     private ItemStack replace(ItemStack item, final long balance, final int price) {
-        item = ItemUtil.replace(item, price, "%price%");
-        item = ItemUtil.replace(item, balance, "%tokens%", "%balance%");
+        item = ItemUtil.replace(item, price, "price");
+        item = ItemUtil.replace(item, balance, "tokens", "balance");
         return item;
     }
 

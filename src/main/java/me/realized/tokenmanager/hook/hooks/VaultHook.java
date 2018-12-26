@@ -128,9 +128,19 @@ public class VaultHook extends PluginHook<TokenManagerPlugin> {
                 return new EconomyResponse(0, 0, EconomyResponse.ResponseType.FAILURE, "Player is not online");
             }
 
-            final long balance = (long) getBalance(player);
-            plugin.setTokens(player.getPlayer(), Math.abs(balance - (long) amount));
-            return new EconomyResponse(balance - (long) amount, (long) amount, EconomyResponse.ResponseType.SUCCESS, "");
+            long balance = (long) getBalance(player);
+
+            if (amount == 0) {
+                return new EconomyResponse(amount, balance, EconomyResponse.ResponseType.SUCCESS, "");
+            }
+
+            if (balance < amount) {
+                return new EconomyResponse(amount, balance, EconomyResponse.ResponseType.FAILURE, "Not enough tokens");
+            }
+
+            balance = balance - (long) amount;
+            plugin.setTokens(player.getPlayer(), balance);
+            return new EconomyResponse(amount, balance, EconomyResponse.ResponseType.SUCCESS, "");
         }
 
         @Override
@@ -145,7 +155,7 @@ public class VaultHook extends PluginHook<TokenManagerPlugin> {
 
         @Override
         public EconomyResponse depositPlayer(String name, double amount) {
-            return withdrawPlayer(Bukkit.getPlayer(name), amount);
+            return depositPlayer(Bukkit.getPlayer(name), amount);
         }
 
         @Override
@@ -154,9 +164,15 @@ public class VaultHook extends PluginHook<TokenManagerPlugin> {
                 return new EconomyResponse(0, 0, EconomyResponse.ResponseType.FAILURE, "Player is not online");
             }
 
-            final long balance = (long) getBalance(player);
-            plugin.setTokens(player.getPlayer(), balance + (long) amount);
-            return new EconomyResponse(balance + (long) amount, amount, EconomyResponse.ResponseType.SUCCESS, "");
+            long balance = (long) getBalance(player);
+
+            if (amount == 0) {
+                return new EconomyResponse(amount, balance, EconomyResponse.ResponseType.SUCCESS, "");
+            }
+
+            balance = balance + (long) amount;
+            plugin.setTokens(player.getPlayer(), balance);
+            return new EconomyResponse(amount, balance, EconomyResponse.ResponseType.SUCCESS, "");
         }
 
         @Override

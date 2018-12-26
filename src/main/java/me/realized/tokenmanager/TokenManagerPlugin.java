@@ -37,6 +37,7 @@ import lombok.Getter;
 import me.realized.tokenmanager.api.TokenManager;
 import me.realized.tokenmanager.command.commands.TMCommand;
 import me.realized.tokenmanager.command.commands.TokenCommand;
+import me.realized.tokenmanager.command.commands.subcommands.OfflineCommand.ModifyType;
 import me.realized.tokenmanager.config.Config;
 import me.realized.tokenmanager.config.Lang;
 import me.realized.tokenmanager.config.WorthConfig;
@@ -111,6 +112,9 @@ public class TokenManagerPlugin extends JavaPlugin implements TokenManager, List
         new TokenCommand(this).register();
 
         new Metrics(this);
+
+        // TODO: 12/25/18 remove
+        this.getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
 
         if (!configuration.isCheckForUpdates()) {
             return;
@@ -194,16 +198,16 @@ public class TokenManagerPlugin extends JavaPlugin implements TokenManager, List
         getServer().getScheduler().runTask(this, runnable);
     }
 
-    public void doSyncAfter(final Runnable runnable, final long delay) {
-        getServer().getScheduler().runTaskLater(this, runnable, delay);
-    }
-
     public int doSyncRepeat(final Runnable runnable, final long delay, final long period) {
         return getServer().getScheduler().runTaskTimer(this, runnable, delay, period).getTaskId();
     }
 
     public void doAsync(final Runnable runnable) {
         getServer().getScheduler().runTaskAsynchronously(this, runnable);
+    }
+
+    public void doAsyncLater(final Runnable runnable, final long delay) {
+        getServer().getScheduler().runTaskLaterAsynchronously(this, runnable, delay);
     }
 
     @Override
@@ -238,7 +242,7 @@ public class TokenManagerPlugin extends JavaPlugin implements TokenManager, List
 
     @Override
     public void setTokens(final String key, final long amount) {
-        dataManager.set(key, true, true, amount, amount, null, Log::error);
+        dataManager.set(key, ModifyType.SET, amount, amount, true, null, Log::error);
     }
 
     @Override
@@ -248,7 +252,8 @@ public class TokenManagerPlugin extends JavaPlugin implements TokenManager, List
                 return;
             }
 
-            dataManager.set(key, silent, false, amount, balance.getAsLong() + amount, null, Log::error);
+            final ModifyType type = ModifyType.ADD;
+            dataManager.set(key, type, amount, type.apply(balance.getAsLong(), amount), silent, null, Log::error);
         }, Log::error);
     }
 
@@ -264,7 +269,8 @@ public class TokenManagerPlugin extends JavaPlugin implements TokenManager, List
                 return;
             }
 
-            dataManager.set(key, silent, false, -amount, balance.getAsLong() - amount, null, Log::error);
+            final ModifyType type = ModifyType.REMOVE;
+            dataManager.set(key, type, amount, type.apply(balance.getAsLong(), amount), silent, null, Log::error);
         }, Log::error);
     }
 

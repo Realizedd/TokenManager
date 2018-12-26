@@ -27,7 +27,7 @@ public class ShopGui extends BaseGui {
                 continue;
             }
 
-            inventory.setItem(slot, ItemUtil.replace(data.getDisplayed().clone(), balance, "%tokens%", "%balance%"));
+            inventory.setItem(slot, ItemUtil.replace(data.getDisplayed().clone(), balance, "tokens", "balance"));
         }
     }
 

@@ -132,7 +132,7 @@ public final class ItemUtil {
 
     private ItemUtil() {}
 
-    public static ItemStack replace(final ItemStack item, final Object value, final String... placeholders) {
+    public static ItemStack replace(final ItemStack item, final long value, final String... placeholders) {
         if (!item.hasItemMeta()) {
             return item;
         }
@@ -143,7 +143,10 @@ public final class ItemUtil {
             final List<String> lore = meta.getLore();
             lore.replaceAll(line -> {
                 for (final String placeholder : placeholders) {
-                    line = line.replace(placeholder, value.toString());
+                    line = line
+                        .replace("%" + placeholder + "%", NumberUtil.withCommas(value))
+                        .replace("%" + placeholder + "_formatted%", NumberUtil.withSuffix(value))
+                        .replace("%" + placeholder + "_raw%", String.valueOf(value));
                 }
 
                 return line;
@@ -155,7 +158,10 @@ public final class ItemUtil {
             String displayName = meta.getDisplayName();
 
             for (final String placeholder : placeholders) {
-                displayName = displayName.replace(placeholder, value.toString());
+                displayName = displayName
+                    .replace("%" + placeholder + "%", NumberUtil.withCommas(value))
+                    .replace("%" + placeholder + "_formatted%", NumberUtil.withSuffix(value))
+                    .replace("%" + placeholder + "_raw%", String.valueOf(value));
             }
 
             meta.setDisplayName(displayName);
@@ -295,7 +301,7 @@ public final class ItemUtil {
 
         if (key.equalsIgnoreCase("flags")) {
             if (!CompatUtil.isPre1_8()) {
-                final List<String> flags = Arrays.asList(value.split(","));
+                final String[] flags = value.split(",");
 
                 for (final String flag : flags) {
                     final ItemFlag itemFlag = EnumUtil.getByName(flag, ItemFlag.class);

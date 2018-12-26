@@ -87,7 +87,7 @@ public class Shop {
     }
 
     public void setSlot(final int slot, final ItemStack displayed, final Slot data) {
-        ItemUtil.replace(displayed, data.getCost(), "%price%");
+        ItemUtil.replace(displayed, data.getCost(), "price");
         inventory.setItem(slot, displayed);
 
         if (slots == null) {

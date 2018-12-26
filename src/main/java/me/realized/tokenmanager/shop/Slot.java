@@ -35,6 +35,7 @@ import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.api.event.TMShopPurchaseEvent;
 import me.realized.tokenmanager.shop.gui.guis.ConfirmGui;
 import me.realized.tokenmanager.shop.gui.guis.ShopGui;
+import me.realized.tokenmanager.util.inventory.InventoryUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -78,6 +79,11 @@ public class Slot {
     }
 
     public boolean purchase(final Player player, final boolean confirmPurchase, final boolean close) {
+        if (plugin.getConfiguration().isCheckInventoryFull() && InventoryUtil.isInventoryFull(player)) {
+            plugin.getLang().sendMessage(player, true, "ERROR.inventory-is-full");
+            return false;
+        }
+
         final OptionalLong cached = plugin.getDataManager().get(player);
 
         if (!cached.isPresent()) {

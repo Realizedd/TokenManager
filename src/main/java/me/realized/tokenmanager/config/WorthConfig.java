@@ -22,7 +22,6 @@ public class WorthConfig extends AbstractConfiguration<TokenManagerPlugin> imple
     @Override
     protected void loadValues(final FileConfiguration configuration) {
         configuration.getKeys(false).forEach(key -> {
-            System.out.println(key);
             final Material type = Material.getMaterial(key);
 
             if (type == null) {

@@ -1,5 +1,5 @@
 # DO NOT EDIT THIS VALUE!
-config-version: 7
+config-version: 8
 
 # If enabled, a notification and the download link will be printed on console whenever an update is available.
 check-for-updates: true
@@ -37,6 +37,9 @@ shop:
   # Set a delay between purchases. 0 for no delay.
   click-delay: 0
 
+  # If enabled, players with full inventory will not be able to purchase from token shops.
+  check-inventory-full: false
+
 # [WARNING: DANGER ZONE]
 data:
   # If enabled, the plugin will use selected MySQL database as the token balance storage.
@@ -49,6 +52,7 @@ data:
     password: 'password'
     database: 'database'
     table: 'tokenmanager'
+    url: 'jdbc:mysql://%hostname%:%port%/%database%'
 
     # This section is optional. Using mysql database for a single server will work just fine even if no redis server is provided.
     # If mysql is enabled, a redis server can be used to synchronize balances as they are modified.

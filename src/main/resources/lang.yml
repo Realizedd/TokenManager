@@ -21,6 +21,7 @@ ERROR:
   target-has-same-ip: '&cYou cannot send tokens to this player. (alt prevention)'
   no-item-in-hand: '&cYou must be holding an item to sell.'
   item-is-worthless: '&cNo worth has been defined for this item.'
+  inventory-is-full: '&cYour inventory is full!'
 
 COMMAND:
   token:

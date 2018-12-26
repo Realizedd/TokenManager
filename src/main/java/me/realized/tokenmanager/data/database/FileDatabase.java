@@ -15,7 +15,9 @@ import java.util.Map;
 import java.util.OptionalLong;
 import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import me.realized.tokenmanager.TokenManagerPlugin;
+import me.realized.tokenmanager.command.commands.subcommands.OfflineCommand.ModifyType;
 import me.realized.tokenmanager.config.Config;
 import me.realized.tokenmanager.util.Log;
 import me.realized.tokenmanager.util.profile.ProfileUtil;
@@ -27,6 +29,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 
 public class FileDatabase extends AbstractDatabase {
 
@@ -66,38 +69,37 @@ public class FileDatabase extends AbstractDatabase {
 
     @Override
     public OptionalLong get(final Player player) {
-        return from(data.get(online ? player.getUniqueId().toString() : player.getName()));
+        return from(data.get(from(player)));
     }
 
     @Override
-    public void get(final Player player, final Consumer<OptionalLong> consumer, final Consumer<String> errorHandler) {
-        get(online ? player.getUniqueId().toString() : player.getName(), consumer, errorHandler, true);
-    }
-
-    @Override
-    public void get(final String key, final Consumer<OptionalLong> consumer, final Consumer<String> errorHandler, final boolean create) {
+    public void get(final String key, final Consumer<OptionalLong> onLoad, final Consumer<String> onError, final boolean create) {
         final OptionalLong cached = from(data.get(key));
 
         if (!cached.isPresent() && create) {
             final long defaultBalance = plugin.getConfiguration().getDefaultBalance();
             data.put(key, defaultBalance);
-            consumer.accept(OptionalLong.of(defaultBalance));
+
+            if (onLoad != null) {
+                onLoad.accept(from(defaultBalance));
+            }
             return;
         }
 
-        consumer.accept(cached);
+        if (onLoad != null) {
+            onLoad.accept(cached);
+        }
     }
 
     @Override
     public void set(final Player player, final long value) {
-        data.put(online ? player.getUniqueId().toString() : player.getName(), value);
+        data.put(from(player), value);
     }
 
     @Override
-    public void set(final String key, final boolean silent, final boolean set, final long amount, final long updated, final Runnable action,
-        final Consumer<String> errorHandler) {
+    public void set(final String key, final ModifyType type, final long amount, final long balance, final boolean silent, final Runnable onDone, final Consumer<String> onError) {
         plugin.doSync(() -> {
-            if (set) {
+            if (type == ModifyType.SET) {
                 data.put(key, amount);
                 return;
             }
@@ -108,7 +110,7 @@ public class FileDatabase extends AbstractDatabase {
                 return;
             }
 
-            data.put(key, cached.getAsLong() + amount);
+            data.put(key, type.apply(cached.getAsLong(), amount));
 
             final Player player;
 
@@ -122,28 +124,27 @@ public class FileDatabase extends AbstractDatabase {
                 return;
             }
 
-            if (amount > 0) {
-                plugin.getLang().sendMessage(player, true, "COMMAND.add", "amount", amount);
-            } else {
-                plugin.getLang().sendMessage(player, true, "COMMAND.remove", "amount", Math.abs(amount));
-            }
+            plugin.getLang().sendMessage(player, true, "COMMAND." + (type == ModifyType.ADD ? "add" : "remove"), "amount", amount);
         });
 
-        if (action != null) {
-            action.run();
+        if (onDone != null) {
+            onDone.run();
         }
     }
 
     @Override
-    public void set(final String key, final boolean set, final long amount, final long updated, final Runnable action, final Consumer<String> errorHandler) {
-        set(key, false, set, amount, updated, action, errorHandler);
+    public void load(final AsyncPlayerPreLoginEvent event, final Function<Long, Long> modifyLoad) {
+        plugin.doSync(() -> get(online ? event.getUniqueId().toString() : event.getName(), null, null, true));
     }
+
+    @Override
+    public void load(final Player player) {}
 
     @Override
     public void save(final Player player) {}
 
     @Override
-    public void save() throws IOException {
+    public void shutdown() throws IOException {
         if (data.isEmpty()) {
             return;
         }

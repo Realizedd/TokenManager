@@ -3,8 +3,11 @@ package me.realized.tokenmanager.data.database;
 import java.util.List;
 import java.util.OptionalLong;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import me.realized.tokenmanager.command.commands.subcommands.OfflineCommand.ModifyType;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 
 public interface Database {
 
@@ -15,7 +18,6 @@ public interface Database {
      */
     void setup() throws Exception;
 
-
     /**
      * Gets the cached balance of the player.
      *
@@ -24,81 +26,29 @@ public interface Database {
      */
     OptionalLong get(final Player player);
 
+    void get(final String key, final Consumer<OptionalLong> onLoad, final Consumer<String> onError, final boolean create);
 
-    /**
-     * Gets the stored data of the player from the database.
-     *
-     * @param player Player to get the data
-     * @param consumer called once data is retrieved
-     * @param errorHandler called if the operation fails
-     */
-    void get(final Player player, final Consumer<OptionalLong> consumer, final Consumer<String> errorHandler);
-
-
-    /**
-     * Gets the stored data of the player.
-     *
-     * @param key UUID or the name the player
-     * @param consumer called once data is retrieved
-     * @param errorHandler called if the operation fails
-     * @param create true to create with default balance if not exists, false for no action
-     */
-    void get(final String key, final Consumer<OptionalLong> consumer, final Consumer<String> errorHandler, final boolean create);
-
-
-    /**
-     * Sets the cached data value for player.
-     *
-     * @param player Player to set the data
-     * @param value Value to be set in the cache
-     */
     void set(final Player player, final long value);
 
-    /**
-     * Updates the database with the new balance for the key.
-     *
-     * @param key Key associated with the balance
-     * @param silent true to prevent sending a message to the target after task completion
-     * @param set true to set the balance to updated value, otherwise false
-     * @param amount The difference between the old balance and the new balance
-     * @param updated The new balance to save
-     * @param errorHandler called if the operation fails
-     */
-    void set(final String key, final boolean silent, final boolean set, final long amount, final long updated, final Runnable action, final Consumer<String> errorHandler);
+    void set(final String key, final ModifyType type, final long amount, final long balance, final boolean silent, final Runnable onDone, final Consumer<String> onError);
 
+    void load(final AsyncPlayerPreLoginEvent event, final Function<Long, Long> modifyLoad);
 
-    /**
-     * Works the same as {@link #set(String, boolean, boolean, long, long, Runnable, Consumer)} with silent defaulting to false.
-     *
-     * @see Database#set(String, boolean, boolean, long, long, Runnable, Consumer)
-     */
-    void set(final String key, final boolean set, final long amount, final long updated, final Runnable action, final Consumer<String> errorHandler);
+    void load(final Player player);
 
-
-    /**
-     * Saves the cached data associated to key and clears it from cache. Must be called synchronously!
-     *
-     * @param player Player to save the balance
-     */
     void save(final Player player);
 
-    /**
-     * Saves the online player data synchronously.
-     *
-     * @throws Exception if insertion to the database fails
-     */
-    void save() throws Exception;
-
+    void shutdown() throws Exception;
 
     /**
-     * Saves the balance of online players and returns top balances. Must be called synchronously!
+     * Returns top balances. Must be called synchronously!
      *
      * @param limit amount of the rows to be returned
-     * @param consumer Consumer to call once data is retrieved
+     * @param onLoad Consumer to call once data is retrieved
      */
-    void ordered(final int limit, final Consumer<List<TopElement>> consumer);
+    void ordered(final int limit, final Consumer<List<TopElement>> onLoad);
 
-    void transfer(final CommandSender sender, final Consumer<String> errorHandler);
+    void transfer(final CommandSender sender, final Consumer<String> onError);
 
     class TopElement {
 
