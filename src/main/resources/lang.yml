@@ -32,6 +32,8 @@ COMMAND:
     - '&b/token send &9<&busername&9> <&bamount&9> &8» &7Send tokens to players.'
     - '&b/token shop &9<&bname&9> &8» &7Opens selected shop.'
     - '&b/token shops &8» &7Displays a list of loaded shops.'
+    - '&b/token sell &8» &7Converts your held item to tokens.'
+    - '&b/token worth &8» &7Shows the worth of your held item.'
     - '&b/token top &8» &7Displays the top token balances.'
     - '{FOOTER}'
 

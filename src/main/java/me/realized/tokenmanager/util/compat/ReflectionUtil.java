@@ -1,5 +1,6 @@
 package me.realized.tokenmanager.util.compat;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import org.bukkit.Bukkit;
@@ -13,6 +14,24 @@ public final class ReflectionUtil {
     }
 
     private ReflectionUtil() {}
+
+    public static Class<?> getClass(final String name) {
+        try {
+            return Class.forName(name);
+        } catch (ClassNotFoundException ex) {
+            ex.printStackTrace();
+            return null;
+        }
+    }
+
+    public static Class<?> getALClass(final String name) {
+        try {
+            return Class.forName("com.mojang.authlib." + name);
+        } catch (ClassNotFoundException ex) {
+            ex.printStackTrace();
+            return null;
+        }
+    }
 
     public static Class<?> getNMSClass(final String name) {
         try {
@@ -45,6 +64,26 @@ public final class ReflectionUtil {
         try {
             return clazz.getField(name);
         } catch (NoSuchFieldException ex) {
+            ex.printStackTrace();
+            return null;
+        }
+    }
+
+    public static Field getDeclaredField(final Class<?> clazz, final String name) {
+        try {
+            final Field field = clazz.getDeclaredField(name);
+            field.setAccessible(true);
+            return field;
+        } catch (NoSuchFieldException ex) {
+            ex.printStackTrace();
+            return null;
+        }
+    }
+
+    public static Constructor<?> getConstructor(final Class<?> clazz, final Class<?>... parameters) {
+        try {
+            return clazz.getConstructor(parameters);
+        } catch (NoSuchMethodException ex) {
             ex.printStackTrace();
             return null;
         }

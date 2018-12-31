@@ -72,7 +72,7 @@ public class OfflineCommand extends BaseCommand {
 
                 if (!balance.isPresent()) {
                     dataManager.queueCommand(target, type, amount, silent);
-                    sendMessage(sender, false, "&a" + target.getName() + "'s data is currently loading. Command has been queued for future execution.");
+                    sendMessage(sender, false, "&c" + target.getName() + "'s data is currently loading! Command has been queued for future execution.");
                     return;
                 }
 

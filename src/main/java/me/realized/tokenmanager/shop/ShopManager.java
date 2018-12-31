@@ -45,7 +45,7 @@ public class ShopManager implements Loadable, Listener {
         clearCache();
     }
 
-    public void clearCache() {
+    void clearCache() {
         cooldowns.clear();
 
         if (cache.isEmpty()) {

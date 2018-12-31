@@ -18,7 +18,8 @@ public class SellCommand extends BaseCommand {
     @Override
     protected void execute(final CommandSender sender, final String label, final String[] args) {
         final Player player = (Player) sender;
-        final ItemStack item = player.getInventory().getItem(player.getInventory().getHeldItemSlot());
+        final int heldSlot = player.getInventory().getHeldItemSlot();
+        final ItemStack item = player.getInventory().getItem(heldSlot);
 
         if (item == null) {
             sendMessage(sender, true, "ERROR.no-item-in-hand");
@@ -40,7 +41,7 @@ public class SellCommand extends BaseCommand {
             return;
         }
 
-        player.getInventory().setItem(player.getInventory().getHeldItemSlot(), null);
+        player.getInventory().setItem(heldSlot, null);
         dataManager.set(player, dataManager.get(player).orElse(0) + price);
 
         final String name = WordUtils.capitalizeFully(item.getType().toString().replace("_", " ").toLowerCase());

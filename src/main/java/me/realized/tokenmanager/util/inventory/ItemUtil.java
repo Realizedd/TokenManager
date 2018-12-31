@@ -42,6 +42,7 @@ import me.realized.tokenmanager.util.compat.CompatUtil;
 import me.realized.tokenmanager.util.compat.Items;
 import me.realized.tokenmanager.util.compat.Potions;
 import me.realized.tokenmanager.util.compat.Potions.PotionType;
+import me.realized.tokenmanager.util.compat.Skulls;
 import me.realized.tokenmanager.util.compat.SpawnEggs;
 import me.realized.tokenmanager.util.compat.Terracottas;
 import org.bukkit.Color;
@@ -61,6 +62,7 @@ public final class ItemUtil {
 
     private static final Map<String, Enchantment> ENCHANTMENTS;
     private static final Map<String, PotionEffectType> EFFECTS;
+    private static final String[] PLACEHOLDERS = {"tokens", "balance"};
 
     static {
         final Map<String, Enchantment> enchantments = new HashMap<>();
@@ -171,6 +173,16 @@ public final class ItemUtil {
         return item;
     }
 
+    private static String fixPlaceholders(String line) {
+        for (final String placeholder : PLACEHOLDERS) {
+            line = line
+                .replace("%" + placeholder + " formatted%", "%" + placeholder + "_formatted%")
+                .replace("%" + placeholder + " raw%", "%" + placeholder + "raw%");
+        }
+
+        return line;
+    }
+
     public static ItemStack loadFromString(final String line) {
         if (line == null || line.isEmpty()) {
             throw new IllegalArgumentException("Line is empty or null");
@@ -277,13 +289,13 @@ public final class ItemUtil {
         final ItemMeta meta = item.getItemMeta();
 
         if (key.equalsIgnoreCase("name")) {
-            meta.setDisplayName(StringUtil.color(value.replace("_", " ")));
+            meta.setDisplayName(StringUtil.color(fixPlaceholders(value.replace("_", " "))));
             item.setItemMeta(meta);
             return;
         }
 
         if (key.equalsIgnoreCase("lore")) {
-            meta.setLore(StringUtil.color(Lists.newArrayList(value.split("\\|")), s -> s.replace("_", " ")));
+            meta.setLore(StringUtil.color(Lists.newArrayList(value.split("\\|")), s -> fixPlaceholders(s.replace("_", " "))));
             item.setItemMeta(meta);
             return;
         }
@@ -337,9 +349,15 @@ public final class ItemUtil {
             }
         }
 
-        if (Items.equals(Items.HEAD, item) && (key.equalsIgnoreCase("player") || key.equalsIgnoreCase("owner"))) {
+        if (Items.equals(Items.HEAD, item) && (key.equalsIgnoreCase("player") || key.equalsIgnoreCase("owner") || key.equalsIgnoreCase("texture"))) {
             final SkullMeta skullMeta = (SkullMeta) meta;
-            skullMeta.setOwner(value);
+
+            if (value.length() > 16) {
+                Skulls.setSkull(skullMeta, value);
+            } else {
+                skullMeta.setOwner(value);
+            }
+
             item.setItemMeta(skullMeta);
         }
 
