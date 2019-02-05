@@ -35,6 +35,7 @@ import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.api.event.TMShopPurchaseEvent;
 import me.realized.tokenmanager.shop.gui.guis.ConfirmGui;
 import me.realized.tokenmanager.shop.gui.guis.ShopGui;
+import me.realized.tokenmanager.util.Placeholders;
 import me.realized.tokenmanager.util.inventory.InventoryUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -70,12 +71,12 @@ public class Slot {
         this.slot = slot;
         this.cost = cost;
         this.displayed = displayed;
-        this.message = message != null ? message.replace("%price%", String.valueOf(cost)) : null;
+        this.message = message != null ? Placeholders.replaceLong(message, cost, "price", "cost") : null;
         this.subshop = subshop;
         this.commands = commands;
         this.usePermission = usePermission;
         this.confirmPurchase = confirmPurchase;
-        commands.replaceAll(command -> command = command.replace("%price%", String.valueOf(cost)));
+        commands.replaceAll(command -> command = Placeholders.replaceLong(command, cost, "price", "cost"));
     }
 
     public boolean purchase(final Player player, final boolean confirmPurchase, final boolean close) {
@@ -119,12 +120,12 @@ public class Slot {
 
         if (commands != null) {
             for (final String command : commands) {
-                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), replace(command.replace("%player%", player.getName()), balance));
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), Placeholders.replaceLong(command, balance, "balance", "tokens").replace("%player%", player.getName()));
             }
         }
 
         if (message != null && !message.isEmpty()) {
-            plugin.getLang().sendMessage(player, false, replace(message, balance), "player", player.getName());
+            plugin.getLang().sendMessage(player, false, Placeholders.replaceLong(message, balance, "balance", "tokens"), "player", player.getName());
         }
 
         if (subshop != null && !subshop.isEmpty()) {
@@ -151,9 +152,5 @@ public class Slot {
         }
 
         return true;
-    }
-
-    private String replace(String s, final long balance) {
-        return s.replace("%balance%", String.valueOf(balance)).replace("%tokens%", String.valueOf(balance));
     }
 }

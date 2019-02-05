@@ -144,7 +144,9 @@ public class ShopConfig extends AbstractConfiguration<TokenManagerPlugin> implem
                 }
             }
 
-            register(name, shop);
+            if (!register(name, shop)) {
+                Log.error(this, "Failed to load shop '" + name + "': Shop already exists. Please note that all shop names must be in lowercase.");
+            }
         }
 
         final Config config = plugin.getConfiguration();
@@ -180,7 +182,12 @@ public class ShopConfig extends AbstractConfiguration<TokenManagerPlugin> implem
         return shopSamples.values();
     }
 
-    public Shop register(final String name, final Shop shop) {
-        return shopSamples.put(name, shop);
+    public boolean register(final String name, final Shop shop) {
+        if (shopSamples.containsKey(name)) {
+            return false;
+        }
+
+        shopSamples.put(name, shop);
+        return true;
     }
 }

@@ -48,6 +48,11 @@ public abstract class AbstractDatabase implements Database {
         this.online = mode.equals("auto") ? ProfileUtil.isOnlineMode() : mode.equals("true");
     }
 
+    @Override
+    public boolean isOnlineMode() {
+        return online;
+    }
+
     OptionalLong from(final Long value) {
         return value != null ? OptionalLong.of(value) : OptionalLong.empty();
     }

@@ -3,6 +3,7 @@ package me.realized.tokenmanager.shop.gui;
 import lombok.Getter;
 import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.shop.Shop;
+import me.realized.tokenmanager.shop.ShopManager;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 
@@ -29,11 +30,12 @@ public abstract class BaseGui {
     }
 
     /**
-     * Updates gui items with the new token balance.
+     * Updates gui items with info from the player.
      *
-     * @param balance New token balance to update.
+     * @param player Player to provide the info.
+     * @param firstLoad Whether or not this refresh is caused by {@link ShopManager#open(Player, BaseGui)}.
      */
-    public abstract void refresh(final long balance);
+    public abstract void refresh(final Player player, final boolean firstLoad);
 
     /**
      * Handles inventory click for gui.

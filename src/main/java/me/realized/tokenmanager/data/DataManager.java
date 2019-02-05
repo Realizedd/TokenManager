@@ -43,6 +43,7 @@ import me.realized.tokenmanager.data.database.Database.TopElement;
 import me.realized.tokenmanager.data.database.FileDatabase;
 import me.realized.tokenmanager.data.database.MySQLDatabase;
 import me.realized.tokenmanager.util.Loadable;
+import me.realized.tokenmanager.util.Log;
 import me.realized.tokenmanager.util.StringUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
@@ -76,6 +77,12 @@ public class DataManager implements Loadable, Listener {
     @Override
     public void handleLoad() throws Exception {
         this.database = plugin.getConfiguration().isMysqlEnabled() ? new MySQLDatabase(plugin) : new FileDatabase(plugin);
+        final boolean online = database.isOnlineMode();
+        Log.info("===============================================");
+        Log.info("TokenManager has detected your server as " + (online ? "online" : "offline") + " mode.");
+        Log.info("DataManager will operate with " + (online ? "UUID" : "Username") + "s.");
+        Log.info("If your server is NOT in " + (online ? "online" : "offline") + " mode, please manually set online-mode in TokenManager's config.yml.");
+        Log.info("===============================================");
         database.setup();
 
         topTask = plugin.doSyncRepeat(() -> database.ordered(10, args -> plugin.doSync(() -> {

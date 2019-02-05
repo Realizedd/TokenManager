@@ -219,13 +219,12 @@ public class TokenManagerPlugin extends JavaPlugin implements TokenManager, List
 
     @Override
     public OptionalLong getWorth(final Material material) {
-        return OptionalLong.of(worthConfig.getWorth(material));
+        return worthConfig.getWorth(material);
     }
 
     @Override
     public OptionalLong getWorth(final ItemStack item) {
-        final long worth;
-        return (worth = worthConfig.getWorth(item)) > 0 ? OptionalLong.of(worth) : OptionalLong.empty();
+        return worthConfig.getWorth(item);
     }
 
     @Override

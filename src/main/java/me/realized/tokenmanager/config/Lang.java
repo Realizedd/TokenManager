@@ -27,9 +27,11 @@
 
 package me.realized.tokenmanager.config;
 
+import com.google.common.collect.Sets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.util.Log;
@@ -103,6 +105,11 @@ public class Lang extends AbstractConfiguration<TokenManagerPlugin> implements R
     @Override
     public void handleUnload() {
         messages.clear();
+    }
+
+    @Override
+    protected Set<String> transferredSections() {
+        return Sets.newHashSet("STRINGS");
     }
 
     public void sendMessage(final CommandSender receiver, final boolean config, final String in, final Object... replacers) {

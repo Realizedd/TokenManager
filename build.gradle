@@ -5,23 +5,24 @@ buildscript {
     repositories {
         jcenter()
     }
+
     dependencies {
         classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.4'
     }
 }
 
-group 'me.realized'
-version '3.2.0'
+plugins {
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version '2.0.4'
+}
 
-apply plugin: 'java'
-apply plugin: 'com.github.johnrengelman.shadow'
+group 'me.realized'
+version '3.2.1'
 
 project.tasks.assemble.dependsOn project.tasks.shadowJar
 jar.enabled = false
-
 compileJava.options.encoding = 'UTF-8'
-
-targetCompatibility = 1.8
+sourceCompatibility = targetCompatibility = JavaVersion.VERSION_1_8
 
 shadowJar {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE

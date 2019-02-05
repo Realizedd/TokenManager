@@ -57,14 +57,14 @@ public class WorthConfig extends AbstractConfiguration<TokenManagerPlugin> imple
         worth.clear();
     }
 
-    public long getWorth(final Material material) {
+    public OptionalLong getWorth(final Material material) {
         final WorthData data;
-        return ((data = worth.get(material)) != null && data.baseWorthSet) ? data.baseWorth : 0;
+        return ((data = worth.get(material)) != null && data.baseWorthSet) ? OptionalLong.of(data.baseWorth) : OptionalLong.empty();
     }
 
-    public long getWorth(final ItemStack item) {
+    public OptionalLong getWorth(final ItemStack item) {
         final WorthData data;
-        return (data = worth.get(item.getType())) != null ? data.worthOf(item).orElse(0) * item.getAmount() : 0;
+        return (data = worth.get(item.getType())) != null ? data.worthOf(item) : OptionalLong.empty();
     }
 
     private static class WorthData {
@@ -87,11 +87,11 @@ public class WorthConfig extends AbstractConfiguration<TokenManagerPlugin> imple
                 final Long value = extraWorth.get(item.getDurability());
 
                 if (value != null) {
-                    return OptionalLong.of(value);
+                    return OptionalLong.of(value * item.getAmount());
                 }
             }
 
-            return baseWorthSet ? OptionalLong.of(baseWorth) : OptionalLong.empty();
+            return baseWorthSet ? OptionalLong.of(baseWorth * item.getAmount()) : OptionalLong.empty();
         }
     }
 }

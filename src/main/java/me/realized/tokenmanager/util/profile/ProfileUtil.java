@@ -47,8 +47,6 @@ public final class ProfileUtil {
         } catch (ClassNotFoundException ignored) {}
     }
 
-    private ProfileUtil() {}
-
     public static boolean isOnlineMode() {
         return Bukkit.getOnlineMode() || (USING_SPIGOT && Bukkit.spigot().getConfig().getBoolean("settings.bungeecord"));
     }
@@ -75,4 +73,6 @@ public final class ProfileUtil {
             errorHandler.accept(ex.getMessage());
         }
     }
+
+    private ProfileUtil() {}
 }

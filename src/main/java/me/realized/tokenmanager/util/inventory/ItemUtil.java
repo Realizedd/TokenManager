@@ -31,7 +31,6 @@ import com.google.common.collect.Lists;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.OptionalLong;
 import java.util.function.Consumer;
@@ -62,7 +61,6 @@ public final class ItemUtil {
 
     private static final Map<String, Enchantment> ENCHANTMENTS;
     private static final Map<String, PotionEffectType> EFFECTS;
-    private static final String[] PLACEHOLDERS = {"tokens", "balance"};
 
     static {
         final Map<String, Enchantment> enchantments = new HashMap<>();
@@ -130,57 +128,6 @@ public final class ItemUtil {
         effects.put("absorption", PotionEffectType.ABSORPTION);
         effects.put("saturation", PotionEffectType.SATURATION);
         EFFECTS = Collections.unmodifiableMap(effects);
-    }
-
-    private ItemUtil() {}
-
-    public static ItemStack replace(final ItemStack item, final long value, final String... placeholders) {
-        if (!item.hasItemMeta()) {
-            return item;
-        }
-
-        final ItemMeta meta = item.getItemMeta();
-
-        if (meta.hasLore()) {
-            final List<String> lore = meta.getLore();
-            lore.replaceAll(line -> {
-                for (final String placeholder : placeholders) {
-                    line = line
-                        .replace("%" + placeholder + "%", NumberUtil.withCommas(value))
-                        .replace("%" + placeholder + "_formatted%", NumberUtil.withSuffix(value))
-                        .replace("%" + placeholder + "_raw%", String.valueOf(value));
-                }
-
-                return line;
-            });
-            meta.setLore(lore);
-        }
-
-        if (meta.hasDisplayName()) {
-            String displayName = meta.getDisplayName();
-
-            for (final String placeholder : placeholders) {
-                displayName = displayName
-                    .replace("%" + placeholder + "%", NumberUtil.withCommas(value))
-                    .replace("%" + placeholder + "_formatted%", NumberUtil.withSuffix(value))
-                    .replace("%" + placeholder + "_raw%", String.valueOf(value));
-            }
-
-            meta.setDisplayName(displayName);
-        }
-
-        item.setItemMeta(meta);
-        return item;
-    }
-
-    private static String fixPlaceholders(String line) {
-        for (final String placeholder : PLACEHOLDERS) {
-            line = line
-                .replace("%" + placeholder + " formatted%", "%" + placeholder + "_formatted%")
-                .replace("%" + placeholder + " raw%", "%" + placeholder + "raw%");
-        }
-
-        return line;
     }
 
     public static ItemStack loadFromString(final String line) {
@@ -289,13 +236,13 @@ public final class ItemUtil {
         final ItemMeta meta = item.getItemMeta();
 
         if (key.equalsIgnoreCase("name")) {
-            meta.setDisplayName(StringUtil.color(fixPlaceholders(value.replace("_", " "))));
+            meta.setDisplayName(StringUtil.color(value.replace("_", " ")));
             item.setItemMeta(meta);
             return;
         }
 
         if (key.equalsIgnoreCase("lore")) {
-            meta.setLore(StringUtil.color(Lists.newArrayList(value.split("\\|")), s -> fixPlaceholders(s.replace("_", " "))));
+            meta.setLore(StringUtil.color(Lists.newArrayList(value.split("\\|")), line -> line.replace("_", " ")));
             item.setItemMeta(meta);
             return;
         }
@@ -312,18 +259,16 @@ public final class ItemUtil {
         }
 
         if (key.equalsIgnoreCase("flags")) {
-            if (!CompatUtil.isPre1_8()) {
-                final String[] flags = value.split(",");
+            final String[] flags = value.split(",");
 
-                for (final String flag : flags) {
-                    final ItemFlag itemFlag = EnumUtil.getByName(flag, ItemFlag.class);
+            for (final String flag : flags) {
+                final ItemFlag itemFlag = EnumUtil.getByName(flag, ItemFlag.class);
 
-                    if (itemFlag == null) {
-                        continue;
-                    }
-
-                    meta.addItemFlags(itemFlag);
+                if (itemFlag == null) {
+                    continue;
                 }
+
+                meta.addItemFlags(itemFlag);
             }
 
             item.setItemMeta(meta);
@@ -352,6 +297,7 @@ public final class ItemUtil {
         if (Items.equals(Items.HEAD, item) && (key.equalsIgnoreCase("player") || key.equalsIgnoreCase("owner") || key.equalsIgnoreCase("texture"))) {
             final SkullMeta skullMeta = (SkullMeta) meta;
 
+            // Since Base64 texture strings are much longer than usernames...
             if (value.length() > 16) {
                 Skulls.setSkull(skullMeta, value);
             } else {
@@ -368,4 +314,20 @@ public final class ItemUtil {
             item.setItemMeta(leatherArmorMeta);
         }
     }
+
+    public static void copyNameLore(final ItemStack from, final ItemStack to) {
+        final ItemMeta fromMeta = from.getItemMeta(), toMeta = to.getItemMeta();
+
+        if (fromMeta.hasDisplayName()) {
+            toMeta.setDisplayName(fromMeta.getDisplayName());
+        }
+
+        if (fromMeta.hasLore()) {
+            toMeta.setLore(fromMeta.getLore());
+        }
+
+        to.setItemMeta(toMeta);
+    }
+
+    private ItemUtil() {}
 }

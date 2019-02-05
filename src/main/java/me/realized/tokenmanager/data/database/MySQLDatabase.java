@@ -418,8 +418,7 @@ public class MySQLDatabase extends AbstractDatabase {
     private void update(final Connection connection, final String key, final long value) throws Exception {
         connection.setAutoCommit(false);
 
-        try (PreparedStatement selectStatement = connection
-            .prepareStatement(Query.SELECT_FOR_UPDATE.query, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+        try (PreparedStatement selectStatement = connection.prepareStatement(Query.SELECT_ONE.query)) {
             selectStatement.setString(1, key);
 
             try (ResultSet resultSet = selectStatement.executeQuery()) {
@@ -475,8 +474,7 @@ public class MySQLDatabase extends AbstractDatabase {
 
         CREATE_TABLE("CREATE TABLE IF NOT EXISTS {table} (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, {column} NOT NULL UNIQUE, tokens BIGINT(255) NOT NULL);"),
         SELECT_WITH_LIMIT("SELECT {identifier}, tokens FROM {table} ORDER BY tokens DESC LIMIT ?;"),
-        SELECT_ONE("SELECT tokens FROM {table} WHERE {identifier}=? LOCK IN SHARE MODE;"),
-        SELECT_FOR_UPDATE("SELECT * FROM {table} WHERE {identifier}=? FOR UPDATE;"),
+        SELECT_ONE("SELECT tokens FROM {table} WHERE {identifier}=?;"),
         INSERT("INSERT INTO {table} ({identifier}, tokens) VALUES (?, ?);"),
         UPDATE("UPDATE {table} SET tokens=? WHERE {identifier}=?;"),
         INSERT_OR_UPDATE("INSERT INTO {table} ({identifier}, tokens) VALUES (?, ?) ON DUPLICATE KEY UPDATE tokens=?;");

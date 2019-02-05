@@ -7,10 +7,10 @@ import java.util.UUID;
 import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.config.Config;
 import me.realized.tokenmanager.config.Lang;
-import me.realized.tokenmanager.data.DataManager;
 import me.realized.tokenmanager.shop.gui.BaseGui;
 import me.realized.tokenmanager.util.Loadable;
 import me.realized.tokenmanager.util.StringUtil;
+import me.realized.tokenmanager.util.inventory.InventoryUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -24,7 +24,6 @@ public class ShopManager implements Loadable, Listener {
     private final TokenManagerPlugin plugin;
     private final Config config;
     private final Lang lang;
-    private final DataManager dataManager;
 
     private final Map<UUID, BaseGui> cache = new HashMap<>();
     private final Map<UUID, Long> cooldowns = new HashMap<>();
@@ -33,7 +32,6 @@ public class ShopManager implements Loadable, Listener {
         this.plugin = plugin;
         this.config = plugin.getConfiguration();
         this.lang = plugin.getLang();
-        this.dataManager = plugin.getDataManager();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 
@@ -68,7 +66,7 @@ public class ShopManager implements Loadable, Listener {
 
     public void open(final Player player, final BaseGui gui) {
         cache.put(player.getUniqueId(), gui);
-        gui.refresh(dataManager.get(player).orElse(0));
+        gui.refresh(player, true);
         gui.open(player);
     }
 
@@ -79,7 +77,12 @@ public class ShopManager implements Loadable, Listener {
     @EventHandler
     public void on(final InventoryClickEvent event) {
         final Player player = (Player) event.getWhoClicked();
-        final Inventory clicked = event.getClickedInventory();
+
+        if (event.getRawSlot() < 0) {
+            return;
+        }
+
+        final Inventory clicked = InventoryUtil.getClickedInventory(event.getRawSlot(), event.getView());
         final Inventory top = player.getOpenInventory().getTopInventory();
 
         if (clicked == null || top == null) {

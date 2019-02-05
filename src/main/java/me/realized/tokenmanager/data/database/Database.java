@@ -11,6 +11,8 @@ import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 
 public interface Database {
 
+    boolean isOnlineMode();
+
     /**
      * Checks and creates the table for the plugin if it does not exist.
      *

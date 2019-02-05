@@ -33,7 +33,7 @@ import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 
 public class FileDatabase extends AbstractDatabase {
 
-    private static final String SERVER_MODE_MISMATCH = "Server is in %s mode, but given keys were not a valid %s!";
+    private static final String SERVER_MODE_MISMATCH = "Server is in %s mode, but data.yml does not contain %s! Please delete or rename data.yml to generate a new data.yml with valid format.";
 
     private final File file;
     private final Map<String, Long> data = new HashMap<>();
@@ -59,7 +59,7 @@ public class FileDatabase extends AbstractDatabase {
                 if (ProfileUtil.isUUID(key) != online) {
                     // clear to prevent saving previously loaded data overwriting the file
                     data.clear();
-                    throw new Exception(String.format(SERVER_MODE_MISMATCH, online ? "ONLINE" : "OFFLINE", online ? "UUID" : "NAME"));
+                    throw new Exception(String.format(SERVER_MODE_MISMATCH, online ? "ONLINE" : "OFFLINE", online ? "UUIDs" : "Usernames"));
                 }
 
                 data.put(key, section.getLong(key));

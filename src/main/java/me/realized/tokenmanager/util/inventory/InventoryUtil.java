@@ -3,6 +3,7 @@ package me.realized.tokenmanager.util.inventory;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryView;
 
 public final class InventoryUtil {
 
@@ -20,5 +21,13 @@ public final class InventoryUtil {
 
     public static boolean isInventoryFull(final Player player) {
         return player.getInventory().firstEmpty() == -1;
+    }
+
+    public static Inventory getClickedInventory(final int rawSlot, final InventoryView view) {
+        if (view.getTopInventory() != null && rawSlot < view.getTopInventory().getSize()) {
+            return view.getTopInventory();
+        } else {
+            return view.getBottomInventory();
+        }
     }
 }

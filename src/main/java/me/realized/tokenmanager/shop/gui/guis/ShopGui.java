@@ -5,9 +5,13 @@ import me.realized.tokenmanager.data.DataManager;
 import me.realized.tokenmanager.shop.Shop;
 import me.realized.tokenmanager.shop.Slot;
 import me.realized.tokenmanager.shop.gui.BaseGui;
+import me.realized.tokenmanager.util.Placeholders;
+import me.realized.tokenmanager.util.compat.Items;
 import me.realized.tokenmanager.util.inventory.ItemUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.SkullMeta;
 
 public class ShopGui extends BaseGui {
 
@@ -19,7 +23,9 @@ public class ShopGui extends BaseGui {
     }
 
     @Override
-    public void refresh(final long balance) {
+    public void refresh(final Player player, final boolean firstLoad) {
+        final long balance = dataManager.get(player).orElse(0);
+
         for (int slot = 0; slot < inventory.getSize(); slot++) {
             final Slot data = shop.getSlot(slot);
 
@@ -27,7 +33,26 @@ public class ShopGui extends BaseGui {
                 continue;
             }
 
-            inventory.setItem(slot, ItemUtil.replace(data.getDisplayed().clone(), balance, "tokens", "balance"));
+            ItemStack item = data.getDisplayed().clone();
+
+            if (Items.equals(data.getDisplayed(), Items.HEAD)) {
+                if (firstLoad) {
+                    final SkullMeta skullMeta = (SkullMeta) item.getItemMeta();
+
+                    if (skullMeta.getOwner().equals("%player%")) {
+                        skullMeta.setOwner(player.getName());
+                        item.setItemMeta(skullMeta);
+                    }
+                } else {
+                    final ItemStack skull = inventory.getItem(slot);
+                    ItemUtil.copyNameLore(item, skull);
+                    item = skull;
+                }
+            }
+
+            Placeholders.replace(item, balance, "tokens", "balance");
+            Placeholders.replace(item, player.getName(), "player");
+            inventory.setItem(slot, item);
         }
     }
 
@@ -46,7 +71,7 @@ public class ShopGui extends BaseGui {
         }
 
         if (data.purchase(player, shop.isConfirmPurchase() || data.isConfirmPurchase(), false)) {
-            refresh(dataManager.get(player).orElse(0));
+            refresh(player, false);
             return true;
         }
 

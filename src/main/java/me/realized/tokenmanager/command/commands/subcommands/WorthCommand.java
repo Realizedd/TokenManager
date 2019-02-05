@@ -27,7 +27,7 @@ public class WorthCommand extends BaseCommand {
         final OptionalLong worth = plugin.getWorth(item);
 
         if (!worth.isPresent()) {
-            sendMessage(sender, true, "ERROR.item-has-no-price");
+            sendMessage(sender, true, "ERROR.item-is-worthless");
             return;
         }
 
