@@ -386,8 +386,6 @@ public class MySQLDatabase extends AbstractDatabase {
     }
 
     private OptionalLong select(final Connection connection, final String key, final boolean create) throws Exception {
-        connection.setAutoCommit(false);
-
         try (PreparedStatement selectStatement = connection.prepareStatement(Query.SELECT_ONE.query)) {
             selectStatement.setString(1, key);
 
@@ -410,24 +408,14 @@ public class MySQLDatabase extends AbstractDatabase {
 
                 return OptionalLong.of(resultSet.getLong("tokens"));
             }
-        } finally {
-            connection.commit();
         }
     }
 
     private void update(final Connection connection, final String key, final long value) throws Exception {
-        connection.setAutoCommit(false);
-
-        try (PreparedStatement selectStatement = connection.prepareStatement(Query.SELECT_ONE.query)) {
-            selectStatement.setString(1, key);
-
-            try (ResultSet resultSet = selectStatement.executeQuery()) {
-                resultSet.next();
-                resultSet.updateLong("tokens", value);
-                resultSet.updateRow();
-            }
-        } finally {
-            connection.commit();
+        try (PreparedStatement statement = connection.prepareStatement(Query.UPDATE.query)) {
+            statement.setLong(1, value);
+            statement.setString(2, key);
+            statement.execute();
         }
     }
 
