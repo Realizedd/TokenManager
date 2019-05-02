@@ -9,6 +9,9 @@ A simple economy plugin for spigot. <a href="https://www.spigotmc.org/resources/
 * **[Wiki](https://github.com/Realizedd/TokenManager/wiki)**
 * **[Commands](https://github.com/Realizedd/TokenManager/wiki/commands)**
 * **[Permissions](https://github.com/Realizedd/TokenManager/wiki/permissions)**
+* **[config.yml](https://github.com/Realizedd/TokenManager/blob/master/src/main/resources/config.yml)**
+* **[lang.yml](https://github.com/Realizedd/TokenManager/blob/master/src/main/resources/lang.yml)**
+* **[shops.yml](https://github.com/Realizedd/TokenManager/blob/master/src/main/resources/shops.yml)**
 * **[Support Discord](https://discord.gg/RNy45sg)**
 
 
