@@ -37,13 +37,13 @@ Maven:
 #### Dependency
 Gradle:
 ```groovy
-compile group: 'com.github.realizedd', name: 'TokenManager', version: '3.2.2'
+compile group: 'com.github.Realizedd', name: 'TokenManager', version: '3.2.2'
 ```  
 
 Maven:
 ```xml
 <dependency>
-   <groupId>com.github.realizedd</groupId>
+   <groupId>com.github.Realizedd</groupId>
    <artifactId>TokenManager</artifactId>
    <version>3.2.2</version>
 </dependency>
