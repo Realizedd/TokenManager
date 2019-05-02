@@ -19,26 +19,11 @@ plugins {
 group 'me.realized'
 version '3.2.2'
 
-project.tasks.assemble.dependsOn project.tasks.shadowJar
-jar.enabled = false
 compileJava.options.encoding = 'UTF-8'
 sourceCompatibility = targetCompatibility = JavaVersion.VERSION_1_8
 
 shadowJar {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-}
-
-processResources {
-    def group = project.group.toString() + "." + project.name.toLowerCase() + ".shaded"
-
-    from(sourceSets.main.resources.srcDirs) {
-        include '**/*.yml'
-        filter(ReplaceTokens, tokens: [NAME: project.name, VERSION: project.version, SHADED_GROUP: group])
-    }
-}
-
-artifacts {
-    archives jar
 }
 
 clean.doFirst {
@@ -49,8 +34,13 @@ tasks.withType(ShadowJar) {
     destinationDir = file("$rootDir/out/")
 }
 
-tasks.withType(Jar) {
-    destinationDir = file("$rootDir/out/")
+processResources {
+    def group = project.group.toString() + "." + project.name.toLowerCase() + ".shaded"
+
+    from(sourceSets.main.resources.srcDirs) {
+        include '**/*.yml'
+        filter(ReplaceTokens, tokens: [NAME: project.name, VERSION: project.version, SHADED_GROUP: group])
+    }
 }
 
 repositories {
@@ -129,3 +119,5 @@ shadowJar {
     relocate 'org.bstats', group + 'bstats'
     relocate 'org.inventivetalent.update.spiget', group + 'update.spiget'
 }
+
+build.dependsOn(shadowJar)
