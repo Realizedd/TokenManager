@@ -9,7 +9,7 @@ A simple economy plugin for spigot. <a href="https://www.spigotmc.org/resources/
 * **[Wiki](https://github.com/Realizedd/TokenManager/wiki)**
 * **[Commands](https://github.com/Realizedd/TokenManager/wiki/commands)**
 * **[Permissions](https://github.com/Realizedd/TokenManager/wiki/permissions)**
-* **[Support Discord](https://discord.gg/U3Yyu6G)**
+* **[Support Discord](https://discord.gg/RNy45sg)**
 
 
 ### Getting the dependency
