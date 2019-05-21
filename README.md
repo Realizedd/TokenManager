@@ -9,6 +9,9 @@ A simple economy plugin for spigot. <a href="https://www.spigotmc.org/resources/
 * **[Wiki](https://github.com/Realizedd/TokenManager/wiki)**
 * **[Commands](https://github.com/Realizedd/TokenManager/wiki/commands)**
 * **[Permissions](https://github.com/Realizedd/TokenManager/wiki/permissions)**
+* **[config.yml](https://github.com/Realizedd/TokenManager/blob/master/src/main/resources/config.yml)**
+* **[lang.yml](https://github.com/Realizedd/TokenManager/blob/master/src/main/resources/lang.yml)**
+* **[shops.yml](https://github.com/Realizedd/TokenManager/blob/master/src/main/resources/shops.yml)**
 * **[Support Discord](https://discord.gg/RNy45sg)**
 
 
@@ -34,13 +37,13 @@ Maven:
 #### Dependency
 Gradle:
 ```groovy
-compile group: 'com.github.realizedd', name: 'TokenManager', version: '3.2.2'
+compile group: 'com.github.Realizedd', name: 'TokenManager', version: '3.2.2'
 ```  
 
 Maven:
 ```xml
 <dependency>
-   <groupId>com.github.realizedd</groupId>
+   <groupId>com.github.Realizedd</groupId>
    <artifactId>TokenManager</artifactId>
    <version>3.2.2</version>
 </dependency>
