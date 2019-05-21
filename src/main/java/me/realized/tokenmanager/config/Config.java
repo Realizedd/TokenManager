@@ -66,6 +66,8 @@ public class Config extends AbstractConfiguration<TokenManagerPlugin> {
     @Getter
     private boolean checkInventoryFull;
     @Getter
+    private boolean logPurchases;
+    @Getter
     private boolean mysqlEnabled;
     @Getter
     private String mysqlUsername;
@@ -120,6 +122,7 @@ public class Config extends AbstractConfiguration<TokenManagerPlugin> {
         confirmPurchaseCancel = configuration.getString("shop.confirm-purchase-gui.cancel-button", "STAINED_CLAY:14 1 name:&c&lCANCEL");
         clickDelay = configuration.getInt("shop.click-delay", 0);
         checkInventoryFull = configuration.getBoolean("shop.check-inventory-full", false);
+        logPurchases = configuration.getBoolean("shop.log-purchases", false);
         mysqlEnabled = configuration.getBoolean("data.mysql.enabled", false);
         mysqlUsername = configuration.getString("data.mysql.username", "root");
         mysqlPassword = configuration.getString("data.mysql.password", "password");

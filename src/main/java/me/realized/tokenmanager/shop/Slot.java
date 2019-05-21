@@ -52,6 +52,8 @@ public class Slot {
     @Getter
     private final int cost;
     @Getter
+    private final int emptySlotsRequired;
+    @Getter
     private final ItemStack displayed;
     @Getter
     private final String message;
@@ -64,19 +66,28 @@ public class Slot {
     @Getter
     private final boolean confirmPurchase;
 
-    public Slot(final TokenManagerPlugin plugin, final Shop shop, final int slot, final int cost, final ItemStack displayed, final String message, final String subshop,
+    public Slot(final TokenManagerPlugin plugin, final Shop shop, final int slot, final int cost, final int emptySlotsRequired, final ItemStack displayed, final String message, final String subshop,
         final List<String> commands, final boolean usePermission, final boolean confirmPurchase) {
         this.plugin = plugin;
         this.shop = shop;
         this.slot = slot;
         this.cost = cost;
+        this.emptySlotsRequired = emptySlotsRequired;
         this.displayed = displayed;
         this.message = message != null ? Placeholders.replaceLong(message, cost, "price", "cost") : null;
         this.subshop = subshop;
         this.commands = commands;
         this.usePermission = usePermission;
         this.confirmPurchase = confirmPurchase;
-        commands.replaceAll(command -> command = Placeholders.replaceLong(command, cost, "price", "cost"));
+        commands.replaceAll(command -> {
+            command = Placeholders.replaceLong(command, cost, "price", "cost");
+
+            if (command.startsWith("/")) {
+                command = command.substring(1);
+            }
+
+            return command;
+        });
     }
 
     public boolean purchase(final Player player, final boolean confirmPurchase, final boolean close) {

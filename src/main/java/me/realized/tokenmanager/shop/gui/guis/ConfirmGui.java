@@ -21,7 +21,7 @@ public class ConfirmGui extends BaseGui {
     private final int slot;
 
     public ConfirmGui(final TokenManagerPlugin plugin, final Shop shop, final int slot) {
-        super(plugin, shop, InventoryUtil.deepCopyOf(plugin.getShopConfig().getConfirmGuiSample()));
+        super(plugin, shop, InventoryUtil.deepCopyOf(plugin.getShopConfig().getConfirmGuiSample(), plugin.getConfiguration().getConfirmPurchaseTitle()));
         this.dataManager = plugin.getDataManager();
         this.shopManager = plugin.getShopManager();
         this.slot = slot;

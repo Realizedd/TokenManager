@@ -41,6 +41,7 @@ public class Shop {
 
     @Getter
     private final String name;
+    private final String title;
     @Getter(value = AccessLevel.PACKAGE)
     private final Inventory inventory;
     @Getter
@@ -72,14 +73,15 @@ public class Shop {
             throw new IllegalArgumentException("Shop rows must be in between 1 - 6.");
         }
 
-        this.inventory = Bukkit.createInventory(null, rows * 9, StringUtil.color(title));
+        this.title = StringUtil.color(title);
+        this.inventory = Bukkit.createInventory(null, rows * 9, title);
         this.autoClose = autoClose;
         this.usePermission = usePermission;
         this.confirmPurchase = confirmPurchase;
     }
 
     public String getTitle() {
-        return inventory.getTitle();
+        return title;
     }
 
     public int getSize() {

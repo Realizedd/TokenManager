@@ -1,12 +1,15 @@
 package me.realized.tokenmanager.shop.gui.guis;
 
 import me.realized.tokenmanager.TokenManagerPlugin;
+import me.realized.tokenmanager.config.Config;
+import me.realized.tokenmanager.config.Lang;
 import me.realized.tokenmanager.data.DataManager;
 import me.realized.tokenmanager.shop.Shop;
 import me.realized.tokenmanager.shop.Slot;
 import me.realized.tokenmanager.shop.gui.BaseGui;
 import me.realized.tokenmanager.util.Placeholders;
 import me.realized.tokenmanager.util.compat.Items;
+import me.realized.tokenmanager.util.inventory.InventoryUtil;
 import me.realized.tokenmanager.util.inventory.ItemUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -15,10 +18,16 @@ import org.bukkit.inventory.meta.SkullMeta;
 
 public class ShopGui extends BaseGui {
 
+    private static final String PURCHASE_LOG = "%s (%s) purchased %s:%s for %s tokens.";
+
+    private final Config config;
+    private final Lang lang;
     private final DataManager dataManager;
 
     public ShopGui(final TokenManagerPlugin plugin, final Shop shop) {
         super(plugin, shop, Bukkit.createInventory(null, shop.getSize(), shop.getTitle()));
+        this.config = plugin.getConfiguration();
+        this.lang = plugin.getLang();
         this.dataManager = plugin.getDataManager();
     }
 
@@ -66,12 +75,23 @@ public class ShopGui extends BaseGui {
 
         if (data.isUsePermission() && !player.hasPermission("tokenmanager.use." + shop.getName() + "-" + slot)) {
             plugin.doSync(player::closeInventory);
-            plugin.getLang().sendMessage(player, true, "ERROR.no-permission", "permission", "tokenmanager.use." + shop.getName() + "-" + slot);
+            lang.sendMessage(player, true, "ERROR.no-permission", "permission", "tokenmanager.use." + shop.getName() + "-" + slot);
+            return false;
+        }
+
+        if (data.getEmptySlotsRequired() > 0 && InventoryUtil.getEmptySlots(player.getInventory()) < data.getEmptySlotsRequired()) {
+            plugin.doSync(player::closeInventory);
+            lang.sendMessage(player, true, "ERROR.not-enough-space", "slots", data.getEmptySlotsRequired());
             return false;
         }
 
         if (data.purchase(player, shop.isConfirmPurchase() || data.isConfirmPurchase(), false)) {
             refresh(player, false);
+
+            if (config.isLogPurchases()) {
+                plugin.getLogger().info(String.format(PURCHASE_LOG, player.getUniqueId(), player.getName(), shop.getName(), slot, data.getCost()));
+            }
+
             return true;
         }
 

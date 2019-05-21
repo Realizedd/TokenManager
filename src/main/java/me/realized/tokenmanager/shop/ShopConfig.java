@@ -134,6 +134,7 @@ public class ShopConfig extends AbstractConfiguration<TokenManagerPlugin> implem
                         shop,
                         (int) slot,
                         slotSection.getInt("cost", 1000000),
+                        slotSection.getInt("empty-slots-required", 0),
                         displayed,
                         slotSection.getString("message"),
                         slotSection.getString("subshop"),

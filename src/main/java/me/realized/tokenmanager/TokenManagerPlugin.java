@@ -238,6 +238,30 @@ public class TokenManagerPlugin extends JavaPlugin implements TokenManager, List
     }
 
     @Override
+    public boolean addTokens(final Player player, final long amount) {
+        final OptionalLong balance = getTokens(player);
+
+        if (!balance.isPresent()) {
+            return false;
+        }
+
+        setTokens(player, balance.getAsLong() + amount);
+        return true;
+    }
+
+    @Override
+    public boolean removeTokens(final Player player, final long amount) {
+        final OptionalLong balance = getTokens(player);
+
+        if (!balance.isPresent()) {
+            return false;
+        }
+
+        setTokens(player, balance.getAsLong() - amount);
+        return true;
+    }
+
+    @Override
     public void setTokens(final String key, final long amount) {
         dataManager.set(key, ModifyType.SET, amount, amount, true, null, Log::error);
     }

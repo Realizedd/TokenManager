@@ -1,5 +1,5 @@
 # DO NOT EDIT THIS VALUE!
-config-version: 8
+config-version: 9
 
 # If enabled, a notification and the download link will be printed on console whenever an update is available.
 check-for-updates: true
@@ -39,6 +39,9 @@ shop:
 
   # If enabled, players with full inventory will not be able to purchase from token shops.
   check-inventory-full: false
+
+  # If enabled, all shop purchases will be logged to console in the following format: <uuid> (<username>) purchased <shop>:<slot> for <cost> tokens.
+  log-purchases: false
 
 # [WARNING: DANGER ZONE]
 data:
