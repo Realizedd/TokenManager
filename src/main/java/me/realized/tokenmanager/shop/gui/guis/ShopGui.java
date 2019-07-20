@@ -1,5 +1,6 @@
 package me.realized.tokenmanager.shop.gui.guis;
 
+import me.realized.tokenmanager.Permissions;
 import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.config.Config;
 import me.realized.tokenmanager.config.Lang;
@@ -48,7 +49,7 @@ public class ShopGui extends BaseGui {
                 if (firstLoad) {
                     final SkullMeta skullMeta = (SkullMeta) item.getItemMeta();
 
-                    if (skullMeta.getOwner().equals("%player%")) {
+                    if (skullMeta.getOwner() != null && skullMeta.getOwner().equals("%player%")) {
                         skullMeta.setOwner(player.getName());
                         item.setItemMeta(skullMeta);
                     }
@@ -73,9 +74,11 @@ public class ShopGui extends BaseGui {
             return false;
         }
 
-        if (data.isUsePermission() && !player.hasPermission("tokenmanager.use." + shop.getName() + "-" + slot)) {
+        final String slotInfo = shop.getName() + "-" + slot;
+
+        if (data.isUsePermission() && !(player.hasPermission(Permissions.SHOP + slotInfo) || player.hasPermission(Permissions.SHOP_SLOT_OLD + slotInfo))) {
             plugin.doSync(player::closeInventory);
-            lang.sendMessage(player, true, "ERROR.no-permission", "permission", "tokenmanager.use." + shop.getName() + "-" + slot);
+            lang.sendMessage(player, true, "ERROR.no-permission", "permission", Permissions.SHOP + slotInfo);
             return false;
         }
 

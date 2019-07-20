@@ -28,6 +28,7 @@
 package me.realized.tokenmanager.command.commands;
 
 import java.util.OptionalLong;
+import me.realized.tokenmanager.Permissions;
 import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.command.BaseCommand;
 import me.realized.tokenmanager.command.commands.subcommands.BalanceCommand;
@@ -44,7 +45,7 @@ import org.bukkit.entity.Player;
 public class TokenCommand extends BaseCommand {
 
     public TokenCommand(final TokenManagerPlugin plugin) {
-        super(plugin, "token", "tokenmanager.use", false);
+        super(plugin, "token", Permissions.CMD_TOKEN, false);
         child(
             new BalanceCommand(plugin),
             new SendCommand(plugin),

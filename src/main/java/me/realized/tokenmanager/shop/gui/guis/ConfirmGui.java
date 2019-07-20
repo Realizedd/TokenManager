@@ -46,9 +46,13 @@ public class ConfirmGui extends BaseGui {
     @Override
     public boolean handle(final Player player, final int slot) {
         if (slot == CONFIRM_PURCHASE_SLOT) {
-            return shop.getSlot(this.slot).purchase(player, false, true);
-        } else if (slot == CANCEL_PURCHASE_SLOT) {
-            // Open shop
+            boolean result = shop.getSlot(this.slot).purchase(player, false, shop.isAutoClose());
+            refresh(player, false);
+            return result;
+        }
+
+        if (slot == CANCEL_PURCHASE_SLOT) {
+            // Open back the parent shop.
             shopManager.open(player, new ShopGui(plugin, shop));
         }
 

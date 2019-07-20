@@ -27,6 +27,7 @@
 
 package me.realized.tokenmanager.command.commands;
 
+import me.realized.tokenmanager.Permissions;
 import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.command.BaseCommand;
 import me.realized.tokenmanager.command.commands.subcommands.GiveAllCommand;
@@ -40,7 +41,7 @@ import org.bukkit.command.CommandSender;
 public class TMCommand extends BaseCommand {
 
     public TMCommand(final TokenManagerPlugin plugin) {
-        super(plugin, "tokenmanager", "tokenmanager.admin", false);
+        super(plugin, "tokenmanager", Permissions.CMD_ADMIN, false);
         child(
             new OfflineCommand(plugin, ModifyType.ADD, "add <username> <amount>", "give"),
             new OfflineCommand(plugin, ModifyType.REMOVE, "remove <username> <amount>", "delete"),

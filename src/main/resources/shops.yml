@@ -55,12 +55,11 @@ shops:
         commands: # Commands to execute on purchase, %player% for purchaser's name
         - 'give %player% DIAMOND_SWORD 1 sharpness:5 fireaspect:2 name:&c&l%player%''s_Sword lore:&bExample_Line_1|&eExample_Line_2|&aPrice:_%price%_Tokens'
       '1':
-        displayed: STONE 128 name:&3Stone_(x128) lore:&dBalance:_%tokens%_Tokens|&aPrice:_%price%_Tokens
+        displayed: STONE 32 name:&3Stone_(x32) lore:&dBalance:_%tokens%_Tokens|&aPrice:_%price%_Tokens
         cost: 20
-        empty-slots-required: 2 # Amount of empty inventory slots required for this item. If not specified, it defaults to 0.
         message: '&bTM &8» &7Thanks for your purchase, %player%! &c-%price% tokens'
         commands:
-        - 'give %player% STONE 128'
+        - 'give %player% STONE 32'
       '2':
         displayed: DIAMOND 4 name:&bDiamond_(x4) lore:&dBalance:_%tokens%_Tokens|&aPrice:_%price%_Tokens|&c&lREQUIRES_PERMISSION!
         cost: 50
@@ -76,10 +75,17 @@ shops:
         commands:
         - 'give %player% WATER_BUCKET 1'
       '4':
+        displayed: LAVA_BUCKET 2 name:&cLava_Bucket_(x2) lore:&dBalance:_%tokens%_Tokens|&aPrice:_%price%_Tokens
+        cost: 30
+        empty-slots-required: 2 # Amount of empty inventory slots required for this item. If not specified, it defaults to 0.
+        message: '&bTM &8» &7Thanks for your purchase, %player%! &c-%price% tokens'
+        commands:
+        - 'give %player% LAVA_BUCKET 2'
+      '5':
         displayed: CHEST 1 name:&6examplesubshop lore:&7Opens_&6examplesubshop&7.
         cost: 0
         subshop: examplesubshop # Name of a subshop to open when this item is clicked on
-      '5':
+      '6':
         displayed: CHEST 1 name:&dexamplesubshop2 lore:&7Opens_&dexamplesubshop2&7.
         cost: 0
         subshop: examplesubshop2

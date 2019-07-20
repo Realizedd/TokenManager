@@ -28,6 +28,7 @@
 package me.realized.tokenmanager.command.commands.subcommands;
 
 import java.util.stream.Collectors;
+import me.realized.tokenmanager.Permissions;
 import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.command.BaseCommand;
 import me.realized.tokenmanager.shop.Shop;
@@ -37,7 +38,7 @@ import org.bukkit.command.CommandSender;
 public class ShopsCommand extends BaseCommand {
 
     public ShopsCommand(final TokenManagerPlugin plugin) {
-        super(plugin, "shops", "shops", "tokenmanager.use.shop", 1, false);
+        super(plugin, "shops", "shops", Permissions.CMD_SHOP, 1, false);
     }
 
     @Override

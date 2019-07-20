@@ -1,5 +1,5 @@
 # DO NOT EDIT THIS VALUE!
-config-version: 6
+config-version: 7
 
 # Define placeholders usable in any message below.
 # Example: Adding 'PREFIX: "[Cool]"' below and then putting '{PREFIX}' in a message will display '[Cool]' when the message is sent in game.
@@ -19,7 +19,7 @@ ERROR:
   on-click-cooldown: '&cYou''re clicking too fast! Try with a little delay. (%remaining%)'
   target-is-self: '&cYou cannot send tokens to yourself.'
   target-has-same-ip: '&cYou cannot send tokens to this player. (alt prevention)'
-  no-item-in-hand: '&cYou must be holding an item to sell.'
+  no-item-in-hand: '&cYou must be holding an item to do this.'
   item-is-worthless: '&cNo worth has been defined for this item.'
   inventory-is-full: '&cYour inventory is full!'
   not-enough-space: '&cYou need at least %slots% empty inventory slots to do this.'
@@ -33,8 +33,8 @@ COMMAND:
     - '&b/token send &9<&busername&9> <&bamount&9> &8» &7Send tokens to players.'
     - '&b/token shop &9<&bname&9> &8» &7Opens selected shop.'
     - '&b/token shops &8» &7Displays a list of loaded shops.'
-    - '&b/token sell &8» &7Converts your held item to tokens.'
-    - '&b/token worth &8» &7Shows the worth of your held item.'
+    - '&b/token sell <all> &8» &7Converts your held item or the entire inventory to tokens.'
+    - '&b/token worth <all> &8» &7Shows the worth of your held item or the entire inventory.'
     - '&b/token top &8» &7Displays the top token balances.'
     - '{FOOTER}'
 
@@ -49,7 +49,11 @@ COMMAND:
       footer: '&8&m*]------------------------------[*&r'
     shops: '{PREFIX} &7Shops: &b%shops%'
     sell: '{PREFIX} &7Sold &f%item_type% (&ax%item_amount%&f) &7for &b%amount% tokens&7.'
+    sell-all: '{PREFIX} &7Sold &f%item_amount% item(s) &7for &b%amount% tokens&7.'
     worth: '{PREFIX} &f%item_type% (&ax%item_amount%&f) &7is worth &b%amount% tokens&7. Type &f/token sell &7to sell this item.'
+    worth-all:
+      item-format: '&a%item_type% (x%item_amount%): &l+%amount% tokens'
+      total: '{PREFIX} &7Your inventory &f(%item_amount% items) &7is worth &b%amount% tokens&7. Type &f/token sell all &7to sell your inventory.'
 
   tokenmanager:
     usage:

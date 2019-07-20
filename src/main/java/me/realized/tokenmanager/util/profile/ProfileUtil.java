@@ -38,17 +38,18 @@ import org.bukkit.entity.Player;
 public final class ProfileUtil {
 
     private static final Pattern UUID_PATTERN = Pattern.compile("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[34][0-9a-fA-F]{3}-[89ab][0-9a-fA-F]{3}-[0-9a-fA-F]{12}");
-    private static boolean USING_SPIGOT;
-
-    static {
-        try {
-            Class.forName("org.spigotmc.SpigotConfig");
-            USING_SPIGOT = true;
-        } catch (ClassNotFoundException ignored) {}
-    }
 
     public static boolean isOnlineMode() {
-        return Bukkit.getOnlineMode() || (USING_SPIGOT && Bukkit.spigot().getConfig().getBoolean("settings.bungeecord"));
+        if (Bukkit.getOnlineMode()) {
+            return true;
+        }
+
+        try {
+            Class<?> clazz = Class.forName("org.spigotmc.SpigotConfig");
+            return (boolean) clazz.getField("bungee").get(null);
+        } catch (ClassNotFoundException | IllegalAccessException | NoSuchFieldException ex) {
+            return false;
+        }
     }
 
     public static boolean isUUID(final String s) {

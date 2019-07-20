@@ -30,6 +30,7 @@ package me.realized.tokenmanager.command.commands.subcommands;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import me.realized.tokenmanager.Permissions;
 import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.command.BaseCommand;
 import me.realized.tokenmanager.shop.Shop;
@@ -41,7 +42,7 @@ import org.bukkit.entity.Player;
 public class ShopCommand extends BaseCommand {
 
     public ShopCommand(final TokenManagerPlugin plugin) {
-        super(plugin, "shop", "shop <name>", "tokenmanager.use.shop", plugin.getConfiguration().isOpenSelectedEnabled() ? 1 : 2, true);
+        super(plugin, "shop", "shop <name>", Permissions.CMD_SHOP, plugin.getConfiguration().isOpenSelectedEnabled() ? 1 : 2, true);
     }
 
     @Override
@@ -71,8 +72,8 @@ public class ShopCommand extends BaseCommand {
             return;
         }
 
-        if (shop.get().isUsePermission() && !player.hasPermission("tokenmanager.use.shop." + target)) {
-            sendMessage(player, true, "ERROR.no-permission", "permission", "tokenmanager.use.shop." + target);
+        if (shop.get().isUsePermission() && !player.hasPermission(Permissions.SHOP + target)) {
+            sendMessage(player, true, "ERROR.no-permission", "permission", Permissions.SHOP + target);
             return;
         }
 

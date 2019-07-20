@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.OptionalLong;
 import lombok.Getter;
+import me.realized.tokenmanager.Permissions;
 import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.api.event.TMShopPurchaseEvent;
 import me.realized.tokenmanager.shop.gui.guis.ConfirmGui;
@@ -149,8 +150,8 @@ public class Slot {
 
             final Shop target = result.get();
 
-            if (target.isUsePermission() && !player.hasPermission("tokenmanager.use.shop." + target.getName())) {
-                plugin.getLang().sendMessage(player, true, "ERROR.no-permission", "permission", "tokenmanager.use.shop." + target.getName());
+            if (target.isUsePermission() && !player.hasPermission(Permissions.SHOP + target.getName())) {
+                plugin.getLang().sendMessage(player, true, "ERROR.no-permission", "permission", Permissions.SHOP + target.getName());
                 return true;
             }
 

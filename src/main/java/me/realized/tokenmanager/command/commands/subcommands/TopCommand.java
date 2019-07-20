@@ -28,6 +28,7 @@
 package me.realized.tokenmanager.command.commands.subcommands;
 
 import java.util.List;
+import me.realized.tokenmanager.Permissions;
 import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.command.BaseCommand;
 import me.realized.tokenmanager.data.database.Database.TopElement;
@@ -36,7 +37,7 @@ import org.bukkit.command.CommandSender;
 public class TopCommand extends BaseCommand {
 
     public TopCommand(final TokenManagerPlugin plugin) {
-        super(plugin, "top", "top", "tokenmanager.use.top", 1, false, "balancetop");
+        super(plugin, "top", "top", Permissions.CMD_TOP, 1, false, "balancetop");
     }
 
     @Override

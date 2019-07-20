@@ -30,6 +30,7 @@ package me.realized.tokenmanager.command.commands.subcommands;
 import java.util.Arrays;
 import java.util.List;
 import java.util.OptionalLong;
+import me.realized.tokenmanager.Permissions;
 import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.api.event.TMTokenSendEvent;
 import me.realized.tokenmanager.command.BaseCommand;
@@ -45,7 +46,7 @@ public class SendCommand extends BaseCommand {
     private static final List<String> TAB_AMOUNTS = Arrays.asList("5", "10", "25", "50", "75", "100", "500", "1000");
 
     public SendCommand(final TokenManagerPlugin plugin) {
-        super(plugin, "send", "send <username> <amount>", "tokenmanager.use.send", 3, true);
+        super(plugin, "send", "send <username> <amount>", Permissions.CMD_SEND, 3, true);
     }
 
     @Override

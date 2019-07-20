@@ -28,6 +28,7 @@
 package me.realized.tokenmanager.command.commands.subcommands;
 
 import java.util.OptionalLong;
+import me.realized.tokenmanager.Permissions;
 import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.command.BaseCommand;
 import org.bukkit.Bukkit;
@@ -56,8 +57,8 @@ public class BalanceCommand extends BaseCommand {
             return;
         }
 
-        if (!sender.hasPermission("tokenmanager.use.balance.others")) {
-            sendMessage(sender, true, "ERROR.no-permission", "permission", "tokenmanager.use.balance.others");
+        if (!sender.hasPermission(Permissions.CMD_BALANCE_OTHERS)) {
+            sendMessage(sender, true, "ERROR.no-permission", "permission", Permissions.CMD_BALANCE_OTHERS);
             return;
         }
 

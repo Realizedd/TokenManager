@@ -85,7 +85,7 @@ public class ShopManager implements Loadable, Listener {
         final Inventory clicked = InventoryUtil.getClickedInventory(event.getRawSlot(), event.getView());
         final Inventory top = player.getOpenInventory().getTopInventory();
 
-        if (clicked == null || top == null) {
+        if (clicked == null) {
             return;
         }
 
