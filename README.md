@@ -37,15 +37,23 @@ Maven:
 #### Dependency
 Gradle:
 ```groovy
-compile group: 'com.github.Realizedd', name: 'TokenManager', version: '3.2.4'
+compile (group: 'com.github.Realizedd', name: 'TokenManager', version: '3.2.4') {
+    transitive = false
+}
 ```  
 
 Maven:
 ```xml
 <dependency>
-   <groupId>com.github.Realizedd</groupId>
-   <artifactId>TokenManager</artifactId>
-   <version>3.2.4</version>
+    <groupId>com.github.Realizedd</groupId>
+    <artifactId>TokenManager</artifactId>
+    <version>3.2.4</version>
+    <exclusions>
+        <exclusion>
+            <groupId>*</groupId>
+            <artifactId>*</artifactId>
+        </exclusion>
+    </exclusions>
 </dependency>
 ```
 

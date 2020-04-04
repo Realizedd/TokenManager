@@ -1,30 +1,3 @@
-/*
- *
- *   This file is part of TokenManager, licensed under the MIT License.
- *
- *   Copyright (c) Realized
- *   Copyright (c) contributors
- *
- *   Permission is hereby granted, free of charge, to any person obtaining a copy
- *   of this software and associated documentation files (the "Software"), to deal
- *   in the Software without restriction, including without limitation the rights
- *   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- *   copies of the Software, and to permit persons to whom the Software is
- *   furnished to do so, subject to the following conditions:
- *
- *   The above copyright notice and this permission notice shall be included in all
- *   copies or substantial portions of the Software.
- *
- *   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- *   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- *   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- *   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- *   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- *   SOFTWARE.
- *
- */
-
 package me.realized.tokenmanager.config;
 
 import com.google.common.collect.Sets;
@@ -112,12 +85,47 @@ public class Lang extends AbstractConfiguration<TokenManagerPlugin> implements R
         return Sets.newHashSet("STRINGS");
     }
 
+    private String getRawMessage(final String key) {
+        final String message = messages.get(key);
+
+        if (message == null) {
+            Log.error(this, "Failed to load message: provided key '" + key + "' has no assigned value");
+            return null;
+        }
+
+        // Allow disabling any message by setting it to ''
+        if (message.isEmpty()) {
+            return null;
+        }
+
+        return message;
+    }
+
+    public String getMessage(final String key) {
+        final String message = getRawMessage(key);
+
+        if (message == null) {
+            return null;
+        }
+
+        return StringUtil.color(message);
+    }
+
+    public String getMessage(final String key, final Object... replacers) {
+        final String message = getMessage(key);
+
+        if (message == null) {
+            return null;
+        }
+
+        return replace(message, replacers);
+    }
+
     public void sendMessage(final CommandSender receiver, final boolean config, final String in, final Object... replacers) {
         if (config) {
-            String message = messages.get(in);
+            String message = getRawMessage(in);
 
             if (message == null) {
-                Log.error(this, "Failed to send message: provided key '" + in + "' has no assigned value");
                 return;
             }
 
@@ -137,6 +145,7 @@ public class Lang extends AbstractConfiguration<TokenManagerPlugin> implements R
             final Object value = replacers[i + 1];
 
             if (value instanceof Long) {
+                message = message.replace("%" + key + "_commas%", NumberUtil.withCommas((Long) value));
                 message = message.replace("%" + key + "_formatted%", NumberUtil.withSuffix((Long) value));
             }
 
@@ -146,7 +155,7 @@ public class Lang extends AbstractConfiguration<TokenManagerPlugin> implements R
         return message;
     }
 
-    private class Converter2_3 implements Converter {
+    private static class Converter2_3 implements Converter {
 
         Converter2_3() {}
 

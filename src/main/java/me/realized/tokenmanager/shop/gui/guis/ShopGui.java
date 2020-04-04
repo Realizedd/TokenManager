@@ -76,6 +76,8 @@ public class ShopGui extends BaseGui {
 
         final String slotInfo = shop.getName() + "-" + slot;
 
+        // TODO: 4/3/20 Implement cancel permission
+
         if (data.isUsePermission() && !(player.hasPermission(Permissions.SHOP + slotInfo) || player.hasPermission(Permissions.SHOP_SLOT_OLD + slotInfo))) {
             plugin.doSync(player::closeInventory);
             lang.sendMessage(player, true, "ERROR.no-permission", "permission", Permissions.SHOP + slotInfo);

@@ -1,30 +1,3 @@
-/*
- *
- *   This file is part of TokenManager, licensed under the MIT License.
- *
- *   Copyright (c) Realized
- *   Copyright (c) contributors
- *
- *   Permission is hereby granted, free of charge, to any person obtaining a copy
- *   of this software and associated documentation files (the "Software"), to deal
- *   in the Software without restriction, including without limitation the rights
- *   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- *   copies of the Software, and to permit persons to whom the Software is
- *   furnished to do so, subject to the following conditions:
- *
- *   The above copyright notice and this permission notice shall be included in all
- *   copies or substantial portions of the Software.
- *
- *   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- *   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- *   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- *   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- *   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- *   SOFTWARE.
- *
- */
-
 package me.realized.tokenmanager;
 
 import com.google.common.collect.Lists;
@@ -42,12 +15,14 @@ import me.realized.tokenmanager.config.Config;
 import me.realized.tokenmanager.config.Lang;
 import me.realized.tokenmanager.config.WorthConfig;
 import me.realized.tokenmanager.data.DataManager;
+import me.realized.tokenmanager.data.database.Database.TopElement;
 import me.realized.tokenmanager.hook.HookManager;
 import me.realized.tokenmanager.shop.Shop;
 import me.realized.tokenmanager.shop.ShopConfig;
 import me.realized.tokenmanager.shop.ShopManager;
 import me.realized.tokenmanager.util.Loadable;
 import me.realized.tokenmanager.util.Log;
+import me.realized.tokenmanager.util.NumberUtil;
 import me.realized.tokenmanager.util.Reloadable;
 import me.realized.tokenmanager.util.StringUtil;
 import org.bstats.bukkit.Metrics;
@@ -338,6 +313,75 @@ public class TokenManagerPlugin extends JavaPlugin implements TokenManager, List
             .filter(loadable -> loadable instanceof Reloadable)
             .map(loadable -> loadable.getClass().getSimpleName())
             .collect(Collectors.toList());
+    }
+
+    public String handlePlaceholderRequest(final Player player, final String identifier) {
+        if (player == null) {
+            return "Player is required";
+        }
+
+        final long balance = dataManager.get(player).orElse(0);
+
+        switch (identifier) {
+            case "tokens":
+            case "tokens_raw":
+                return String.valueOf(balance);
+            case "tokens_commas":
+                return NumberUtil.withCommas(balance);
+            case "tokens_formatted":
+                return NumberUtil.withSuffix(balance);
+        }
+
+        if (identifier.equals("rank")) {
+            final List<TopElement> top = dataManager.getTopCache();
+
+            if (top == null) {
+                return lang.getMessage("PLACEHOLDER.rank.loading");
+            }
+
+            if (top.isEmpty()) {
+                return lang.getMessage("PLACEHOLDER.rank.no-data");
+            }
+
+            for (int i = 0; i < top.size(); i++) {
+                final TopElement data = top.get(i);
+
+                if (data.getKey().equals(player.getName())) {
+                    return String.valueOf(i + 1);
+                }
+            }
+
+            return lang.getMessage("PLACEHOLDER.rank.unranked");
+        }
+
+        if (identifier.startsWith("top")) {
+            final List<TopElement> top = dataManager.getTopCache();
+
+            if (top == null) {
+                return lang.getMessage("PLACEHOLDER.top.loading");
+            }
+
+            if (top.isEmpty()) {
+                return lang.getMessage("PLACEHOLDER.top.no-data");
+            }
+
+            final String[] args = identifier.replace("top_", "").split("_");
+            final int rank = (int) Math.min(Math.max(1, NumberUtil.parseLong(args[1]).orElse(1)), 10);
+
+            if (rank > top.size()) {
+                return lang.getMessage("PLACEHOLDER.top.no-data");
+            }
+
+            final TopElement element = top.get(rank - 1);
+
+            if (args[0].equals("name")) {
+                return element.getKey();
+            } else if (args[0].equals("value")) {
+                return String.valueOf(element.getTokens());
+            }
+        }
+
+        return null;
     }
 
     @EventHandler

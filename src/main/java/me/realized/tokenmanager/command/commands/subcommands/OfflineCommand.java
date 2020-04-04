@@ -42,8 +42,8 @@ public class OfflineCommand extends BaseCommand {
 
     private final ModifyType type;
 
-    public OfflineCommand(final TokenManagerPlugin plugin, final ModifyType type, final String usage, final String... aliases) {
-        super(plugin, type.name().toLowerCase(), usage, null, 3, false, aliases);
+    public OfflineCommand(final TokenManagerPlugin plugin, final ModifyType type, final String... aliases) {
+        super(plugin, type.name().toLowerCase(), type.name().toLowerCase() + " <username> <amount>", null, 3, false, aliases);
         this.type = type;
     }
 

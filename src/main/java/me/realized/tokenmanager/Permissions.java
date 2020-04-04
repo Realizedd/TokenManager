@@ -16,7 +16,7 @@ public final class Permissions {
     public static final String CMD_WORTH_ALL = PREFIX + "use.worth.all";
 
     public static final String SHOP = PREFIX + "use.shop.";
-    public static final String SHOP_SLOT_OLD = PREFIX + "use."; // TODO: Deprecated, remove support in future versions.
+    public static final String SHOP_SLOT_OLD = PREFIX + "use.";
 
     private Permissions() {}
 }

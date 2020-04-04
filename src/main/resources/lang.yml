@@ -1,5 +1,5 @@
 # DO NOT EDIT THIS VALUE!
-config-version: 7
+config-version: 8
 
 # Define placeholders usable in any message below.
 # Example: Adding 'PREFIX: "[Cool]"' below and then putting '{PREFIX}' in a message will display '[Cool]' when the message is sent in game.
@@ -77,3 +77,12 @@ COMMAND:
   sub-command-usage: '{PREFIX} &7Usage of this sub command is ''&b/%command% %usage%&7''.'
   add: '{PREFIX} &b%amount% tokens &7has been added to your balance.'
   remove: '{PREFIX} &b%amount% tokens &7has been removed from your balance.'
+
+PLACEHOLDER:
+  rank:
+    loading: 'Loading...'
+    no-data: 'No data'
+    unranked: 'Unranked'
+  top:
+    loading: 'Loading...'
+    no-data: 'No data'
