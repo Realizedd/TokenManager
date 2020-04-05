@@ -76,7 +76,11 @@ public class ShopGui extends BaseGui {
 
         final String slotInfo = shop.getName() + "-" + slot;
 
-        // TODO: 4/3/20 Implement cancel permission
+        if (!player.isOp() && !player.hasPermission(Permissions.CMD_ADMIN) && player.hasPermission(Permissions.SHOP_SLOT_CANCEL + slotInfo)) {
+            plugin.doSync(player::closeInventory);
+            lang.sendMessage(player, true, "ERROR.on-slot-cancel");
+            return false;
+        }
 
         if (data.isUsePermission() && !(player.hasPermission(Permissions.SHOP + slotInfo) || player.hasPermission(Permissions.SHOP_SLOT_OLD + slotInfo))) {
             plugin.doSync(player::closeInventory);

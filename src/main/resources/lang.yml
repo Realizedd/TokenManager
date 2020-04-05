@@ -23,6 +23,7 @@ ERROR:
   item-is-worthless: '&cNo worth has been defined for this item.'
   inventory-is-full: '&cYour inventory is full!'
   not-enough-space: '&cYou need at least %slots% empty inventory slots to do this.'
+  on-slot-cancel: '&cYou cannot purchase this item again.'
 
 COMMAND:
   token:

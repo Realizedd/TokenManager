@@ -48,13 +48,13 @@ public class Slot {
         this.cost = cost;
         this.emptySlotsRequired = emptySlotsRequired;
         this.displayed = displayed;
-        this.message = message != null ? Placeholders.replaceLong(message, cost, "price", "cost") : null;
+        this.message = message != null ? Placeholders.replace(message, cost, "price", "cost") : null;
         this.subshop = subshop;
         this.commands = commands;
         this.usePermission = usePermission;
         this.confirmPurchase = confirmPurchase;
         commands.replaceAll(command -> {
-            command = Placeholders.replaceLong(command, cost, "price", "cost");
+            command = Placeholders.replace(command, cost, "price", "cost");
 
             if (command.startsWith("/")) {
                 command = command.substring(1);
@@ -105,12 +105,12 @@ public class Slot {
 
         if (commands != null) {
             for (final String command : commands) {
-                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), Placeholders.replaceLong(command, balance, "balance", "tokens").replace("%player%", player.getName()));
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), Placeholders.replace(command, balance, "balance", "tokens").replace("%player%", player.getName()));
             }
         }
 
         if (message != null && !message.isEmpty()) {
-            plugin.getLang().sendMessage(player, false, Placeholders.replaceLong(message, balance, "balance", "tokens"), "player", player.getName());
+            plugin.getLang().sendMessage(player, false, Placeholders.replace(message, balance, "balance", "tokens"), "player", player.getName());
         }
 
         if (subshop != null && !subshop.isEmpty()) {

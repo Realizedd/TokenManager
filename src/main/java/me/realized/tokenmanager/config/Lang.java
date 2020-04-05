@@ -8,7 +8,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.util.Log;
-import me.realized.tokenmanager.util.NumberUtil;
+import me.realized.tokenmanager.util.Placeholders;
 import me.realized.tokenmanager.util.Reloadable;
 import me.realized.tokenmanager.util.StringUtil;
 import me.realized.tokenmanager.util.config.AbstractConfiguration;
@@ -145,8 +145,7 @@ public class Lang extends AbstractConfiguration<TokenManagerPlugin> implements R
             final Object value = replacers[i + 1];
 
             if (value instanceof Long) {
-                message = message.replace("%" + key + "_commas%", NumberUtil.withCommas((Long) value));
-                message = message.replace("%" + key + "_formatted%", NumberUtil.withSuffix((Long) value));
+                message = Placeholders.replace(message, (Long) value, key);
             }
 
             message = message.replace("%" + key + "%", String.valueOf(value));

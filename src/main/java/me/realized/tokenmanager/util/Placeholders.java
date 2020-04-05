@@ -17,14 +17,7 @@ public final class Placeholders {
             final List<String> lore = meta.getLore();
             lore.replaceAll(line -> {
                 for (final String placeholder : placeholders) {
-                    if (value instanceof Number) {
-                        line = line
-                            .replace("%" + placeholder + "%", NumberUtil.withCommas(((Number) value).longValue()))
-                            .replace("%" + placeholder + " formatted%", NumberUtil.withSuffix(((Number) value).longValue()))
-                            .replace("%" + placeholder + " raw%", String.valueOf(value));
-                    } else {
-                        line = line.replace("%" + placeholder + "%", String.valueOf(value));
-                    }
+                    line = value instanceof Number ? replace(line, (Number) value, placeholder) : line.replace("%" + placeholder + "%", String.valueOf(value));
                 }
 
                 return line;
@@ -36,14 +29,8 @@ public final class Placeholders {
             String displayName = meta.getDisplayName();
 
             for (final String placeholder : placeholders) {
-                if (value instanceof Number) {
-                    displayName = displayName
-                        .replace("%" + placeholder + "%", NumberUtil.withCommas(((Number) value).longValue()))
-                        .replace("%" + placeholder + " formatted%", NumberUtil.withSuffix(((Number) value).longValue()))
-                        .replace("%" + placeholder + " raw%", String.valueOf(value));
-                } else {
-                    displayName = displayName.replace("%" + placeholder + "%", String.valueOf(value));
-                }
+                displayName =
+                    value instanceof Number ? replace(displayName, (Number) value, placeholder) : displayName.replace("%" + placeholder + "%", String.valueOf(value));
             }
 
             meta.setDisplayName(displayName);
@@ -52,12 +39,13 @@ public final class Placeholders {
         item.setItemMeta(meta);
     }
 
-    public static String replaceLong(String line, final long value, final String... placeholders) {
+    public static String replace(String line, final Number value, final String... placeholders) {
         for (final String key : placeholders) {
             line = line
-                .replace("%" + key + "%", NumberUtil.withCommas(value))
-                .replace("%" + key + "_formatted%", NumberUtil.withSuffix(value))
-                .replace("%" + key + "_raw%", String.valueOf(value));
+                .replace("%" + key + "%", String.valueOf(value))
+                .replace("%" + key + "_raw%", String.valueOf(value))
+                .replace("%" + key + "_commas%", NumberUtil.withCommas(value.longValue()))
+                .replace("%" + key + "_formatted%", NumberUtil.withSuffix(value.longValue()));
         }
         return line;
     }

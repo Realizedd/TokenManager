@@ -2,6 +2,7 @@ package me.realized.tokenmanager.shop;
 
 import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalLong;
@@ -103,7 +104,7 @@ public class ShopConfig extends AbstractConfiguration<TokenManagerPlugin> implem
                         continue;
                     }
 
-                    // TODO: 4/4/20 implement multi-line message support
+                    final Object value = slotSection.get("message");
 
                     shop.setSlot((int) slot, displayed, new Slot(
                         plugin,
@@ -112,7 +113,7 @@ public class ShopConfig extends AbstractConfiguration<TokenManagerPlugin> implem
                         slotSection.getInt("cost", 1000000),
                         slotSection.getInt("empty-slots-required", 0),
                         displayed,
-                        slotSection.getString("message"),
+                        value != null ? (value instanceof List ? StringUtil.fromList((List<?>) value) : value.toString()) : null,
                         slotSection.getString("subshop"),
                         slotSection.getStringList("commands"),
                         slotSection.getBoolean("use-permission", false),
