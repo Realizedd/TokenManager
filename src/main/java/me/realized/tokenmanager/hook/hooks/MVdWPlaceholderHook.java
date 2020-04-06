@@ -20,7 +20,7 @@ public class MVdWPlaceholderHook extends PluginHook<TokenManagerPlugin> {
 
         for (int i = 1; i <= 10; i++) {
             PlaceholderAPI.registerPlaceholder(plugin, "tm_top_name_" + i, placeholders);
-            PlaceholderAPI.registerPlaceholder(plugin, "tm_top_value_" + i, placeholders);
+            PlaceholderAPI.registerPlaceholder(plugin, "tm_top_tokens_" + i, placeholders);
         }
     }
 

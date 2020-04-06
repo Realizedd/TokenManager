@@ -376,7 +376,7 @@ public class TokenManagerPlugin extends JavaPlugin implements TokenManager, List
 
             if (args[0].equals("name")) {
                 return element.getKey();
-            } else if (args[0].equals("value")) {
+            } else if (args[0].equals("tokens")) {
                 return String.valueOf(element.getTokens());
             }
         }
