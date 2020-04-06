@@ -89,7 +89,7 @@ public class Config extends AbstractConfiguration<TokenManagerPlugin> {
         sendMin = configuration.getInt("send-amount-limit.min", 1);
         sendMax = configuration.getInt("send-amount-limit.max", -1);
         openSelectedEnabled = configuration.getBoolean("shop.open-selected.enabled", false);
-        openSelectedShop = configuration.getString("shop.open-selected.shop", "test");
+        openSelectedShop = configuration.getString("shop.open-selected.shop", "example").toLowerCase();
         confirmPurchaseTitle = configuration.getString("shop.confirm-purchase-gui.title", "Confirm Your Purchase");
         confirmPurchaseConfirm = configuration.getString("shop.confirm-purchase-gui.confirm-button", "STAINED_CLAY:5 1 name:&a&lBUY lore:&7Price:_&a%price%_tokens");
         confirmPurchaseCancel = configuration.getString("shop.confirm-purchase-gui.cancel-button", "STAINED_CLAY:14 1 name:&c&lCANCEL");

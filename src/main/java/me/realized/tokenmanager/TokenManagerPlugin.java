@@ -291,7 +291,7 @@ public class TokenManagerPlugin extends JavaPlugin implements TokenManager, List
         try {
             loadable.handleUnload();
             unloaded = true;
-            Log.info("UnLoaded " + name + ".");
+            Log.info("Unloaded " + name + ".");
             loadable.handleLoad();
             Log.info("Loaded " + name + ".");
             return true;

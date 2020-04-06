@@ -24,7 +24,7 @@ shop:
   # When the command '/token shop' is executed, enabling this option will open the specified shop below. (Even if a shop name is provided)
   open-selected:
     enabled: false
-    shop: test
+    shop: example
 
   # Settings for the confirm purchase gui.
   confirm-purchase-gui:

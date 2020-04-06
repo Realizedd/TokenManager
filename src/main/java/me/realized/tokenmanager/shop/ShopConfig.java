@@ -46,9 +46,9 @@ public class ShopConfig extends AbstractConfiguration<TokenManagerPlugin> implem
         }
 
         for (String name : section.getKeys(false)) {
-            name = name.toLowerCase();
             final ConfigurationSection shopSection = section.getConfigurationSection(name);
             final Shop shop;
+            name = name.toLowerCase();
 
             try {
                 shop = new Shop(

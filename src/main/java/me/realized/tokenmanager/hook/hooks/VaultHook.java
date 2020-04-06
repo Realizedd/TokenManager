@@ -57,7 +57,7 @@ public class VaultHook extends PluginHook<TokenManagerPlugin> {
 
         @Override
         public double getBalance(OfflinePlayer player) {
-            return player != null ? plugin.getTokens(player.getPlayer()).orElse(0) : 0;
+            return (player != null && player.getPlayer() != null) ? plugin.getTokens(player.getPlayer()).orElse(0) : 0;
         }
 
         @Override
