@@ -35,6 +35,11 @@ public class PlaceholderHook extends PluginHook<TokenManagerPlugin> {
         }
 
         @Override
+        public boolean persist() {
+            return true;
+        }
+
+        @Override
         public String onPlaceholderRequest(final Player player, final String identifier) {
             return plugin.handlePlaceholderRequest(player, identifier);
         }
