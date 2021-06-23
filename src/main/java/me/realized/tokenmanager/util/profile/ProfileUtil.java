@@ -10,8 +10,10 @@ import org.bukkit.entity.Player;
 
 public final class ProfileUtil {
 
-    private static final Pattern UUID_PATTERN = Pattern.compile("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[34][0-9a-fA-F]{3}-[89ab][0-9a-fA-F]{3}-[0-9a-fA-F]{12}");
-
+    //private static final Pattern UUID_PATTERN = Pattern.compile("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[34][0-9a-fA-F]{3}-[89ab][0-9a-fA-F]{3}-[0-9a-fA-F]{12}");
+    private static final Pattern UUID_PATTERN = Pattern.compile("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}");
+    //Remove check for [34] and [89ab] to allow the 00 uuids that Bedrock players have from Geyser.
+    
     public static boolean isOnlineMode() {
         if (Bukkit.getOnlineMode()) {
             return true;
