@@ -33,7 +33,10 @@ public class PlaceholderHook extends PluginHook<TokenManagerPlugin> {
         public String getVersion() {
             return "1.0";
         }
-
+        @Override
+        public boolean persist() {
+            return true; // This is required or else PlaceholderAPI will unregister the Expansion on reload
+        }
         @Override
         public String onPlaceholderRequest(final Player player, final String identifier) {
             return plugin.handlePlaceholderRequest(player, identifier);
