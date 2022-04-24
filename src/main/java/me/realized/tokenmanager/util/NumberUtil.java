@@ -78,6 +78,12 @@ public final class NumberUtil {
         return String.format("%.1f%c", n / Math.pow(1000, exp), "kMBTQ".charAt(exp - 1));
     }
 
+    public static boolean isLower(String version, String otherVersion) {
+        version = version.replace("-SNAPSHOT", "").replace(".", "");
+        otherVersion = otherVersion.replace("-SNAPSHOT", "").replace(".", "");
+        return NumberUtil.parseLong(version).orElse(0) < NumberUtil.parseLong(otherVersion).orElse(0);
+    }
+
 
     private NumberUtil() {}
 }

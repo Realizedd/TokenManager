@@ -25,6 +25,7 @@ import me.realized.tokenmanager.util.Log;
 import me.realized.tokenmanager.util.NumberUtil;
 import me.realized.tokenmanager.util.Reloadable;
 import me.realized.tokenmanager.util.StringUtil;
+import me.realized.tokenmanager.util.UpdateChecker;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -34,9 +35,6 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.inventivetalent.update.spiget.SpigetUpdate;
-import org.inventivetalent.update.spiget.UpdateCallback;
-import org.inventivetalent.update.spiget.comparator.VersionComparator;
 
 public class TokenManagerPlugin extends JavaPlugin implements TokenManager, Listener {
 
@@ -86,28 +84,23 @@ public class TokenManagerPlugin extends JavaPlugin implements TokenManager, List
         new TMCommand(this).register();
         new TokenCommand(this).register();
 
-        new Metrics(this);
+        new Metrics(this, 2421);
 
         if (!configuration.isCheckForUpdates()) {
             return;
         }
 
-        final SpigetUpdate updateChecker = new SpigetUpdate(this, RESOURCE_ID);
-        updateChecker.setVersionComparator(VersionComparator.SEM_VER_SNAPSHOT);
-        updateChecker.checkForUpdate(new UpdateCallback() {
-            @Override
-            public void updateAvailable(final String newVersion, final String downloadUrl, final boolean hasDirectDownload) {
+        final UpdateChecker updateChecker = new UpdateChecker(this, RESOURCE_ID);
+        updateChecker.check((hasUpdate, newVersion) -> {
+            if (hasUpdate) {
                 TokenManagerPlugin.this.updateAvailable = true;
                 TokenManagerPlugin.this.newVersion = newVersion;
                 Log.info("===============================================");
                 Log.info("An update for " + getName() + " is available!");
                 Log.info("Download " + getName() + " v" + newVersion + " here:");
-                Log.info(RESOURCE_URL);
+                Log.info(getDescription().getWebsite());
                 Log.info("===============================================");
-            }
-
-            @Override
-            public void upToDate() {
+            } else {
                 Log.info("No updates were available. You are on the latest version!");
             }
         });

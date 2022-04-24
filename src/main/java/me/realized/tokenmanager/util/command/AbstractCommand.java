@@ -63,31 +63,21 @@ public abstract class AbstractCommand<P extends JavaPlugin> implements TabComple
                 children.put(alias.toLowerCase(), child);
             }
         }
-
-        getCommand().setTabCompleter((sender, command, alias, args) -> {
-            if (args.length > 1) {
-                List<String> result;
-
-                for (final AbstractCommand<P> child : children.values()) {
-                    // Filter out unrelated sub-commands
-                    if (!child.getAliases().contains(args[0].toLowerCase())) {
-                        continue;
-                    }
-
-                    result = child.onTabComplete(sender, command, alias, args);
-
-                    if (result != null) {
-                        return result;
-                    }
-                }
-            }
-
-            return onTabComplete(sender, command, alias, args);
-        });
     }
 
     protected void handleMessage(final CommandSender sender, final MessageType type, final String... args) {
         sender.sendMessage(type.defaultMessage.format(args));
+    }
+
+
+    private PluginCommand getCommand() {
+        PluginCommand pluginCommand = plugin.getCommand(name);
+
+        if (pluginCommand == null) {
+            throw new IllegalArgumentException("Command is not registered in plugin.yml");
+        }
+
+        return pluginCommand;
     }
 
     public final void register() {
@@ -105,7 +95,7 @@ public abstract class AbstractCommand<P extends JavaPlugin> implements TabComple
             }
 
             if (args.length > 0 && children != null) {
-                final AbstractCommand child = children.get(args[0].toLowerCase());
+                final AbstractCommand<P> child = children.get(args[0].toLowerCase());
 
                 if (child == null) {
                     handleMessage(sender, MessageType.SUB_COMMAND_INVALID, label, args[0]);
@@ -134,21 +124,21 @@ public abstract class AbstractCommand<P extends JavaPlugin> implements TabComple
             execute(sender, label, args);
             return true;
         });
+        pluginCommand.setTabCompleter((sender, command, alias, args) -> {
+            if (children != null && args.length > 1) {
+                final AbstractCommand<P> child = children.get(args[0].toLowerCase());
 
-        // Use the default tab completer if no sub-commands exist
-        if (pluginCommand.getTabCompleter() == null) {
-            pluginCommand.setTabCompleter(this);
-        }
-    }
+                if (child != null) {
+                    final List<String> result = child.onTabComplete(sender, command, alias, args);
 
-    private PluginCommand getCommand() {
-        PluginCommand pluginCommand = plugin.getCommand(name);
+                    if (result != null) {
+                        return result;
+                    }
+                }
+            }
 
-        if (pluginCommand == null) {
-            throw new IllegalArgumentException("Command is not registered in plugin.yml");
-        }
-
-        return pluginCommand;
+            return onTabComplete(sender, command, alias, args);
+        });
     }
 
     @Override
