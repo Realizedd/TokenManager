@@ -19,8 +19,6 @@ import org.bukkit.inventory.meta.SkullMeta;
 
 public class ShopGui extends BaseGui {
 
-    private static final String PURCHASE_LOG = "%s (%s) purchased %s:%s for %s tokens.";
-
     private final Config config;
     private final Lang lang;
     private final DataManager dataManager;
@@ -96,11 +94,6 @@ public class ShopGui extends BaseGui {
 
         if (data.purchase(player, shop.isConfirmPurchase() || data.isConfirmPurchase(), false)) {
             refresh(player, false);
-
-            if (config.isLogPurchases()) {
-                plugin.getLogger().info(String.format(PURCHASE_LOG, player.getUniqueId(), player.getName(), shop.getName(), slot, data.getCost()));
-            }
-
             return true;
         }
 

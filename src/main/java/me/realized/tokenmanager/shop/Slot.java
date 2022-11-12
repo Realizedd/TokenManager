@@ -7,6 +7,7 @@ import lombok.Getter;
 import me.realized.tokenmanager.Permissions;
 import me.realized.tokenmanager.TokenManagerPlugin;
 import me.realized.tokenmanager.api.event.TMShopPurchaseEvent;
+import me.realized.tokenmanager.config.Config;
 import me.realized.tokenmanager.shop.gui.guis.ConfirmGui;
 import me.realized.tokenmanager.shop.gui.guis.ShopGui;
 import me.realized.tokenmanager.util.Placeholders;
@@ -17,8 +18,12 @@ import org.bukkit.inventory.ItemStack;
 
 public class Slot {
 
+    private static final String PURCHASE_LOG = "%s (%s) purchased %s:%s for %s tokens! (%s -> %s)";
+
     @Getter
     private final TokenManagerPlugin plugin;
+    @Getter
+    private final Config config;
     @Getter
     private final Shop shop;
     @Getter
@@ -43,6 +48,7 @@ public class Slot {
     public Slot(final TokenManagerPlugin plugin, final Shop shop, final int slot, final int cost, final int emptySlotsRequired, final ItemStack displayed, final String message, final String subshop,
         final List<String> commands, final boolean usePermission, final boolean confirmPurchase) {
         this.plugin = plugin;
+        this.config = plugin.getConfiguration();
         this.shop = shop;
         this.slot = slot;
         this.cost = cost;
@@ -101,6 +107,10 @@ public class Slot {
             }
 
             plugin.getDataManager().set(player, balance = balance - cost);
+        }
+
+        if (config.isLogPurchases()) {
+            plugin.getLogger().info(String.format(PURCHASE_LOG, player.getUniqueId(), player.getName(), shop.getName(), slot, cost, balance + cost, balance));
         }
 
         if (commands != null) {
