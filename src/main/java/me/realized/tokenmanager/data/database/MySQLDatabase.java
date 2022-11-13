@@ -29,6 +29,7 @@ import me.realized.tokenmanager.command.commands.subcommands.OfflineCommand.Modi
 import me.realized.tokenmanager.config.Config;
 import me.realized.tokenmanager.util.Log;
 import me.realized.tokenmanager.util.NumberUtil;
+import me.realized.tokenmanager.util.compat.CompatUtil;
 import me.realized.tokenmanager.util.profile.ProfileUtil;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.bukkit.Bukkit;
@@ -76,7 +77,7 @@ public class MySQLDatabase extends AbstractDatabase {
             .replace("%port%", config.getMysqlPort())
             .replace("%database%", config.getMysqlDatabase())
         );
-        hikariConfig.setDriverClassName("com.mysql.jdbc.Driver");
+        hikariConfig.setDriverClassName("com.mysql." + (CompatUtil.isPre1_17() ? "jdbc" : "cj") + ".Driver");
         hikariConfig.setUsername(config.getMysqlUsername());
         hikariConfig.setPassword(config.getMysqlPassword());
 
