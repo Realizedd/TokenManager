@@ -22,10 +22,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
-import org.bukkit.event.player.AsyncPlayerPreLoginEvent.Result;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.scheduler.BukkitScheduler;
 
@@ -125,20 +123,21 @@ public class DataManager implements Loadable, Listener {
         return StringUtil.format((lastUpdateMillis + 60000L * getUpdateInterval() - System.currentTimeMillis()) / 1000);
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST)
-    public void on(final AsyncPlayerPreLoginEvent event) {
-        if (database == null || event.getLoginResult() != Result.ALLOWED) {
+    @EventHandler
+    public void on(final PlayerJoinEvent event) {
+        final Player player = event.getPlayer();
+
+        if (database == null) {
             return;
         }
 
-        database.load(event, balance -> {
-            final Collection<QueuedCommand> commands = queuedCommands.asMap().remove(event.getUniqueId());
+        database.load(player, balance -> {
+            final Collection<QueuedCommand> commands = queuedCommands.asMap().remove(player.getUniqueId());
 
             if (commands == null) {
                 return balance;
             }
 
-            final Player player = Bukkit.getPlayer(event.getUniqueId());
             long total = balance;
 
             for (final QueuedCommand command : commands) {

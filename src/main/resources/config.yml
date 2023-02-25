@@ -40,7 +40,7 @@ shop:
   # If enabled, players with full inventory will not be able to purchase from token shops.
   check-inventory-full: false
 
-  # If enabled, all shop purchases will be logged to console in the following format: <uuid> (<username>) purchased <shop>:<slot> for <cost> tokens.
+  # If enabled, all shop purchases will be logged to console.
   log-purchases: false
 
 # [WARNING: DANGER ZONE]

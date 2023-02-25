@@ -1,9 +1,9 @@
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.apache.tools.ant.filters.ReplaceTokens
 
 buildscript {
     repositories {
-        jcenter()
+        mavenCentral()
+        gradlePluginPortal()
     }
 
     dependencies {
@@ -17,22 +17,9 @@ plugins {
 }
 
 group 'me.realized'
-version '3.2.6-SNAPSHOT'
+version '3.2.6'
 
 compileJava.options.encoding = 'UTF-8'
-sourceCompatibility = targetCompatibility = JavaVersion.VERSION_1_8
-
-shadowJar {
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-}
-
-clean.doFirst {
-    delete "$rootDir/out/"
-}
-
-tasks.withType(ShadowJar) {
-    destinationDir = file("$rootDir/out/")
-}
 
 processResources {
     def group = project.group.toString() + "." + project.name.toLowerCase() + ".shaded"
@@ -48,17 +35,12 @@ repositories {
 
     maven {
         name 'spigot-repo'
-        url 'https://hub.spigotmc.org/nexus/content/repositories/snapshots'
+        url 'https://hub.spigotmc.org/nexus/content/repositories/public'
     }
 
     maven {
         name 'bungeecord-repo'
         url 'https://oss.sonatype.org/content/repositories/snapshots'
-    }
-
-    maven {
-        name 'vault-repo'
-        url 'http://nexus.hc.to/content/repositories/pub_releases'
     }
 
     maven {
@@ -72,33 +54,45 @@ repositories {
     }
 
     maven {
-        name 'bstats-repo'
-        url 'http://repo.bstats.org/content/repositories/releases/'
+        name 'codemc-repo'
+        url 'https://repo.codemc.io/repository/maven-public/'
     }
 
     maven {
         name 'inventive-repo'
         url 'https://repo.inventivetalent.org/content/groups/public/'
     }
+
+    flatDir {
+        dirs "$rootDir/libs/"
+    }
 }
 
 dependencies {
+    compile 'org.projectlombok:lombok:1.18.22'
     compile 'org.spigotmc:spigot-api:1.13.2-R0.1-SNAPSHOT'
-    compile 'net.milkbowl.vault:VaultAPI:1.6'
-    compile 'me.clip:placeholderapi:2.10.5'
-    compile ('be.maximvdw:MVdWPlaceholderAPI:3.0.1-SNAPSHOT') { transitive = false }
-    compile 'org.projectlombok:lombok:1.16.20'
+    compile (name: 'MVdWPlaceholderAPI-3.1.1') {
+        transitive = false
+    }
+    compile name: 'Vault-1.6.7'
+    compile 'me.clip:placeholderapi:2.10.9'
 
     // shaded dependencies
-    compile 'redis.clients:jedis:2.9.0'
+    compile 'redis.clients:jedis:3.5.1'
     compile 'org.apache.commons:commons-pool2:2.4.2'
-    compile 'com.zaxxer:HikariCP:2.7.8'
-    compile 'org.slf4j:slf4j-nop:1.7.25'
-    compile 'org.bstats:bstats-bukkit:1.2'
-    compile 'org.inventivetalent.spiget-update:bukkit:1.4.2-SNAPSHOT'
+    compile 'com.zaxxer:HikariCP:4.0.2'
+    compile 'org.slf4j:slf4j-nop:1.7.32'
+    compile 'org.bstats:bstats-bukkit:1.7'
+}
+
+clean.doFirst {
+    delete "$rootDir/out/"
 }
 
 shadowJar {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    destinationDir = file("$rootDir/out/")
+    sourceCompatibility = targetCompatibility = JavaVersion.VERSION_1_8
     baseName = 'TokenManager'
     classifier = null
 
@@ -108,7 +102,6 @@ shadowJar {
         include(dependency('com.zaxxer:.*'))
         include(dependency('org.slf4j:.*'))
         include(dependency('org.bstats:.*'))
-        include(dependency('org.inventivetalent.spiget-update:.*'))
     }
 
     def group = project.group.toString() + "." + project.name.toLowerCase() + ".shaded."
@@ -118,7 +111,6 @@ shadowJar {
     relocate 'com.zaxxer.hikari', group + 'zaxxer.hikari'
     relocate 'org.slf4j', group + "slf4j"
     relocate 'org.bstats', group + 'bstats'
-    relocate 'org.inventivetalent.update.spiget', group + 'update.spiget'
 }
 
 build.dependsOn(shadowJar)

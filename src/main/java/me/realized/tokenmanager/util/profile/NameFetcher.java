@@ -24,7 +24,7 @@ public final class NameFetcher {
 
     private static final ScheduledExecutorService EXECUTOR_SERVICE = Executors.newSingleThreadScheduledExecutor();
     private static final String MOJANG_URL = "https://sessionserver.mojang.com/session/minecraft/profile/";
-    private static final String GAMEAPIS_URL = "https://ss.gameapis.net/name/";
+    private static final String MINETOOLS_URL = "https://api.minetools.eu/uuid/";
     private static final JSONParser JSON_PARSER = new JSONParser();
     private static final Cache<UUID, String> UUID_TO_NAME = CacheBuilder.newBuilder()
         .concurrencyLevel(4)
@@ -56,7 +56,7 @@ public final class NameFetcher {
                 }
 
                 final JSONObject response = (JSONObject) JSON_PARSER.parse(new InputStreamReader(stream));
-                final String name = (String) response.get("name");
+                final  String name = (String) response.get("name");
 
                 if (name != null) {
                     UUID_TO_NAME.put(uuid, name);
@@ -96,7 +96,7 @@ public final class NameFetcher {
                 if ((player = Bukkit.getPlayer(first.uuid)) != null) {
                     name = player.getName();
                 } else {
-                    name = getName(first.uuid, first.attempts == 0 ? MOJANG_URL : GAMEAPIS_URL);
+                    name = getName(first.uuid, first.attempts == 0 ? MINETOOLS_URL : MOJANG_URL);
                 }
 
                 first.attempts++;
