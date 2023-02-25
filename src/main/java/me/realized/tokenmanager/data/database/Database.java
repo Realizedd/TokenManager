@@ -7,7 +7,6 @@ import java.util.function.Function;
 import me.realized.tokenmanager.command.commands.subcommands.OfflineCommand.ModifyType;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 
 public interface Database {
 
@@ -34,7 +33,7 @@ public interface Database {
 
     void set(final String key, final ModifyType type, final long amount, final long balance, final boolean silent, final Runnable onDone, final Consumer<String> onError);
 
-    void load(final AsyncPlayerPreLoginEvent event, final Function<Long, Long> modifyLoad);
+    void load(final Player player, final Function<Long, Long> modifyLoad);
 
     void load(final Player player);
 

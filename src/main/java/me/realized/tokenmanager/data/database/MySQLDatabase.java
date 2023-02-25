@@ -39,7 +39,6 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
-import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
@@ -48,7 +47,6 @@ import redis.clients.jedis.exceptions.JedisConnectionException;
 
 public class MySQLDatabase extends AbstractDatabase {
 
-    private static final long LOGIN_WAIT_DURATION = 30L;
     private static final String SERVER_MODE_MISMATCH = "Server is in %s mode, but found table '%s' does not have column '%s'! Please choose a different table name.";
     private final String table;
     private final ExecutorService executor;
@@ -170,24 +168,15 @@ public class MySQLDatabase extends AbstractDatabase {
     }
 
     @Override
-    public void load(final AsyncPlayerPreLoginEvent event, final Function<Long, Long> modifyLoad) {
-        load(online ? event.getUniqueId().toString() : event.getName(), event.getUniqueId(), modifyLoad);
-    }
-
-    @Override
-    public void load(final Player player) {
-        load(from(player), player.getUniqueId(), null);
-    }
-
-    private void load(final String key, final UUID uuid, final Function<Long, Long> modifyLoad) {
-        plugin.doAsyncLater(() -> get(key, balance -> {
+    public void load(final Player player, final Function<Long, Long> modifyLoad) {
+        plugin.doAsync(() -> get(from(player), balance -> {
             if (!balance.isPresent()) {
                 return;
             }
 
             plugin.doSync(() -> {
                 // Cancel caching if player has left before loading was completed
-                if (Bukkit.getPlayer(uuid) == null) {
+                if (!player.isOnline()) {
                     return;
                 }
 
@@ -197,9 +186,14 @@ public class MySQLDatabase extends AbstractDatabase {
                     totalBalance = modifyLoad.apply(totalBalance);
                 }
 
-                data.put(uuid, totalBalance);
+                data.put(player.getUniqueId(), totalBalance);
             });
-        }, null, true), LOGIN_WAIT_DURATION);
+        }, null, true));
+    }
+
+    @Override
+    public void load(final Player player) {
+        load(player, null);
     }
 
     @Override

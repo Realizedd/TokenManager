@@ -2,7 +2,6 @@ package me.realized.tokenmanager.shop.gui.guis;
 
 import me.realized.tokenmanager.Permissions;
 import me.realized.tokenmanager.TokenManagerPlugin;
-import me.realized.tokenmanager.config.Config;
 import me.realized.tokenmanager.config.Lang;
 import me.realized.tokenmanager.data.DataManager;
 import me.realized.tokenmanager.shop.Shop;
@@ -19,13 +18,11 @@ import org.bukkit.inventory.meta.SkullMeta;
 
 public class ShopGui extends BaseGui {
 
-    private final Config config;
     private final Lang lang;
     private final DataManager dataManager;
 
     public ShopGui(final TokenManagerPlugin plugin, final Shop shop) {
         super(plugin, shop, Bukkit.createInventory(null, shop.getSize(), shop.getTitle()));
-        this.config = plugin.getConfiguration();
         this.lang = plugin.getLang();
         this.dataManager = plugin.getDataManager();
     }

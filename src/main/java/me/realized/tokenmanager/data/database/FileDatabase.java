@@ -30,7 +30,6 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
-import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 
 public class FileDatabase extends AbstractDatabase {
 
@@ -134,8 +133,8 @@ public class FileDatabase extends AbstractDatabase {
     }
 
     @Override
-    public void load(final AsyncPlayerPreLoginEvent event, final Function<Long, Long> modifyLoad) {
-        plugin.doSync(() -> get(online ? event.getUniqueId().toString() : event.getName(), null, null, true));
+    public void load(final Player player, final Function<Long, Long> modifyLoad) {
+        plugin.doSync(() -> get(online ? player.getUniqueId().toString() : player.getName(), null, null, true));
     }
 
     @Override
