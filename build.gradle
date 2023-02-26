@@ -17,7 +17,7 @@ plugins {
 }
 
 group 'me.realized'
-version '3.2.6'
+version '3.2.7'
 
 compileJava.options.encoding = 'UTF-8'
 

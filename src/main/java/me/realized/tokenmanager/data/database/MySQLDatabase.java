@@ -75,7 +75,7 @@ public class MySQLDatabase extends AbstractDatabase {
             .replace("%port%", config.getMysqlPort())
             .replace("%database%", config.getMysqlDatabase())
         );
-        hikariConfig.setDriverClassName("com.mysql." + (CompatUtil.isPre1_17() ? "jdbc" : "cj") + ".Driver");
+        hikariConfig.setDriverClassName("com.mysql." + (CompatUtil.isPre1_17() ? "" : "cj.") + "jdbc.Driver");
         hikariConfig.setUsername(config.getMysqlUsername());
         hikariConfig.setPassword(config.getMysqlPassword());
 
