@@ -82,7 +82,7 @@ shops:
         commands:
         - 'give %player% LAVA_BUCKET 2'
       '5':
-        displayed: CHEST 1 name:&6examplesubshop lore:&7Opens_&6examplesubshop&7.
+        displayed: CHEST 1 custommodeldata:1 name:&6examplesubshop lore:&7Opens_&6examplesubshop&7.
         cost: 0
         subshop: examplesubshop # Name of a subshop to open when this item is clicked on
       '6':

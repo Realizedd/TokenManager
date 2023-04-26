@@ -2,6 +2,8 @@ package me.realized.tokenmanager.util.profile;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -17,15 +19,13 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 
 public final class NameFetcher {
 
     private static final ScheduledExecutorService EXECUTOR_SERVICE = Executors.newSingleThreadScheduledExecutor();
     private static final String MOJANG_URL = "https://sessionserver.mojang.com/session/minecraft/profile/";
     private static final String MINETOOLS_URL = "https://api.minetools.eu/uuid/";
-    private static final JSONParser JSON_PARSER = new JSONParser();
+    private static final JsonParser JSON_PARSER = new JsonParser();
     private static final Cache<UUID, String> UUID_TO_NAME = CacheBuilder.newBuilder()
         .concurrencyLevel(4)
         .maximumSize(1000)
@@ -55,8 +55,8 @@ public final class NameFetcher {
                     return null;
                 }
 
-                final JSONObject response = (JSONObject) JSON_PARSER.parse(new InputStreamReader(stream));
-                final  String name = (String) response.get("name");
+                final JsonObject response = (JsonObject) JSON_PARSER.parse(new InputStreamReader(stream));
+                final  String name = response.get("name").getAsString();
 
                 if (name != null) {
                     UUID_TO_NAME.put(uuid, name);
