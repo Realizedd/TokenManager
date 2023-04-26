@@ -17,7 +17,7 @@ plugins {
 }
 
 group 'me.realized'
-version '3.2.7'
+version '3.2.8'
 
 compileJava.options.encoding = 'UTF-8'
 
@@ -70,7 +70,7 @@ repositories {
 
 dependencies {
     compile 'org.projectlombok:lombok:1.18.22'
-    compile 'org.spigotmc:spigot-api:1.13.2-R0.1-SNAPSHOT'
+    compile 'org.spigotmc:spigot-api:1.14.4-R0.1-SNAPSHOT'
     compile (name: 'MVdWPlaceholderAPI-3.1.1') {
         transitive = false
     }

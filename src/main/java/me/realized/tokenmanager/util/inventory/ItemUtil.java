@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.OptionalLong;
 import java.util.function.Consumer;
@@ -12,8 +13,6 @@ import me.realized.tokenmanager.util.NumberUtil;
 import me.realized.tokenmanager.util.StringUtil;
 import me.realized.tokenmanager.util.compat.CompatUtil;
 import me.realized.tokenmanager.util.compat.Items;
-import me.realized.tokenmanager.util.compat.Potions;
-import me.realized.tokenmanager.util.compat.Potions.PotionType;
 import me.realized.tokenmanager.util.compat.Skulls;
 import me.realized.tokenmanager.util.compat.SpawnEggs;
 import me.realized.tokenmanager.util.compat.Terracottas;
@@ -27,8 +26,10 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.inventory.meta.SkullMeta;
+import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.potion.PotionType;
 
 public final class ItemUtil {
 
@@ -133,14 +134,16 @@ public final class ItemUtil {
             // Handle potions and spawn eggs switching to NBT in 1.9+
             if (!CompatUtil.isPre1_9()) {
                 if (material.name().contains("POTION")) {
-                    final String[] values = materialData[1].split("-");
+                    final List<String> values = Arrays.asList(materialData[1].split("-"));
                     final PotionType type;
 
-                    if ((type = EnumUtil.getByName(values[0], PotionType.class)) == null) {
-                        throw new IllegalArgumentException("'" + values[0] + "' is not a valid PotionType. Available: " + EnumUtil.getNames(PotionType.class));
+                    if ((type = EnumUtil.getByName(values.get(0), PotionType.class)) == null) {
+                        throw new IllegalArgumentException("'" + values.get(0) + "' is not a valid PotionType. Available: " + EnumUtil.getNames(PotionType.class));
                     }
 
-                    result = new Potions(type, Arrays.asList(values)).toItemStack();
+                    final PotionMeta meta = (PotionMeta) result.getItemMeta();
+                    meta.setBasePotionData(new PotionData(type, values.contains("extended"), values.contains("strong")));
+                    result.setItemMeta(meta);
                 } else if (CompatUtil.isPre1_13() && material.name().equals("MONSTER_EGG")) {
                     final EntityType type;
 
@@ -285,6 +288,11 @@ public final class ItemUtil {
             final String[] values = value.split(",");
             leatherArmorMeta.setColor(Color.fromRGB(Integer.parseInt(values[0]), Integer.parseInt(values[1]), Integer.parseInt(values[2])));
             item.setItemMeta(leatherArmorMeta);
+        }
+
+        if (key.equalsIgnoreCase("custommodeldata") && !CompatUtil.isPre1_14()) {
+            meta.setCustomModelData(Integer.parseInt(value));
+            item.setItemMeta(meta);
         }
     }
 

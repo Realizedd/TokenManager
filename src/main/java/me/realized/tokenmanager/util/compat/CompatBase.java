@@ -19,12 +19,12 @@ class CompatBase {
 
     static {
         final Class<?> CB_ITEMSTACK = ReflectionUtil.getCBClass("inventory.CraftItemStack");
-        final Class<?> NMS_ITEMSTACK = ReflectionUtil.getNMSClass("ItemStack");
+        final Class<?> NMS_ITEMSTACK = ReflectionUtil.getNMSClass((ReflectionUtil.getMajorVersion() >= 17 ? "world.item." : "") + "ItemStack");
         AS_NMS_COPY = ReflectionUtil.getMethod(CB_ITEMSTACK, "asNMSCopy", ItemStack.class);
         AS_BUKKIT_COPY = ReflectionUtil.getMethod(CB_ITEMSTACK, "asBukkitCopy", NMS_ITEMSTACK);
-        TAG_COMPOUND = ReflectionUtil.getNMSClass("NBTTagCompound");
+        TAG_COMPOUND = ReflectionUtil.getNMSClass((ReflectionUtil.getMajorVersion() >= 17 ? "nbt." : "") + "NBTTagCompound");
 
-        final Class<?> TAG_BASE = ReflectionUtil.getNMSClass("NBTBase");
+        final Class<?> TAG_BASE = ReflectionUtil.getNMSClass((ReflectionUtil.getMajorVersion() >= 17 ? "nbt." : "") + "NBTBase");
         GET_TAG = ReflectionUtil.getMethod(NMS_ITEMSTACK, "getTag");
         SET_TAG = ReflectionUtil.getMethod(NMS_ITEMSTACK, "setTag", TAG_COMPOUND);
         SET = ReflectionUtil.getMethod(TAG_COMPOUND, "set", String.class, TAG_BASE);
