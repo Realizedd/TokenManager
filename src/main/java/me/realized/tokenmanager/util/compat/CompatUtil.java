@@ -8,8 +8,8 @@ public final class CompatUtil {
     private static final long SUB_VERSION;
 
     static {
-        final String packageName = Bukkit.getServer().getClass().getPackage().getName();
-        SUB_VERSION = NumberUtil.parseLong(packageName.substring(packageName.lastIndexOf('.') + 1).split("_")[1]).orElse(0);
+        final String packageName = Bukkit.getServer().getBukkitVersion().split(".")[1];
+        SUB_VERSION = NumberUtil.parseLong(packageName).orElse(0);
     }
 
     private CompatUtil() {}
