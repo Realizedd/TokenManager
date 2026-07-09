@@ -4,6 +4,7 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import java.io.File;
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -69,6 +70,7 @@ public class MySQLDatabase extends AbstractDatabase {
     @Override
     public void setup() throws Exception {
         final Config config = plugin.getConfiguration();
+        this.createDatabase(config);
         final HikariConfig hikariConfig = new HikariConfig();
         hikariConfig.setJdbcUrl(config.getMysqlUrl()
             .replace("%hostname%", config.getMysqlHostname())
@@ -114,6 +116,19 @@ public class MySQLDatabase extends AbstractDatabase {
                     throw new Exception(String.format(SERVER_MODE_MISMATCH, online ? "ONLINE" : "OFFLINE", table, online ? "uuid" : "name"));
                 }
             }
+        }
+    }
+    private void createDatabase(final Config config) {
+        String configUrl  = config.getMysqlUrl()
+                .replace("%hostname%", config.getMysqlHostname())
+                .replace("%port%", config.getMysqlPort())
+                .replace("%database%", "");
+        try (Connection connection = DriverManager.getConnection(configUrl, config.getMysqlUsername(), config.getMysqlPassword());
+             Statement statement = connection.createStatement()) {
+            statement.executeUpdate("CREATE DATABASE IF NOT EXISTS " + config.getMysqlDatabase());
+        } catch (SQLException ex) {
+            Log.error("Failed to connect to create the database!");
+            Log.error("Cause of error: " + ex.getMessage());
         }
     }
 

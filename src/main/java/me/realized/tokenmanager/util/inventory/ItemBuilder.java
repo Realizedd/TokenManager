@@ -2,6 +2,7 @@ package me.realized.tokenmanager.util.inventory;
 
 import java.util.Arrays;
 import java.util.List;
+
 import me.realized.tokenmanager.util.StringUtil;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -12,7 +13,7 @@ public final class ItemBuilder {
     private final ItemStack result;
 
     private ItemBuilder(final Material type, final int amount, final short durability) {
-        this.result = new ItemStack(type, amount, durability);
+        this.result = new ItemStack(type == null ? Material.STONE : type, amount, durability);
     }
 
     public static ItemBuilder of(final Material type) {

@@ -18,12 +18,18 @@ public final class Items {
         RED_PANE = (CompatUtil.isPre1_13() ? ItemBuilder.of(PANE, 1, (short) 14) : ItemBuilder.of(Material.RED_STAINED_GLASS_PANE)).name(" ").build();
         GRAY_PANE = (CompatUtil.isPre1_13() ? ItemBuilder.of(PANE, 1, (short) 7) : ItemBuilder.of(Material.GRAY_STAINED_GLASS_PANE)).name(" ").build();
         GREEN_PANE = (CompatUtil.isPre1_13() ? ItemBuilder.of(PANE, 1, (short) 13) : ItemBuilder.of(Material.GREEN_STAINED_GLASS_PANE)).name(" ").build();
-        HEAD = (CompatUtil.isPre1_13() ? ItemBuilder.of("SKULL_ITEM", 1, (short) 3) : ItemBuilder.of(Material.PLAYER_HEAD)).build();
+
+        Material skull = Material.getMaterial("PLAYER_HEAD");
+        if (skull == null) {
+            skull = Material.getMaterial("SKULL_ITEM");
+        }
+        HEAD = (CompatUtil.isPre1_13() ? ItemBuilder.of(skull, 1, (short) 3) : ItemBuilder.of(skull)).build();
     }
 
     public static boolean equals(final ItemStack item, final ItemStack other) {
         return item.getType() == other.getType() && item.getDurability() == other.getDurability();
     }
 
-    private Items() {}
+    private Items() {
+    }
 }

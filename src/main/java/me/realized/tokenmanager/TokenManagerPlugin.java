@@ -1,6 +1,6 @@
 package me.realized.tokenmanager;
 
-import com.google.common.collect.Lists;
+//import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -139,7 +139,7 @@ public class TokenManagerPlugin extends JavaPlugin implements TokenManager, List
      * @return true if unload was successful, otherwise false
      */
     private boolean unload() {
-        for (final Loadable loadable : Lists.reverse(loadables)) {
+        for (final Loadable loadable : loadables) {
             try {
                 if (loadables.indexOf(loadable) > lastLoad) {
                     continue;

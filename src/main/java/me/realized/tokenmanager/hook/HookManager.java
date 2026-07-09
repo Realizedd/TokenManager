@@ -14,7 +14,7 @@ public class HookManager extends AbstractHookManager<TokenManagerPlugin> {
 
     @Override
     public void handleLoad() {
-        register("MVdWPlaceholderAPI", MVdWPlaceholderHook.class);
+        //register("MVdWPlaceholderAPI", MVdWPlaceholderHook.class);
         register("PlaceholderAPI", PlaceholderHook.class);
         register("Vault", VaultHook.class);
     }

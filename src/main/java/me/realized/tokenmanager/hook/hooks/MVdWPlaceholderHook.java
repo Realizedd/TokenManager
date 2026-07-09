@@ -8,7 +8,8 @@ import me.realized.tokenmanager.util.hook.PluginHook;
 
 public class MVdWPlaceholderHook extends PluginHook<TokenManagerPlugin> {
 
-    public MVdWPlaceholderHook(final TokenManagerPlugin plugin) {
+
+   public MVdWPlaceholderHook(final TokenManagerPlugin plugin) {
         super(plugin, "MVdWPlaceholderAPI");
 
         final Placeholders placeholders = new Placeholders();

@@ -132,7 +132,7 @@ public final class ItemUtil {
 
         if (materialData.length > 1) {
             // Handle potions and spawn eggs switching to NBT in 1.9+
-            if (!CompatUtil.isPre1_9()) {
+            if (!CompatUtil.isPre1_9() && !CompatUtil.isAfter1_20()) {
                 if (material.name().contains("POTION")) {
                     final List<String> values = Arrays.asList(materialData[1].split("-"));
                     final PotionType type;

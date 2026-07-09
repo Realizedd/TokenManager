@@ -1,4 +1,3 @@
-import org.apache.tools.ant.filters.ReplaceTokens
 
 buildscript {
     repositories {
@@ -6,28 +5,31 @@ buildscript {
         gradlePluginPortal()
     }
 
-    dependencies {
-        classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.4'
-    }
+
+/*    dependencies {
+        classpath 'com.github.jengelman.gradle.plugins:shadow:8.0.0'
+    }*/
+
 }
+
 
 plugins {
     id 'java'
-    id 'com.github.johnrengelman.shadow' version '2.0.4'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
 }
 
 group 'me.realized'
-version '3.2.8'
+version '3.2.9-1'
 
 compileJava.options.encoding = 'UTF-8'
 
 processResources {
     def group = project.group.toString() + "." + project.name.toLowerCase() + ".shaded"
 
-    from(sourceSets.main.resources.srcDirs) {
-        include '**/*.yml'
+   /* from(sourceSets.main.resources.srcDirs) {
+        include '**.yml'
         filter(ReplaceTokens, tokens: [NAME: project.name, VERSION: project.version, SHADED_GROUP: group])
-    }
+    }*/
 }
 
 repositories {
@@ -42,15 +44,14 @@ repositories {
         name 'bungeecord-repo'
         url 'https://oss.sonatype.org/content/repositories/snapshots'
     }
-
-    maven {
+    maven { url 'https://jitpack.io' }
+/*    maven {
         name 'mvdw-repo'
         url 'http://repo.mvdw-software.be/content/groups/public/'
-    }
+    }*/
 
     maven {
-        name 'clip-repo'
-        url 'http://repo.extendedclip.com/content/repositories/placeholderapi/'
+        url = 'https://repo.extendedclip.com/releases/'
     }
 
     maven {
@@ -58,10 +59,12 @@ repositories {
         url 'https://repo.codemc.io/repository/maven-public/'
     }
 
+
     maven {
         name 'inventive-repo'
         url 'https://repo.inventivetalent.org/content/groups/public/'
     }
+
 
     flatDir {
         dirs "$rootDir/libs/"
@@ -69,20 +72,22 @@ repositories {
 }
 
 dependencies {
-    compile 'org.projectlombok:lombok:1.18.22'
-    compile 'org.spigotmc:spigot-api:1.14.4-R0.1-SNAPSHOT'
-    compile (name: 'MVdWPlaceholderAPI-3.1.1') {
+    compileOnly 'org.projectlombok:lombok:1.18.32'
+    annotationProcessor 'org.projectlombok:lombok:1.18.32'
+
+    compileOnly 'org.spigotmc:spigot-api:1.14.4-R0.1-SNAPSHOT'
+    compileOnly (name: 'MVdWPlaceholderAPI-3.1.1') {
         transitive = false
     }
-    compile name: 'Vault-1.6.7'
-    compile 'me.clip:placeholderapi:2.10.9'
+    compileOnly "com.github.MilkBowl:VaultAPI:1.7"
+    compileOnly 'me.clip:placeholderapi:2.12.3'
 
     // shaded dependencies
-    compile 'redis.clients:jedis:3.5.1'
-    compile 'org.apache.commons:commons-pool2:2.4.2'
-    compile 'com.zaxxer:HikariCP:4.0.2'
-    compile 'org.slf4j:slf4j-nop:1.7.32'
-    compile 'org.bstats:bstats-bukkit:1.7'
+    implementation 'redis.clients:jedis:5.1.2'
+    implementation 'org.apache.commons:commons-pool2:2.12.0'
+    implementation 'com.zaxxer:HikariCP:4.0.3'
+    implementation 'org.slf4j:slf4j-nop:2.0.13'
+    implementation 'org.bstats:bstats-bukkit:3.0.2'
 }
 
 clean.doFirst {
@@ -90,11 +95,13 @@ clean.doFirst {
 }
 
 shadowJar {
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    destinationDir = file("$rootDir/out/")
-    sourceCompatibility = targetCompatibility = JavaVersion.VERSION_1_8
-    baseName = 'TokenManager'
-    classifier = null
+    //duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    setDestinationDirectory(file("$rootDir/out/"))
+   // destinationDir = file("$rootDir/out/")
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+//    baseName = 'TokenManager'
+//    classifier = null
 
     dependencies {
         include(dependency('redis.clients:.*'))
